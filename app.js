@@ -99,12 +99,11 @@ const DEFAULT_SETTINGS = {
 // State & Storage
 const state = {
   selectedDay: null,
-  mode: "guided",
   stepIndex: 0,
   setIndex: 1,
   roundIndex: 1,
   supersetPartIndex: 0,
-  phase: "ready", // ready, work, rest, timer
+  phase: "exercise", // exercise, rest, timer
   intervalPhase: "hard", // hard, easy
   startedAt: null,
   sessionRecords: [],
@@ -115,7 +114,8 @@ const state = {
   timerDone: null,
   wakeLock: null,
   deferredPrompt: null,
-  audioCtx: null
+  audioCtx: null,
+  padSelectedSeconds: 60
 };
 
 const els = {};
@@ -302,19 +302,16 @@ function playTone(freq, type, durationMs, gainLevel = 0.1, delayMs = 0) {
 }
 
 function playStartChime() {
-  // Rising 2-tone chime (D5 -> A5)
   playTone(587.33, "sine", 120, 0.12, 0);
   playTone(880.00, "sine", 200, 0.14, 110);
 }
 
 function playCountdownTick(secondsLeft) {
-  // Warning tick at 3, 2, 1 seconds
   const freq = secondsLeft === 1 ? 880 : 740;
   playTone(freq, "triangle", 90, 0.15, 0);
 }
 
 function playFinishChime() {
-  // Distinct celebratory double completion chime (A5 -> D6)
   playTone(880.00, "sine", 160, 0.15, 0);
   playTone(1174.66, "triangle", 320, 0.18, 140);
 }
@@ -373,7 +370,7 @@ function renderDays() {
       </div>
       <div class="day-card-meta">
         <span>⏱ ${workout.duration}</span>
-        <span class="day-card-preview-btn">View Plan ➔</span>
+        <span class="day-card-preview-btn">Start Workout ➔</span>
       </div>
     </button>
   `).join("");
@@ -439,7 +436,7 @@ function openDayOverview(day) {
       <div>
         <p class="eyebrow">${workout.label} Overview</p>
         <h3 style="margin-bottom: 2px;">${workout.title}</h3>
-        <p class="modal-subtitle">⏱ Estimated: ${workout.duration} · ${workout.steps.length} Steps</p>
+        <p class="modal-subtitle">⏱ Estimated: ${workout.duration} · ${workout.steps.length} Exercises/Steps</p>
       </div>
       <button id="closeOverviewBtn" class="danger-link" type="button" style="font-size: 1.25rem;">✕</button>
     </div>
@@ -451,19 +448,16 @@ function openDayOverview(day) {
     </div>
 
     <div class="modal-actions" style="margin-top: 18px;">
-      <button class="primary-btn" id="startGuidedFromOverview" type="button">▶️ Start Guided Mode</button>
-      <button class="secondary-btn" id="startFlowFromOverview" type="button">⚡ Start Flow</button>
+      <button class="primary-btn" id="startWorkoutBtn" type="button">▶️ Begin Workout</button>
+      <button class="ghost-btn" id="closeOverviewSecondary" type="button">Close</button>
     </div>
   `;
 
   document.getElementById("closeOverviewBtn").addEventListener("click", () => els.workoutOverviewDialog.close());
-  document.getElementById("startGuidedFromOverview").addEventListener("click", () => {
+  document.getElementById("closeOverviewSecondary").addEventListener("click", () => els.workoutOverviewDialog.close());
+  document.getElementById("startWorkoutBtn").addEventListener("click", () => {
     els.workoutOverviewDialog.close();
-    startSession(day, "guided");
-  });
-  document.getElementById("startFlowFromOverview").addEventListener("click", () => {
-    els.workoutOverviewDialog.close();
-    startSession(day, "flow");
+    startSession(day);
   });
 
   if (typeof els.workoutOverviewDialog.showModal === "function") {
@@ -520,7 +514,7 @@ function openWorkoutRoadmap() {
   els.roadmapModalContent.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
       <div>
-        <p class="eyebrow">${workout.label} Live Plan</p>
+        <p class="eyebrow">${workout.label} Workout Plan</p>
         <h3 style="margin-bottom: 2px;">Workout Roadmap</h3>
         <p class="modal-subtitle">Step ${currentStepNum} of ${total} · ${pct}% Completed</p>
       </div>
@@ -561,7 +555,7 @@ function jumpToStep(targetIdx) {
   state.roundIndex = 1;
   state.supersetPartIndex = 0;
   state.remaining = 0;
-  state.phase = "ready";
+  state.phase = "exercise";
   renderSession();
 }
 
@@ -573,7 +567,6 @@ function saveActiveSession() {
   }
   store.activeSession = {
     selectedDay: state.selectedDay,
-    mode: state.mode,
     stepIndex: state.stepIndex,
     setIndex: state.setIndex,
     roundIndex: state.roundIndex,
@@ -618,12 +611,11 @@ function resumeSavedSession() {
   if (!saved) return;
   stopTimer();
   state.selectedDay = saved.selectedDay;
-  state.mode = saved.mode || "guided";
   state.stepIndex = saved.stepIndex || 0;
   state.setIndex = saved.setIndex || 1;
   state.roundIndex = saved.roundIndex || 1;
   state.supersetPartIndex = saved.supersetPartIndex || 0;
-  state.phase = saved.phase || "ready";
+  state.phase = saved.phase || "exercise";
   state.intervalPhase = saved.intervalPhase || "hard";
   state.startedAt = saved.startedAt || Date.now();
   state.sessionRecords = saved.sessionRecords || [];
@@ -638,15 +630,14 @@ function discardSavedSession() {
 }
 
 // Workout Session Flow
-function startSession(day, mode = "guided") {
+function startSession(day) {
   stopTimer();
   state.selectedDay = day;
-  state.mode = mode;
   state.stepIndex = 0;
   state.setIndex = 1;
   state.roundIndex = 1;
   state.supersetPartIndex = 0;
-  state.phase = "ready";
+  state.phase = "exercise";
   state.intervalPhase = "hard";
   state.startedAt = Date.now();
   state.sessionRecords = [];
@@ -673,13 +664,12 @@ function currentPlayable() {
   return step.parts[state.supersetPartIndex];
 }
 
-// Next Step Preview Helper (For UP NEXT card)
+// Next Step Preview Helper
 function getNextStepPreview() {
   const workout = currentWorkout();
   const step = currentStep();
   if (!step) return null;
 
-  // If in standard exercise
   if (step.type === "exercise") {
     if (state.setIndex < step.sets) {
       return {
@@ -688,20 +678,18 @@ function getNextStepPreview() {
         equipment: step.equipment
       };
     }
-    // Next step in workout
     const nextStepObj = workout.steps[state.stepIndex + 1];
-    if (!nextStepObj) return { title: "🎉 Workout Finish", detail: "Cooldown & Save", equipment: "None" };
+    if (!nextStepObj) return { title: "🎉 Workout Complete", detail: "Save & Finish", equipment: "None" };
     return formatStepSummary(nextStepObj);
   }
 
-  // If in superset
   if (step.type === "superset") {
     const nextPartIdx = state.supersetPartIndex + 1;
     if (nextPartIdx < step.parts.length) {
       const nextPart = step.parts[nextPartIdx];
       if (nextPart.type === "transition") {
         const afterTransition = step.parts[nextPartIdx + 1];
-        return afterTransition ? formatStepSummary(afterTransition) : { title: "Next Round", detail: "Superset", equipment: "" };
+        return afterTransition ? formatStepSummary(afterTransition) : { title: "Next Movement", detail: "Superset", equipment: "" };
       }
       return {
         title: nextPart.name,
@@ -718,11 +706,10 @@ function getNextStepPreview() {
       };
     }
     const nextStepObj = workout.steps[state.stepIndex + 1];
-    if (!nextStepObj) return { title: "🎉 Workout Finish", detail: "Cooldown & Save", equipment: "None" };
+    if (!nextStepObj) return { title: "🎉 Workout Complete", detail: "Save & Finish", equipment: "None" };
     return formatStepSummary(nextStepObj);
   }
 
-  // Timed, intervals, equipment
   if (step.type === "intervals") {
     if (state.intervalPhase === "hard") {
       return { title: "Easy Recovery Walk/Jog", detail: `Round ${state.roundIndex} of ${step.rounds}`, equipment: "Active rest" };
@@ -733,7 +720,7 @@ function getNextStepPreview() {
   }
 
   const nextStepObj = workout.steps[state.stepIndex + 1];
-  if (!nextStepObj) return { title: "🎉 Workout Finish", detail: "Cooldown & Save", equipment: "None" };
+  if (!nextStepObj) return { title: "🎉 Workout Complete", detail: "Save & Finish", equipment: "None" };
   return formatStepSummary(nextStepObj);
 }
 
@@ -771,6 +758,119 @@ function upNextMarkup() {
   `;
 }
 
+// Step Pills Strip at Top of Workout Screen
+function stepCarouselMarkup() {
+  const workout = currentWorkout();
+  const pills = workout.steps.map((step, idx) => {
+    const isDone = idx < state.stepIndex;
+    const isActive = idx === state.stepIndex;
+    const cls = isActive ? "step-pill pill-active" : isDone ? "step-pill pill-done" : "step-pill";
+    const icon = isDone ? "✓" : `${idx + 1}.`;
+    let label = step.name;
+    if (step.type === "equipment") label = "Gear Change";
+    return `<button class="${cls}" data-jump="${idx}" type="button">${icon} ${label}</button>`;
+  }).join("");
+
+  return `<div class="step-carousel-wrapper">${pills}</div>`;
+}
+
+function statusMarkup(progress, total, extra = "") {
+  return `
+    <div class="workout-header-bar">
+      <div class="workout-stats-pill">
+        <span>${currentWorkout().label} · Step ${Math.min(state.stepIndex + 1, total)} of ${total}</span>
+        <span class="pct-badge">${progress}% DONE</span>
+      </div>
+      <button class="roadmap-toggle-btn" data-action="open-roadmap" type="button">📋 Full Plan</button>
+    </div>
+    ${stepCarouselMarkup()}
+    ${extra}
+  `;
+}
+
+// Interactive Sets Table Builder
+function setsTableMarkup(ex, last) {
+  const targetRepsDefault = defaultTargetReps(ex.target);
+  let rows = "";
+
+  for (let s = 1; s <= ex.sets; s++) {
+    const isDone = s < state.setIndex;
+    const isActive = s === state.setIndex;
+    const isUpcoming = s > state.setIndex;
+
+    // Find if we already recorded reps for this set in today's workout
+    const todayRecord = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === s);
+    const lastRecord = last && last.records && last.records[s - 1];
+
+    let lastSummary = "-";
+    if (lastRecord) {
+      if (lastRecord.left !== undefined) lastSummary = `${lastRecord.left}L/${lastRecord.right}R`;
+      else if (lastRecord.reps !== undefined) lastSummary = `${lastRecord.reps} reps`;
+    }
+
+    if (isDone) {
+      let logged = todayRecord ? (todayRecord.left !== undefined ? `${todayRecord.left}L/${todayRecord.right}R` : `${todayRecord.reps} reps`) : "✓ Done";
+      rows += `
+        <div class="set-row set-row-done">
+          <span class="set-num-badge">${s}</span>
+          <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
+          <span style="color: var(--muted); font-size: 0.85rem;">${lastSummary}</span>
+          <span style="color: var(--accent-2); font-weight: 800;">${logged} ✅</span>
+        </div>
+      `;
+    } else if (isActive) {
+      let inputHtml = "";
+      if (ex.unilateral) {
+        inputHtml = `
+          <div class="unilateral-inputs-wrap">
+            <input id="left" inputmode="numeric" type="number" min="0" max="99" value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L">
+            <input id="right" inputmode="numeric" type="number" min="0" max="99" value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R">
+          </div>
+        `;
+      } else {
+        inputHtml = `<input id="reps" class="set-rep-input" inputmode="numeric" type="number" min="0" max="99" value="${todayRecord?.reps ?? targetRepsDefault}">`;
+      }
+
+      rows += `
+        <div class="set-row set-row-active">
+          <span class="set-num-badge">${s}</span>
+          <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
+          <span style="color: var(--muted); font-size: 0.85rem;">${lastSummary}</span>
+          <div>${inputHtml}</div>
+        </div>
+      `;
+    } else {
+      rows += `
+        <div class="set-row set-row-upcoming">
+          <span class="set-num-badge">${s}</span>
+          <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
+          <span style="color: var(--muted); font-size: 0.85rem;">${lastSummary}</span>
+          <span style="color: var(--muted);">-</span>
+        </div>
+      `;
+    }
+  }
+
+  return `
+    <div class="sets-table-card">
+      <div class="sets-table-header">
+        <span>Set</span>
+        <span>Target</span>
+        <span>Last</span>
+        <span>${ex.unilateral ? "L / R Reps" : "Reps"}</span>
+      </div>
+      ${rows}
+    </div>
+  `;
+}
+
+function defaultTargetReps(target) {
+  const match = target.match(/(\d+)\s*-\s*(\d+)/);
+  if (match) return Number(match[1]); // e.g. 8 for 8-15
+  const single = target.match(/(\d+)/);
+  return single ? Number(single[1]) : 10;
+}
+
 function renderSession() {
   saveActiveSession();
   const step = currentStep();
@@ -786,33 +886,21 @@ function renderSession() {
   renderExercise(step, progress, total, null);
 }
 
-function statusMarkup(progress, total, extra = "") {
-  return `
-    <div class="workout-header-bar">
-      <div class="workout-stats-pill">
-        <span>${currentWorkout().label} · Step ${Math.min(state.stepIndex + 1, total)} of ${total}</span>
-        <span class="pct-badge">${progress}% DONE</span>
-      </div>
-      <button class="roadmap-toggle-btn" data-action="open-roadmap" type="button">📋 View Plan</button>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-    ${extra}
-  `;
-}
-
 function renderExercise(ex, progress, total, supersetLabel) {
   const last = getLastExercise(ex.id);
   const restTime = ex.restSeconds || store.settings.defaultRest;
+
   els.sessionPanel.innerHTML = `
     ${statusMarkup(progress, total, supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
     <h2 class="exercise-name">${ex.name}</h2>
-    <p class="equipment">${ex.equipment}</p>
-    <div class="target"><strong>Set ${state.setIndex} of ${ex.sets}</strong><br>Target: ${ex.target} · Rest: ${restTime}s</div>
-    ${repInputs(ex)}
+    <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest between sets</p>
+    ${setsTableMarkup(ex, last)}
     ${upNextMarkup()}
-    ${lastSessionMarkup(ex, last)}
     ${cueMarkup(ex.cues)}
-    ${actionMarkup(ex)}
+    <div class="session-actions" style="margin-top: 18px;">
+      <button class="primary-btn" data-action="complete-set" type="button">✓ Log Set ${state.setIndex} & Rest (${restTime}s)</button>
+      <button class="ghost-btn" data-action="end-session" type="button">✕ Exit</button>
+    </div>
   `;
   bindSessionButtons(ex);
 }
@@ -835,12 +923,11 @@ function renderTransition(step, part, progress, total) {
     ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
     ${upNextMarkup()}
     <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "Start"}</button>
-      <button class="secondary-btn" data-action="skip" type="button">Skip</button>
+      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "▶ Start Transition Timer"}</button>
+      <button class="secondary-btn" data-action="skip" type="button">Ready Now ➔</button>
     </div>
   `;
   bindSessionButtons(part);
-  if (state.mode === "flow" && state.phase !== "timer") startCountdown(sec, nextStepUnit);
 }
 
 function renderTimed(step, progress, total) {
@@ -848,12 +935,12 @@ function renderTimed(step, progress, total) {
     ${statusMarkup(progress, total)}
     <h2 class="exercise-name">${step.name}</h2>
     <p class="equipment">${step.equipment}</p>
-    ${activeTimerMarkup("WORK", step.seconds, "phase-work")}
+    ${activeTimerMarkup("WORK TIMER", step.seconds, "phase-work")}
     ${upNextMarkup()}
     ${cueMarkup(step.cues)}
     <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "Start"}</button>
-      <button class="secondary-btn" data-action="skip" type="button">Skip</button>
+      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "▶ Start Timer"}</button>
+      <button class="secondary-btn" data-action="skip" type="button">Complete ➔</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -866,11 +953,11 @@ function renderEquipment(step, progress, total) {
     <span class="badge badge-rest">Equipment Change</span>
     <h2 class="exercise-name">Convert Gear</h2>
     <p class="equipment">${step.from} ➔ ${step.to}</p>
-    ${activeTimerMarkup("READY TIMER", sec, "phase-rest")}
+    ${activeTimerMarkup("GEAR TIMER", sec, "phase-rest")}
     ${upNextMarkup()}
     <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="ready-early" type="button">Ready Early</button>
-      <button class="secondary-btn" data-action="start-timer" type="button">${state.running ? "Running" : `Start ${sec}s`}</button>
+      <button class="primary-btn" data-action="ready-early" type="button">Ready Now ➔</button>
+      <button class="secondary-btn" data-action="start-timer" type="button">${state.running ? "Running" : `▶ Start ${sec}s Timer`}</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -878,7 +965,7 @@ function renderEquipment(step, progress, total) {
 
 function renderIntervals(step, progress, total) {
   const isHard = state.intervalPhase === "hard";
-  const label = isHard ? "HARD EFFORT" : "EASY RECOVERY";
+  const label = isHard ? "HARD SPRINT" : "EASY RECOVERY";
   const phaseClass = isHard ? "phase-hard" : "phase-easy";
   const badgeClass = isHard ? "badge-hard" : "badge-easy";
   const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 75);
@@ -886,12 +973,12 @@ function renderIntervals(step, progress, total) {
   els.sessionPanel.innerHTML = `
     ${statusMarkup(progress, total, `<span class="badge ${badgeClass}">Round ${state.roundIndex} of ${step.rounds} · ${label}</span>`)}
     <h2 class="exercise-name">${step.name}</h2>
-    <p class="equipment">${isHard ? "Hard effort 8-9/10 rate of perceived exertion." : "Active recovery walk / gentle breathing jog."}</p>
+    <p class="equipment">${isHard ? "⚡ 8-9/10 exertion sprint." : "🚶 Active recovery walk / gentle breathing jog."}</p>
     ${activeTimerMarkup(label, seconds, phaseClass)}
     ${upNextMarkup()}
     <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="start-interval" type="button">${state.running ? "Pause / Resume" : "Start Interval"}</button>
-      <button class="secondary-btn" data-action="skip" type="button">Skip Round</button>
+      <button class="primary-btn" data-action="start-interval" type="button">${state.running ? "Pause / Resume" : `▶ Start ${label} (${seconds}s)`}</button>
+      <button class="secondary-btn" data-action="skip" type="button">Next Round ➔</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -930,48 +1017,17 @@ function activeTimerMarkup(label, seconds, phaseClass = "phase-rest") {
   `;
 }
 
-function repInputs(ex) {
-  if (ex.unilateral) {
-    const labels = ex.unilateral === "arm" ? ["Left", "Right"] : ex.unilateral === "leg" ? ["Left Leg", "Right Leg"] : ["Left Side", "Right Side"];
-    return `<div class="rep-grid">${labels.map((label, index) => repField(index === 0 ? "left" : "right", label)).join("")}</div>`;
-  }
-  return `<div class="rep-grid">${repField("reps", "Actual reps completed")}</div>`;
-}
-
-function repField(id, label) {
-  return `<div class="rep-field"><label for="${id}">${label}</label><input id="${id}" inputmode="numeric" type="number" min="0" max="99" placeholder="0"></div>`;
-}
-
-function actionMarkup(ex) {
-  return `
-    <div class="session-actions">
-      <button class="primary-btn" data-action="complete-set" type="button">✓ Log Set & Rest</button>
-      <button class="secondary-btn" data-action="start-work" type="button">${state.mode === "guided" ? "⏱ Work Timer" : "Run Flow"}</button>
-      <button class="ghost-btn" data-action="toggle-mode" type="button">${state.mode === "guided" ? "Flow" : "Guided"}</button>
-      <button class="ghost-btn" data-action="end-session" type="button">End</button>
-    </div>
-  `;
-}
-
 function cueMarkup(cues = []) {
   if (!cues.length) return "";
   return `<ul class="cue-list">${cues.map((cue) => `<li>${cue}</li>`).join("")}</ul>`;
 }
 
-function lastSessionMarkup(ex, last) {
-  if (!last) return "";
-  const progression = isReadyToProgress(ex, last) ? `<div class="ready">🔥 READY TO PROGRESS (+Weight/Reps)</div>` : "";
-  return `
-    <div class="last-session">
-      <strong>Previous Session:</strong> ${formatRecordSummary(last)}
-      ${progression}
-    </div>
-  `;
-}
-
 function bindSessionButtons(context) {
   els.sessionPanel.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", () => handleAction(button.dataset.action, context));
+  });
+  els.sessionPanel.querySelectorAll("[data-jump]").forEach((button) => {
+    button.addEventListener("click", () => jumpToStep(parseInt(button.dataset.jump, 10)));
   });
   const center = document.getElementById("timerCenterClick");
   if (center) center.addEventListener("click", openTimerModal);
@@ -980,12 +1036,12 @@ function bindSessionButtons(context) {
 function handleAction(action, context) {
   if (action === "open-roadmap") openWorkoutRoadmap();
   if (action === "complete-set") completeSet(context);
-  if (action === "start-work") startWork(context);
-  if (action === "toggle-mode") toggleMode();
-  if (action === "end-session") finishSession();
+  if (action === "end-session") {
+    if (confirm("End and save workout now?")) finishSession();
+  }
   if (action === "ready-early") nextStepUnit();
   if (action === "start-timer") {
-    const sec = context.seconds || context.workSeconds || store.settings.defaultRest;
+    const sec = context.seconds || store.settings.defaultRest;
     startCountdown(sec, nextStepUnit);
   }
   if (action === "start-interval") startInterval(context);
@@ -994,42 +1050,10 @@ function handleAction(action, context) {
   if (action === "minus") adjustTimer(-15);
   if (action === "custom-time") openTimerModal();
   if (action === "skip") nextStepUnit();
-  if (action === "skip-work") {
-    stopTimer();
-    renderSession();
-  }
 }
 
-function startWork(ex) {
-  renderWorkTimer(ex);
-  if (state.mode === "flow") {
-    startCountdown(ex.workSeconds, () => completeSet(ex, true));
-    return;
-  }
-  startCountdown(ex.workSeconds, () => {
-    notifyDone();
-    renderSession();
-  });
-}
-
-function renderWorkTimer(ex) {
-  els.sessionPanel.innerHTML = `
-    ${statusMarkup(Math.round((state.stepIndex / currentWorkout().steps.length) * 100), currentWorkout().steps.length)}
-    <h2 class="exercise-name">${ex.name}</h2>
-    <p class="equipment">${ex.equipment}</p>
-    <div class="target"><strong>Set ${state.setIndex} of ${ex.sets}</strong><br>Target: ${ex.target}</div>
-    ${activeTimerMarkup("WORK SET", ex.workSeconds, "phase-work")}
-    ${upNextMarkup()}
-    <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="complete-set" type="button">✓ Complete Set</button>
-      <button class="secondary-btn" data-action="skip-work" type="button">Skip Timer</button>
-    </div>
-  `;
-  bindSessionButtons(ex);
-}
-
-function completeSet(ex, fromFlow = false) {
-  if (!fromFlow) recordReps(ex);
+function completeSet(ex) {
+  recordReps(ex);
   const step = currentStep();
   if (step.type === "superset") {
     advanceSuperset();
@@ -1077,11 +1101,6 @@ function advanceSuperset() {
   }
   if (state.supersetPartIndex < step.parts.length) {
     renderSession();
-    if (state.mode === "flow") {
-      const next = currentPlayable();
-      const seconds = next.type === "transition" ? next.seconds : next.workSeconds;
-      startCountdown(seconds, next.type === "transition" ? nextStepUnit : () => completeSet(next, true));
-    }
     return;
   }
   if (state.roundIndex < step.rounds) {
@@ -1096,22 +1115,26 @@ function advanceSuperset() {
 
 function startRest(seconds) {
   state.phase = "rest";
+  const step = currentStep();
+  const next = getNextStepPreview();
+
   els.sessionPanel.innerHTML = `
     ${statusMarkup(Math.round((state.stepIndex / currentWorkout().steps.length) * 100), currentWorkout().steps.length)}
     <span class="badge badge-rest">Resting</span>
     <h2 class="exercise-name">Rest & Recover</h2>
-    <p class="equipment">Deep breaths. Prepare for next movement.</p>
-    ${activeTimerMarkup("REST", seconds, "phase-rest")}
+    <p class="equipment">Take deep breaths. Prepare for next set.</p>
+    ${activeTimerMarkup("REST TIMER", seconds, "phase-rest")}
     ${upNextMarkup()}
+    <div class="session-actions" style="margin-top: 14px;">
+      <button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Next Set ➔</button>
+    </div>
   `;
   bindSessionButtons({});
+
   startCountdown(seconds, () => {
     notifyDone();
+    state.phase = "exercise";
     renderSession();
-    if (state.mode === "flow") {
-      const next = currentPlayable();
-      if (next && next.type === "exercise") startCountdown(next.workSeconds, () => completeSet(next, true));
-    }
   });
 }
 
@@ -1137,7 +1160,6 @@ function startInterval(step) {
       state.intervalPhase = "easy";
     }
     renderSession();
-    startInterval(step);
   });
 }
 
@@ -1147,7 +1169,6 @@ function startCountdown(seconds, onDone) {
   state.remaining = seconds;
   state.totalTimerSeconds = seconds;
   state.running = true;
-  state.phase = "timer";
   state.timerDone = onDone;
   updateTimerDisplay();
   playStartChime();
@@ -1164,7 +1185,7 @@ function startCountdown(seconds, onDone) {
     if (state.remaining <= 0) {
       stopTimer();
       notifyDone();
-      onDone();
+      if (onDone) onDone();
     }
   }, 1000);
 }
@@ -1281,13 +1302,9 @@ function nextStep() {
   state.roundIndex = 1;
   state.supersetPartIndex = 0;
   state.remaining = 0;
+  state.phase = "exercise";
   if (state.stepIndex >= currentWorkout().steps.length) finishSession();
   else renderSession();
-}
-
-function toggleMode() {
-  state.mode = state.mode === "guided" ? "flow" : "guided";
-  renderSession();
 }
 
 function finishSession() {
@@ -1310,7 +1327,7 @@ function finishSession() {
   els.sessionPanel.innerHTML = `
     <span class="badge badge-work">Complete</span>
     <h2 class="exercise-name">Session Complete!</h2>
-    <p class="equipment">Great work. Your reps and weights are saved automatically on this device.</p>
+    <p class="equipment">Great work. Your reps and workout records are saved automatically.</p>
     <div class="session-actions">
       <button class="primary-btn" data-action="new-session" type="button">Choose Workout</button>
       <button class="secondary-btn" data-action="history" type="button">View History</button>
@@ -1331,7 +1348,7 @@ function elapsedSeconds() {
 function renderHistory() {
   const history = store.history;
   if (!history.length) {
-    els.historyList.innerHTML = `<div class="history-card"><p>No saved workouts yet. Complete a guided session and it will appear here automatically.</p></div>`;
+    els.historyList.innerHTML = `<div class="history-card"><p>No saved workouts yet. Complete a session and it will appear here automatically.</p></div>`;
     return;
   }
   els.historyList.innerHTML = history.map((session) => `
@@ -1360,27 +1377,6 @@ function getLastExercise(exerciseId) {
     if (records.length) return { session, records };
   }
   return null;
-}
-
-function formatRecordSummary(last) {
-  return last.records.map((record) => {
-    if (record.left !== undefined || record.right !== undefined) return `${record.left ?? "-"}L / ${record.right ?? "-"}R`;
-    return `${record.reps ?? "-"} reps`;
-  }).join(" · ");
-}
-
-function isReadyToProgress(ex, last) {
-  const max = targetMax(ex.target);
-  if (!max || !last.records.length) return false;
-  return last.records.every((record) => {
-    if (record.left !== undefined || record.right !== undefined) return Number(record.left) >= max && Number(record.right) >= max;
-    return Number(record.reps) >= max;
-  });
-}
-
-function targetMax(target) {
-  const ranges = target.match(/(\d+)\s*-\s*(\d+)/);
-  return ranges ? Number(ranges[2]) : null;
 }
 
 // Settings & Timers Management
