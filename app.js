@@ -123,7 +123,8 @@ const state = {
   wakeLock: null,
   deferredPrompt: null,
   audioCtx: null,
-  padSelectedSeconds: 60
+  padSelectedSeconds: 60,
+  focusedDay: "monday"
 };
 
 const els = {};
@@ -192,7 +193,7 @@ document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   cacheEls();
-  renderDays();
+  renderDaySelector();
   renderRecovery();
   bindGlobalEvents();
   renderHistory();
@@ -205,7 +206,8 @@ function init() {
 
 function cacheEls() {
   [
-    "dayGrid", "recoveryInfo", "sessionPanel", "historyList", "clearHistoryBtn",
+    "workoutSelectionWrapper", "daySelectDropdown", "dayChipsGrid", "selectedDayCard", "recoveryDrawer",
+    "recoveryInfo", "sessionPanel", "historyList", "clearHistoryBtn",
     "soundQuickToggle", "soundInput", "testSoundBtn", "vibrationInput", "wakeLockInput",
     "defaultRestInput", "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput",
     "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
@@ -233,6 +235,21 @@ function bindGlobalEvents() {
     "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput"
   ].forEach((id) => {
     if (els[id]) els[id].addEventListener("change", saveSettings);
+  });
+
+  // Mobile Day Selector Events
+  if (els.daySelectDropdown) {
+    els.daySelectDropdown.addEventListener("change", (e) => {
+      state.focusedDay = e.target.value;
+      renderDaySelector();
+    });
+  }
+
+  document.querySelectorAll(".day-chip-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.focusedDay = btn.dataset.day;
+      renderDaySelector();
+    });
   });
 
   // Mobile Timer Pad Events
@@ -369,22 +386,47 @@ function updateSoundQuickBtn() {
 }
 
 // Navigation & Screen Rendering
-function renderDays() {
-  els.dayGrid.innerHTML = Object.entries(WORKOUTS).map(([key, workout]) => `
-    <button class="day-card" type="button" data-day="${key}">
-      <div>
-        <strong>${workout.label}</strong>
-        <span class="day-title">${workout.title}</span>
-      </div>
-      <div class="day-card-meta">
-        <span>⏱ ${workout.duration}</span>
-        <span class="day-card-preview-btn">Start Workout ➔</span>
-      </div>
-    </button>
-  `).join("");
-  els.dayGrid.querySelectorAll(".day-card").forEach((card) => {
-    card.addEventListener("click", () => openDayOverview(card.dataset.day));
+function renderDaySelector() {
+  const current = state.focusedDay || "monday";
+  if (els.daySelectDropdown) els.daySelectDropdown.value = current;
+
+  document.querySelectorAll(".day-chip-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.day === current);
   });
+
+  renderSelectedDayCard(current);
+}
+
+function renderSelectedDayCard(day) {
+  const workout = WORKOUTS[day];
+  if (!workout || !els.selectedDayCard) return;
+
+  const equipmentChips = (workout.equipmentNeeded || []).map((eq) => `<span class="equipment-chip">🔧 ${eq}</span>`).join("");
+  const totalExercises = workout.steps.length;
+
+  els.selectedDayCard.innerHTML = `
+    <div class="selected-day-top">
+      <div>
+        <span class="selected-day-tag">${workout.label} Workout</span>
+        <h3 class="selected-day-title">${workout.title}</h3>
+      </div>
+      <span class="selected-day-duration">⏱ ${workout.duration}</span>
+    </div>
+
+    ${equipmentChips ? `<div class="equipment-tag-cloud" style="margin: 4px 0 0;">${equipmentChips}</div>` : ""}
+
+    <div style="color: var(--muted); font-size: 0.85rem; font-weight: 700;">
+      📋 ${totalExercises} Exercises / Stages · Auto-guided set & rest timers
+    </div>
+
+    <div class="selected-day-actions">
+      <button class="primary-btn" id="startSelectedDayBtn" type="button">▶️ Begin ${workout.label}</button>
+      <button class="secondary-btn" id="overviewSelectedDayBtn" type="button">📋 Full Plan</button>
+    </div>
+  `;
+
+  document.getElementById("startSelectedDayBtn")?.addEventListener("click", () => startSession(day));
+  document.getElementById("overviewSelectedDayBtn")?.addEventListener("click", () => openDayOverview(day));
 }
 
 function renderRecovery() {
@@ -628,6 +670,7 @@ function resumeSavedSession() {
   state.startedAt = saved.startedAt || Date.now();
   state.sessionRecords = saved.sessionRecords || [];
   els.sessionPanel.classList.remove("hidden");
+  if (els.workoutSelectionWrapper) els.workoutSelectionWrapper.classList.add("hidden");
   els.resumeBanner.classList.add("hidden");
   requestWakeLock();
   renderSession();
@@ -650,6 +693,7 @@ function startSession(day) {
   state.startedAt = Date.now();
   state.sessionRecords = [];
   els.sessionPanel.classList.remove("hidden");
+  if (els.workoutSelectionWrapper) els.workoutSelectionWrapper.classList.add("hidden");
   checkResumeBanner();
   saveActiveSession();
   requestWakeLock();
@@ -1478,6 +1522,7 @@ function finishSession() {
   `;
   els.sessionPanel.querySelector("[data-action='new-session']").addEventListener("click", () => {
     els.sessionPanel.classList.add("hidden");
+    if (els.workoutSelectionWrapper) els.workoutSelectionWrapper.classList.remove("hidden");
     checkResumeBanner();
   });
   els.sessionPanel.querySelector("[data-action='history']").addEventListener("click", () => switchScreen("history"));
