@@ -6,6 +6,7 @@ const WORKOUTS = {
     label: "Monday",
     title: "Upper + Secondary Legs + Abs",
     duration: "40-45 min",
+    equipmentNeeded: ["20 kg Barbell", "2 x 10 kg Dumbbells", "Flat Bench / Mat"],
     steps: [
       exercise("barbell-row", "Barbell Bent-Over Row", "20 kg barbell", "4 x 8-15", 4, 45, 85, ["Hinge at hips.", "Neutral spine.", "Pull toward lower ribs/navel.", "Controlled lowering."]),
       exercise("floor-press", "Barbell Floor Press", "20 kg barbell", "4 x 8-15", 4, 45, 85, ["Controlled descent.", "Upper arms gently contact floor.", "Drive upward."]),
@@ -31,6 +32,7 @@ const WORKOUTS = {
     label: "Tuesday",
     title: "VO2 Max + Mobility",
     duration: "25-30 min",
+    equipmentNeeded: ["Running Track / Treadmill / Bike", "Yoga Mat"],
     steps: [
       timed("warmup", "Warm-Up + Mobility", "Easy walk/jog + mobility", 300, ["World's Greatest Stretch.", "Knee-to-wall ankle mobilisation.", "Leg swings.", "2-3 short accelerations."]),
       intervals("vo2", "VO2 Intervals", 8, 60, "easyRecoverySeconds"),
@@ -41,9 +43,10 @@ const WORKOUTS = {
     label: "Thursday",
     title: "Power + Main Legs + Functional Strength",
     duration: "40-45 min",
+    equipmentNeeded: ["20 kg Barbell", "10 kg Dumbbell", "Elevated Step / Box"],
     steps: [
       exercise("squat-jumps", "Squat Jumps", "Bodyweight", "3 x 3-5", 3, 20, 75, ["Explosive jump.", "Controlled/quiet landing.", "Stop if power noticeably deteriorates."]),
-      exercise("zercher-squat", "Zercher Squat", "20 kg barbell", "4 x 8-15", 4, 50, 90, ["Brace.", "Controlled descent.", "Strong drive upward."]),
+      exercise("zercher-squat", "Zercher Squat", "20 kg barbell", "4 x 8-15", 4, 50, 90, ["Brace core tightly.", "Controlled descent.", "Strong drive upward."]),
       exercise("romanian-deadlift", "Romanian Deadlift", "20 kg barbell", "4 x 8-15", 4, 50, 90, ["Push hips backward.", "Keep bar close.", "Controlled spine.", "Stop if it reproduces lower-back pain."]),
       equipment("20 kg barbell", "2 x 10 kg dumbbells", 90),
       superset("Superset A", 3, 60, [
@@ -58,6 +61,7 @@ const WORKOUTS = {
     label: "Friday",
     title: "Upper Hypertrophy + Abs + Rotation",
     duration: "35-40 min",
+    equipmentNeeded: ["2 x 10 kg Dumbbells", "Incline Bench", "Resistance Band / Cable"],
     steps: [
       exercise("dumbbell-bench-press", "Dumbbell Bench Press", "2 x 10 kg DB", "4 x 8-15", 4, 45, 75, ["Controlled descent.", "Full press at top."]),
       exercise("incline-dumbbell-row", "Incline Dumbbell Row", "2 x 10 kg DB", "4 x 8-15", 4, 45, 75, ["Chest supported on incline.", "Pull through elbows."]),
@@ -197,6 +201,8 @@ function cacheEls() {
     "soundQuickToggle", "soundInput", "testSoundBtn", "vibrationInput", "wakeLockInput",
     "defaultRestInput", "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput",
     "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
+    "workoutOverviewDialog", "overviewModalContent",
+    "workoutRoadmapDialog", "roadmapModalContent",
     "editTimerDialog", "editTimerForm", "customTimerMinutes", "customTimerSeconds", "cancelTimerModalBtn"
   ].forEach((id) => (els[id] = document.getElementById(id)));
 }
@@ -299,11 +305,9 @@ function playFinishChime() {
 
 function playIntervalCue(isHard) {
   if (isHard) {
-    // High energy start alert
     playTone(1046.50, "square", 150, 0.12, 0);
     playTone(1318.51, "sine", 250, 0.14, 120);
   } else {
-    // Calming recovery chime
     playTone(659.25, "sine", 180, 0.10, 0);
     playTone(440.00, "sine", 280, 0.10, 140);
   }
@@ -351,11 +355,14 @@ function renderDays() {
         <strong>${workout.label}</strong>
         <span class="day-title">${workout.title}</span>
       </div>
-      <span class="day-duration">⏱ ${workout.duration}</span>
+      <div class="day-card-meta">
+        <span>⏱ ${workout.duration}</span>
+        <span class="day-card-preview-btn">View Plan ➔</span>
+      </div>
     </button>
   `).join("");
   els.dayGrid.querySelectorAll(".day-card").forEach((card) => {
-    card.addEventListener("click", () => startSession(card.dataset.day));
+    card.addEventListener("click", () => openDayOverview(card.dataset.day));
   });
 }
 
@@ -370,6 +377,176 @@ function switchScreen(name) {
   if (screenEl) screenEl.classList.add("active-screen");
   if (name === "history") renderHistory();
   if (name === "settings") renderSettings();
+}
+
+// Day Overview Pre-Workout Modal
+function openDayOverview(day) {
+  const workout = WORKOUTS[day];
+  if (!workout) return;
+
+  const equipmentChips = (workout.equipmentNeeded || []).map((eq) => `<span class="equipment-chip">🔧 ${eq}</span>`).join("");
+
+  const stepsList = workout.steps.map((step, idx) => {
+    let title = "";
+    let desc = "";
+    if (step.type === "exercise") {
+      title = `${idx + 1}. ${step.name}`;
+      desc = `${step.sets} sets · Target: ${step.target} · ${step.equipment}`;
+    } else if (step.type === "superset") {
+      const partsSummary = step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ");
+      title = `${idx + 1}. ${step.name} (${step.rounds} rounds)`;
+      desc = partsSummary;
+    } else if (step.type === "equipment") {
+      title = `${idx + 1}. Convert Gear`;
+      desc = `${step.from} ➔ ${step.to}`;
+    } else if (step.type === "intervals") {
+      title = `${idx + 1}. ${step.name}`;
+      desc = `${step.rounds} rounds (60s Hard / Recovery)`;
+    } else if (step.type === "timed") {
+      title = `${idx + 1}. ${step.name}`;
+      desc = `${formatDuration(step.seconds)} · ${step.equipment}`;
+    }
+
+    return `
+      <div class="roadmap-item">
+        <div class="roadmap-status-icon">📌</div>
+        <div class="roadmap-info">
+          <strong>${title}</strong>
+          <span>${desc}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  els.overviewModalContent.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <p class="eyebrow">${workout.label} Overview</p>
+        <h3 style="margin-bottom: 2px;">${workout.title}</h3>
+        <p class="modal-subtitle">⏱ Estimated: ${workout.duration} · ${workout.steps.length} Steps</p>
+      </div>
+      <button id="closeOverviewBtn" class="danger-link" type="button" style="font-size: 1.25rem;">✕</button>
+    </div>
+
+    ${equipmentChips ? `<div class="equipment-tag-cloud">${equipmentChips}</div>` : ""}
+
+    <div class="roadmap-list" style="max-height: 48vh; overflow-y: auto;">
+      ${stepsList}
+    </div>
+
+    <div class="modal-actions" style="margin-top: 18px;">
+      <button class="primary-btn" id="startGuidedFromOverview" type="button">▶️ Start Guided Mode</button>
+      <button class="secondary-btn" id="startFlowFromOverview" type="button">⚡ Start Flow</button>
+    </div>
+  `;
+
+  document.getElementById("closeOverviewBtn").addEventListener("click", () => els.workoutOverviewDialog.close());
+  document.getElementById("startGuidedFromOverview").addEventListener("click", () => {
+    els.workoutOverviewDialog.close();
+    startSession(day, "guided");
+  });
+  document.getElementById("startFlowFromOverview").addEventListener("click", () => {
+    els.workoutOverviewDialog.close();
+    startSession(day, "flow");
+  });
+
+  if (typeof els.workoutOverviewDialog.showModal === "function") {
+    els.workoutOverviewDialog.showModal();
+  }
+}
+
+// In-Workout Roadmap / Plan Modal
+function openWorkoutRoadmap() {
+  if (!state.selectedDay) return;
+  const workout = currentWorkout();
+  const total = workout.steps.length;
+  const currentStepNum = state.stepIndex + 1;
+  const pct = Math.min(100, Math.round((state.stepIndex / total) * 100));
+
+  const stepsList = workout.steps.map((step, idx) => {
+    const isDone = idx < state.stepIndex;
+    const isActive = idx === state.stepIndex;
+    let statusClass = isDone ? "status-done" : isActive ? "status-active" : "";
+    let icon = isDone ? "✅" : isActive ? "📍" : "⏳";
+
+    let title = "";
+    let desc = "";
+    if (step.type === "exercise") {
+      title = `${idx + 1}. ${step.name}`;
+      desc = isActive ? `Set ${state.setIndex} of ${step.sets} · ${step.equipment}` : `${step.sets} sets · ${step.target}`;
+    } else if (step.type === "superset") {
+      const partsSummary = step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ");
+      title = `${idx + 1}. ${step.name}`;
+      desc = isActive ? `Round ${state.roundIndex}/${step.rounds} · ${partsSummary}` : `${step.rounds} rounds · ${partsSummary}`;
+    } else if (step.type === "equipment") {
+      title = `${idx + 1}. Convert Gear`;
+      desc = `${step.from} ➔ ${step.to}`;
+    } else if (step.type === "intervals") {
+      title = `${idx + 1}. ${step.name}`;
+      desc = isActive ? `Round ${state.roundIndex}/${step.rounds} (${state.intervalPhase.toUpperCase()})` : `${step.rounds} rounds`;
+    } else if (step.type === "timed") {
+      title = `${idx + 1}. ${step.name}`;
+      desc = `${formatDuration(step.seconds)} · ${step.equipment}`;
+    }
+
+    return `
+      <div class="roadmap-item ${statusClass}">
+        <div class="roadmap-status-icon">${icon}</div>
+        <div class="roadmap-info">
+          <strong>${title} ${isActive ? `<span style="color: var(--accent-2); font-size: 0.8rem;">(Active)</span>` : ""}</strong>
+          <span>${desc}</span>
+        </div>
+        ${!isActive ? `<button class="roadmap-jump-btn" data-jump="${idx}" type="button">Jump</button>` : ""}
+      </div>
+    `;
+  }).join("");
+
+  els.roadmapModalContent.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <p class="eyebrow">${workout.label} Live Plan</p>
+        <h3 style="margin-bottom: 2px;">Workout Roadmap</h3>
+        <p class="modal-subtitle">Step ${currentStepNum} of ${total} · ${pct}% Completed</p>
+      </div>
+      <button id="closeRoadmapBtn" class="danger-link" type="button" style="font-size: 1.25rem;">✕</button>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+
+    <div class="roadmap-list" style="max-height: 52vh; overflow-y: auto;">
+      ${stepsList}
+    </div>
+
+    <div class="modal-actions">
+      <button class="primary-btn" id="resumeRoadmapBtn" type="button">Continue Workout</button>
+    </div>
+  `;
+
+  document.getElementById("closeRoadmapBtn").addEventListener("click", () => els.workoutRoadmapDialog.close());
+  document.getElementById("resumeRoadmapBtn").addEventListener("click", () => els.workoutRoadmapDialog.close());
+
+  els.roadmapModalContent.querySelectorAll("[data-jump]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetStep = parseInt(btn.dataset.jump, 10);
+      jumpToStep(targetStep);
+      els.workoutRoadmapDialog.close();
+    });
+  });
+
+  if (typeof els.workoutRoadmapDialog.showModal === "function") {
+    els.workoutRoadmapDialog.showModal();
+  }
+}
+
+function jumpToStep(targetIdx) {
+  stopTimer();
+  state.stepIndex = targetIdx;
+  state.setIndex = 1;
+  state.roundIndex = 1;
+  state.supersetPartIndex = 0;
+  state.remaining = 0;
+  state.phase = "ready";
+  renderSession();
 }
 
 // In-Progress Auto-Save & Recovery Banner
@@ -445,10 +622,10 @@ function discardSavedSession() {
 }
 
 // Workout Session Flow
-function startSession(day) {
+function startSession(day, mode = "guided") {
   stopTimer();
   state.selectedDay = day;
-  state.mode = "guided";
+  state.mode = mode;
   state.stepIndex = 0;
   state.setIndex = 1;
   state.roundIndex = 1;
@@ -480,6 +657,104 @@ function currentPlayable() {
   return step.parts[state.supersetPartIndex];
 }
 
+// Next Step Preview Helper (For UP NEXT card)
+function getNextStepPreview() {
+  const workout = currentWorkout();
+  const step = currentStep();
+  if (!step) return null;
+
+  // If in standard exercise
+  if (step.type === "exercise") {
+    if (state.setIndex < step.sets) {
+      return {
+        title: step.name,
+        detail: `Set ${state.setIndex + 1} of ${step.sets} (Target: ${step.target})`,
+        equipment: step.equipment
+      };
+    }
+    // Next step in workout
+    const nextStepObj = workout.steps[state.stepIndex + 1];
+    if (!nextStepObj) return { title: "🎉 Workout Finish", detail: "Cooldown & Save", equipment: "None" };
+    return formatStepSummary(nextStepObj);
+  }
+
+  // If in superset
+  if (step.type === "superset") {
+    const nextPartIdx = state.supersetPartIndex + 1;
+    if (nextPartIdx < step.parts.length) {
+      const nextPart = step.parts[nextPartIdx];
+      if (nextPart.type === "transition") {
+        const afterTransition = step.parts[nextPartIdx + 1];
+        return afterTransition ? formatStepSummary(afterTransition) : { title: "Next Round", detail: "Superset", equipment: "" };
+      }
+      return {
+        title: nextPart.name,
+        detail: `Round ${state.roundIndex}/${step.rounds} · ${nextPart.target || ""}`,
+        equipment: nextPart.equipment || ""
+      };
+    }
+    if (state.roundIndex < step.rounds) {
+      const firstEx = step.parts[0];
+      return {
+        title: firstEx.name,
+        detail: `Round ${state.roundIndex + 1} of ${step.rounds}`,
+        equipment: firstEx.equipment || ""
+      };
+    }
+    const nextStepObj = workout.steps[state.stepIndex + 1];
+    if (!nextStepObj) return { title: "🎉 Workout Finish", detail: "Cooldown & Save", equipment: "None" };
+    return formatStepSummary(nextStepObj);
+  }
+
+  // Timed, intervals, equipment
+  if (step.type === "intervals") {
+    if (state.intervalPhase === "hard") {
+      return { title: "Easy Recovery Walk/Jog", detail: `Round ${state.roundIndex} of ${step.rounds}`, equipment: "Active rest" };
+    }
+    if (state.roundIndex < step.rounds) {
+      return { title: "VO2 Max Sprint", detail: `Round ${state.roundIndex + 1} of ${step.rounds}`, equipment: "Hard effort 8-9/10" };
+    }
+  }
+
+  const nextStepObj = workout.steps[state.stepIndex + 1];
+  if (!nextStepObj) return { title: "🎉 Workout Finish", detail: "Cooldown & Save", equipment: "None" };
+  return formatStepSummary(nextStepObj);
+}
+
+function formatStepSummary(step) {
+  if (step.type === "exercise") {
+    return { title: step.name, detail: `${step.sets} sets · ${step.target}`, equipment: step.equipment };
+  }
+  if (step.type === "superset") {
+    const names = step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ");
+    return { title: step.name, detail: `${step.rounds} rounds (${names})`, equipment: "Dumbbells / Mat" };
+  }
+  if (step.type === "equipment") {
+    return { title: "Convert Gear", detail: `${step.from} ➔ ${step.to}`, equipment: "Gear setup" };
+  }
+  if (step.type === "intervals") {
+    return { title: step.name, detail: `${step.rounds} rounds interval sprint`, equipment: "Track/Treadmill" };
+  }
+  if (step.type === "timed") {
+    return { title: step.name, detail: `${formatDuration(step.seconds)}`, equipment: step.equipment };
+  }
+  return { title: "Next Movement", detail: "", equipment: "" };
+}
+
+function upNextMarkup() {
+  const next = getNextStepPreview();
+  if (!next) return "";
+  return `
+    <div class="up-next-card">
+      <span class="up-next-badge">⏭️ UP NEXT</span>
+      <div class="up-next-content">
+        <strong class="up-next-title">${next.title}</strong>
+        <span class="up-next-detail">${next.detail}${next.equipment ? ` · ${next.equipment}` : ""}</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderSession() {
   saveActiveSession();
   const step = currentStep();
@@ -497,9 +772,12 @@ function renderSession() {
 
 function statusMarkup(progress, total, extra = "") {
   return `
-    <div class="status-row">
-      <span>${currentWorkout().label} · Step ${Math.min(state.stepIndex + 1, total)} of ${total}</span>
-      <span>${state.mode === "guided" ? "Guided Mode" : "Flow Mode"}</span>
+    <div class="workout-header-bar">
+      <div class="workout-stats-pill">
+        <span>${currentWorkout().label} · Step ${Math.min(state.stepIndex + 1, total)} of ${total}</span>
+        <span class="pct-badge">${progress}% DONE</span>
+      </div>
+      <button class="roadmap-toggle-btn" data-action="open-roadmap" type="button">📋 View Plan</button>
     </div>
     <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
     ${extra}
@@ -515,6 +793,7 @@ function renderExercise(ex, progress, total, supersetLabel) {
     <p class="equipment">${ex.equipment}</p>
     <div class="target"><strong>Set ${state.setIndex} of ${ex.sets}</strong><br>Target: ${ex.target} · Rest: ${restTime}s</div>
     ${repInputs(ex)}
+    ${upNextMarkup()}
     ${lastSessionMarkup(ex, last)}
     ${cueMarkup(ex.cues)}
     ${actionMarkup(ex)}
@@ -538,7 +817,8 @@ function renderTransition(step, part, progress, total) {
     <h2 class="exercise-name">Transition</h2>
     <p class="equipment">Move quickly to the next movement.</p>
     ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
-    <div class="session-actions">
+    ${upNextMarkup()}
+    <div class="session-actions" style="margin-top: 14px;">
       <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "Start"}</button>
       <button class="secondary-btn" data-action="skip" type="button">Skip</button>
     </div>
@@ -553,8 +833,9 @@ function renderTimed(step, progress, total) {
     <h2 class="exercise-name">${step.name}</h2>
     <p class="equipment">${step.equipment}</p>
     ${activeTimerMarkup("WORK", step.seconds, "phase-work")}
+    ${upNextMarkup()}
     ${cueMarkup(step.cues)}
-    <div class="session-actions">
+    <div class="session-actions" style="margin-top: 14px;">
       <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "Start"}</button>
       <button class="secondary-btn" data-action="skip" type="button">Skip</button>
     </div>
@@ -570,7 +851,8 @@ function renderEquipment(step, progress, total) {
     <h2 class="exercise-name">Convert Gear</h2>
     <p class="equipment">${step.from} ➔ ${step.to}</p>
     ${activeTimerMarkup("READY TIMER", sec, "phase-rest")}
-    <div class="session-actions">
+    ${upNextMarkup()}
+    <div class="session-actions" style="margin-top: 14px;">
       <button class="primary-btn" data-action="ready-early" type="button">Ready Early</button>
       <button class="secondary-btn" data-action="start-timer" type="button">${state.running ? "Running" : `Start ${sec}s`}</button>
     </div>
@@ -590,7 +872,8 @@ function renderIntervals(step, progress, total) {
     <h2 class="exercise-name">${step.name}</h2>
     <p class="equipment">${isHard ? "Hard effort 8-9/10 rate of perceived exertion." : "Active recovery walk / gentle breathing jog."}</p>
     ${activeTimerMarkup(label, seconds, phaseClass)}
-    <div class="session-actions">
+    ${upNextMarkup()}
+    <div class="session-actions" style="margin-top: 14px;">
       <button class="primary-btn" data-action="start-interval" type="button">${state.running ? "Pause / Resume" : "Start Interval"}</button>
       <button class="secondary-btn" data-action="skip" type="button">Skip Round</button>
     </div>
@@ -603,7 +886,7 @@ function activeTimerMarkup(label, seconds, phaseClass = "phase-rest") {
   const shown = state.remaining > 0 ? state.remaining : seconds;
   const totalSec = state.totalTimerSeconds > 0 ? state.totalTimerSeconds : seconds;
   const radius = 90;
-  const circumference = 2 * Math.PI * radius; // ~565.48
+  const circumference = 2 * Math.PI * radius;
   const pct = totalSec > 0 ? Math.max(0, Math.min(1, shown / totalSec)) : 1;
   const offset = circumference * (1 - pct);
 
@@ -679,6 +962,7 @@ function bindSessionButtons(context) {
 }
 
 function handleAction(action, context) {
+  if (action === "open-roadmap") openWorkoutRoadmap();
   if (action === "complete-set") completeSet(context);
   if (action === "start-work") startWork(context);
   if (action === "toggle-mode") toggleMode();
@@ -719,7 +1003,8 @@ function renderWorkTimer(ex) {
     <p class="equipment">${ex.equipment}</p>
     <div class="target"><strong>Set ${state.setIndex} of ${ex.sets}</strong><br>Target: ${ex.target}</div>
     ${activeTimerMarkup("WORK SET", ex.workSeconds, "phase-work")}
-    <div class="session-actions">
+    ${upNextMarkup()}
+    <div class="session-actions" style="margin-top: 14px;">
       <button class="primary-btn" data-action="complete-set" type="button">✓ Complete Set</button>
       <button class="secondary-btn" data-action="skip-work" type="button">Skip Timer</button>
     </div>
@@ -799,8 +1084,9 @@ function startRest(seconds) {
     ${statusMarkup(Math.round((state.stepIndex / currentWorkout().steps.length) * 100), currentWorkout().steps.length)}
     <span class="badge badge-rest">Resting</span>
     <h2 class="exercise-name">Rest & Recover</h2>
-    <p class="equipment">Deep breaths. Next set prepares automatically.</p>
+    <p class="equipment">Deep breaths. Prepare for next movement.</p>
     ${activeTimerMarkup("REST", seconds, "phase-rest")}
+    ${upNextMarkup()}
   `;
   bindSessionButtons({});
   startCountdown(seconds, () => {
