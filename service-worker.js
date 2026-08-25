@@ -1,30 +1,41 @@
-const CACHE_NAME = "hybrid-5-2-v1";
+const CACHE_NAME = "hybrid-5-2-v2";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
+  "./styles.css?v=2",
+  "./app.js?v=2",
   "./manifest.json",
   "./icons/icon.svg"
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS).catch(() => {}))
+  );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
+// Network-first with cache fallback for fresh updates
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
