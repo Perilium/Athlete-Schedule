@@ -1568,6 +1568,8 @@ function updateTimerDisplay() {
     const offset = circumference * (1 - pct);
     ringFill.style.strokeDashoffset = offset;
   }
+}
+
 // Mobile Timer Pad Controller
 function openTimerModal() {
   const current = state.remaining > 0 ? state.remaining : (currentStep()?.restSeconds || 60);
