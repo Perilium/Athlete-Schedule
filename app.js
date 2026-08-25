@@ -889,15 +889,20 @@ function renderSession() {
 function renderExercise(ex, progress, total, supersetLabel) {
   const last = getLastExercise(ex.id);
   const restTime = ex.restSeconds || store.settings.defaultRest;
+  const isWorkTimerActive = state.phase === "work";
 
   els.sessionPanel.innerHTML = `
     ${statusMarkup(progress, total, supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
     <h2 class="exercise-name">${ex.name}</h2>
     <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest between sets</p>
+    
+    ${isWorkTimerActive ? activeTimerMarkup(`WORK SET ${state.setIndex}`, ex.workSeconds || 45, "phase-work") : ""}
+    
     ${setsTableMarkup(ex, last)}
     ${upNextMarkup()}
     ${cueMarkup(ex.cues)}
     <div class="session-actions" style="margin-top: 18px;">
+      ${!isWorkTimerActive ? `<button class="secondary-btn" data-action="start-work" type="button">▶️ Start Set ${state.setIndex} Timer (${ex.workSeconds || 45}s)</button>` : ""}
       <button class="primary-btn" data-action="complete-set" type="button">✓ Log Set ${state.setIndex} & Rest (${restTime}s)</button>
       <button class="ghost-btn" data-action="end-session" type="button">✕ Exit</button>
     </div>
@@ -1035,6 +1040,13 @@ function bindSessionButtons(context) {
 
 function handleAction(action, context) {
   if (action === "open-roadmap") openWorkoutRoadmap();
+  if (action === "start-work") {
+    state.phase = "work";
+    renderSession();
+    startCountdown(context.workSeconds || 45, () => {
+      notifyDone();
+    });
+  }
   if (action === "complete-set") completeSet(context);
   if (action === "end-session") {
     if (confirm("End and save workout now?")) finishSession();
@@ -1053,6 +1065,8 @@ function handleAction(action, context) {
 }
 
 function completeSet(ex) {
+  stopTimer();
+  state.phase = "exercise";
   recordReps(ex);
   const step = currentStep();
   if (step.type === "superset") {
