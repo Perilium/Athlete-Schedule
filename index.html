@@ -9,7 +9,7 @@
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon.svg">
     <title>Hybrid 5.2 Workout Coach</title>
-    <link rel="stylesheet" href="styles.css?v=12">
+    <link rel="stylesheet" href="styles.css?v=13">
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -183,6 +183,45 @@
             </label>
           </div>
 
+          <!-- Athlete Profile Card -->
+          <div class="section-heading" style="margin-top: 24px;">
+            <div>
+              <p class="eyebrow">Athlete Stats</p>
+              <h2>Bodyweight & Profile</h2>
+            </div>
+          </div>
+          <div class="settings-list">
+            <div class="setting-row">
+              <div>
+                <strong>Current Bodyweight</strong>
+                <span class="setting-desc">Bodyweight context for tracking</span>
+              </div>
+              <div class="input-with-unit">
+                <input id="profileWeightInput" type="number" step="0.1" min="30" max="250" placeholder="75.0">
+                <span>kg</span>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <strong>Athlete Height</strong>
+                <span class="setting-desc">Body stats & BMI</span>
+              </div>
+              <div class="input-with-unit">
+                <input id="profileHeightInput" type="number" step="1" min="100" max="250" placeholder="178">
+                <span>cm</span>
+              </div>
+            </div>
+            <div class="setting-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong>Weight Check-ins</strong>
+                <button id="logWeightBtn" class="secondary-btn small-btn" type="button">➕ Log Weight</button>
+              </div>
+              <div id="weightLogHistory" class="weight-log-strip">
+                <span style="color: var(--muted); font-size: 0.82rem;">No weigh-ins logged yet. Enter your weight and tap Log.</span>
+              </div>
+            </div>
+          </div>
+
           <div class="section-heading" style="margin-top: 24px;">
             <div>
               <p class="eyebrow">Data Backup & Export</p>
@@ -272,6 +311,6 @@
       </div>
     </dialog>
 
-    <script src="app.js?v=12" defer></script>
+    <script src="app.js?v=13" defer></script>
   </body>
 </html>

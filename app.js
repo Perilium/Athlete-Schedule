@@ -160,6 +160,16 @@ const store = {
   set activeSession(v) {
     if (v === null) localStorage.removeItem("hybrid_active_session");
     else localStorage.setItem("hybrid_active_session", JSON.stringify(v));
+  },
+  get profile() {
+    try {
+      return JSON.parse(localStorage.getItem("hybrid_profile") || '{"weight": 75, "height": 178, "logs": []}');
+    } catch {
+      return { weight: 75, height: 178, logs: [] };
+    }
+  },
+  set profile(v) {
+    localStorage.setItem("hybrid_profile", JSON.stringify(v));
   }
 };
 
@@ -210,6 +220,7 @@ function cacheEls() {
     "recoveryInfo", "sessionPanel", "historyList", "clearHistoryBtn",
     "soundQuickToggle", "soundInput", "testSoundBtn", "vibrationInput", "wakeLockInput",
     "defaultRestInput", "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput",
+    "profileWeightInput", "profileHeightInput", "logWeightBtn", "weightLogHistory",
     "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
     "workoutOverviewDialog", "overviewModalContent",
     "workoutRoadmapDialog", "roadmapModalContent",
@@ -228,6 +239,11 @@ function bindGlobalEvents() {
   if (els.resetTimersBtn) els.resetTimersBtn.addEventListener("click", resetTimerDefaults);
   if (els.exportDataBtn) els.exportDataBtn.addEventListener("click", exportWorkoutData);
   if (els.importDataInput) els.importDataInput.addEventListener("change", importWorkoutData);
+
+  // Athlete Profile Events
+  if (els.profileWeightInput) els.profileWeightInput.addEventListener("change", saveProfile);
+  if (els.profileHeightInput) els.profileHeightInput.addEventListener("change", saveProfile);
+  if (els.logWeightBtn) els.logWeightBtn.addEventListener("click", logWeightCheckin);
 
   // Settings inputs
   [
@@ -452,11 +468,13 @@ function openDayOverview(day) {
   const stepsList = workout.steps.map((step, idx) => {
     let title = "";
     let desc = "";
+    let ytLink = "";
     if (step.type === "exercise") {
       title = `${idx + 1}. ${step.name}`;
       desc = `${step.sets} sets · Target: ${step.target} · ${step.equipment}`;
+      ytLink = `<a class="youtube-link-btn" href="${getExerciseYouTubeUrl(step.name)}" target="_blank" rel="noopener noreferrer">▶ Form</a>`;
     } else if (step.type === "superset") {
-      const partsSummary = step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ");
+      const partsSummary = step.parts.filter((p) => p.type === "exercise").map((p) => `${p.name} <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(p.name)}" target="_blank" rel="noopener noreferrer" style="padding:1px 5px; font-size:0.7rem;">▶</a>`).join(" + ");
       title = `${idx + 1}. ${step.name} (${step.rounds} rounds)`;
       desc = partsSummary;
     } else if (step.type === "equipment") {
@@ -474,7 +492,10 @@ function openDayOverview(day) {
       <div class="roadmap-item">
         <div class="roadmap-status-icon">📌</div>
         <div class="roadmap-info">
-          <strong>${title}</strong>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <strong>${title}</strong>
+            ${ytLink}
+          </div>
           <span>${desc}</span>
         </div>
       </div>
@@ -531,9 +552,11 @@ function openWorkoutRoadmap() {
 
     let title = "";
     let desc = "";
+    let ytLink = "";
     if (step.type === "exercise") {
       title = `${idx + 1}. ${step.name}`;
       desc = isActive ? `Set ${state.setIndex} of ${step.sets} · ${step.equipment}` : `${step.sets} sets · ${step.target}`;
+      ytLink = `<a class="youtube-link-btn" href="${getExerciseYouTubeUrl(step.name)}" target="_blank" rel="noopener noreferrer" style="padding:2px 6px; font-size:0.72rem;">▶ Form</a>`;
     } else if (step.type === "superset") {
       const partsSummary = step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ");
       title = `${idx + 1}. ${step.name}`;
@@ -553,7 +576,10 @@ function openWorkoutRoadmap() {
       <div class="roadmap-item ${statusClass}">
         <div class="roadmap-status-icon">${icon}</div>
         <div class="roadmap-info">
-          <strong>${title} ${isActive ? `<span style="color: var(--accent-2); font-size: 0.8rem;">(Active)</span>` : ""}</strong>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <strong>${title} ${isActive ? `<span style="color: var(--accent-2); font-size: 0.8rem;">(Active)</span>` : ""}</strong>
+            ${ytLink}
+          </div>
           <span>${desc}</span>
         </div>
         ${!isActive ? `<button class="roadmap-jump-btn" data-jump="${idx}" type="button">Jump</button>` : ""}
@@ -935,9 +961,22 @@ function statusMarkup(extra = "") {
 }
 
 // Interactive Sets Table Builder
+function getExerciseDefaultWeight(equipment) {
+  if (!equipment) return 0;
+  const match = equipment.match(/(\d+(?:\.\d+)?)\s*kg/i);
+  if (match) return Number(match[1]);
+  return 0;
+}
+
+function getExerciseYouTubeUrl(exerciseName) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + " exercise form tutorial")}`;
+}
+
 function setsTableMarkup(ex, last) {
   const isTimeTracking = ex.id === "suitcase-carry";
+  const defaultWt = getExerciseDefaultWeight(ex.equipment);
   const targetRepsDefault = defaultTargetReps(ex.target, ex.id);
+  const isUnilateral = !!ex.unilateral;
   let rows = "";
 
   for (let s = 1; s <= ex.sets; s++) {
@@ -950,27 +989,30 @@ function setsTableMarkup(ex, last) {
 
     let lastSummary = "-";
     if (lastRecord) {
+      const wtPrefix = (lastRecord.weight !== undefined && lastRecord.weight !== null && lastRecord.weight > 0) ? `${lastRecord.weight}k ` : "";
       if (lastRecord.left !== undefined) {
-        lastSummary = isTimeTracking ? `${lastRecord.left}s L / ${lastRecord.right}s R` : `${lastRecord.left}L/${lastRecord.right}R`;
+        lastSummary = isTimeTracking ? `${wtPrefix}${lastRecord.left}s/${lastRecord.right}s` : `${wtPrefix}${lastRecord.left}L/${lastRecord.right}R`;
       } else if (lastRecord.reps !== undefined) {
-        lastSummary = isTimeTracking ? `${lastRecord.reps}s` : `${lastRecord.reps} reps`;
+        lastSummary = isTimeTracking ? `${wtPrefix}${lastRecord.reps}s` : `${wtPrefix}${lastRecord.reps}r`;
       }
     }
 
     if (isDone) {
       let logged = "✓ Done";
       if (todayRecord) {
+        const wtPrefix = (todayRecord.weight !== undefined && todayRecord.weight !== null && todayRecord.weight > 0) ? `${todayRecord.weight}k ` : "";
         if (todayRecord.left !== undefined) {
-          logged = isTimeTracking ? `${todayRecord.left}s L / ${todayRecord.right}s R` : `${todayRecord.left}L/${todayRecord.right}R`;
+          logged = isTimeTracking ? `${wtPrefix}${todayRecord.left}s/${todayRecord.right}s` : `${wtPrefix}${todayRecord.left}L/${todayRecord.right}R`;
         } else if (todayRecord.reps !== undefined) {
-          logged = isTimeTracking ? `${todayRecord.reps}s` : `${todayRecord.reps} reps`;
+          logged = isTimeTracking ? `${wtPrefix}${todayRecord.reps}s` : `${wtPrefix}${todayRecord.reps} reps`;
         }
       }
       rows += `
-        <div class="set-row set-row-done">
+        <div class="set-row ${isUnilateral ? "set-row-unilateral" : ""} set-row-done">
           <span class="set-num-badge">${s}</span>
+          <span style="color: var(--accent-2); font-weight: 800;">${todayRecord?.weight !== undefined ? todayRecord.weight + " kg" : (defaultWt > 0 ? defaultWt + " kg" : "-")}</span>
           <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
-          <span style="color: var(--muted); font-size: 0.85rem;">${lastSummary}</span>
+          <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
           <span style="color: var(--accent-2); font-weight: 800;">${logged} ✅</span>
         </div>
       `;
@@ -988,19 +1030,21 @@ function setsTableMarkup(ex, last) {
       }
 
       rows += `
-        <div class="set-row set-row-active">
+        <div class="set-row ${isUnilateral ? "set-row-unilateral" : ""} set-row-active">
           <span class="set-num-badge">${s}</span>
+          <div><input id="setWeight" class="set-wt-input" inputmode="decimal" type="number" step="0.5" min="0" max="300" value="${todayRecord?.weight ?? (defaultWt || "")}" placeholder="${defaultWt ? defaultWt + 'kg' : '0'}"></div>
           <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
-          <span style="color: var(--muted); font-size: 0.85rem;">${lastSummary}</span>
+          <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
           <div>${inputHtml}</div>
         </div>
       `;
     } else {
       rows += `
-        <div class="set-row set-row-upcoming">
+        <div class="set-row ${isUnilateral ? "set-row-unilateral" : ""} set-row-upcoming">
           <span class="set-num-badge">${s}</span>
+          <span style="color: var(--muted);">${defaultWt > 0 ? defaultWt + " kg" : "-"}</span>
           <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
-          <span style="color: var(--muted); font-size: 0.85rem;">${lastSummary}</span>
+          <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
           <span style="color: var(--muted);">-</span>
         </div>
       `;
@@ -1013,8 +1057,9 @@ function setsTableMarkup(ex, last) {
 
   return `
     <div class="sets-table-card">
-      <div class="sets-table-header">
+      <div class="sets-table-header ${isUnilateral ? "header-unilateral" : ""}">
         <span>Set</span>
+        <span>Wt</span>
         <span>Target</span>
         <span>Last</span>
         <span>${colHeader}</span>
@@ -1061,7 +1106,10 @@ function renderExercise(ex, supersetLabel) {
 
   els.sessionPanel.innerHTML = `
     ${statusMarkup(supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
-    <h2 class="exercise-name">${ex.name}</h2>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px;">
+      <h2 class="exercise-name" style="margin-bottom:0;">${ex.name}</h2>
+      <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(ex.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>
+    </div>
     <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest between sets</p>
     
     ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
@@ -1263,12 +1311,15 @@ function completeSet(ex) {
 }
 
 function recordReps(ex) {
+  const defaultWt = getExerciseDefaultWeight(ex.equipment);
+  const enteredWt = numberValue("setWeight");
   const record = {
     date: new Date().toISOString(),
     day: currentWorkout().label,
     exerciseId: ex.id,
     exerciseName: ex.name,
     equipment: ex.equipment,
+    weight: enteredWt !== null ? enteredWt : defaultWt,
     set: state.setIndex,
     target: ex.target,
     durationSeconds: elapsedSeconds()
@@ -1685,6 +1736,59 @@ function renderSettings() {
   if (els.easyRecoveryInput) els.easyRecoveryInput.value = settings.easyRecoverySeconds || 75;
   if (els.equipChangeInput) els.equipChangeInput.value = settings.equipChangeSeconds || 90;
   updateSoundQuickBtn();
+  renderProfile();
+}
+
+function renderProfile() {
+  const prof = store.profile;
+  if (els.profileWeightInput && prof.weight) els.profileWeightInput.value = prof.weight;
+  if (els.profileHeightInput && prof.height) els.profileHeightInput.value = prof.height;
+  renderWeightLogs();
+}
+
+function saveProfile() {
+  const prof = store.profile;
+  const w = parseFloat(els.profileWeightInput?.value);
+  const h = parseFloat(els.profileHeightInput?.value);
+  if (!isNaN(w) && w > 0) prof.weight = w;
+  if (!isNaN(h) && h > 0) prof.height = h;
+  store.profile = prof;
+}
+
+function logWeightCheckin() {
+  const w = parseFloat(els.profileWeightInput?.value);
+  if (!w || isNaN(w) || w <= 0) {
+    alert("Please enter a valid bodyweight in kg first.");
+    return;
+  }
+  const prof = store.profile;
+  prof.weight = w;
+  const h = parseFloat(els.profileHeightInput?.value);
+  if (!isNaN(h) && h > 0) prof.height = h;
+  if (!prof.logs) prof.logs = [];
+  prof.logs.unshift({
+    date: new Date().toISOString(),
+    weight: w
+  });
+  prof.logs = prof.logs.slice(0, 50);
+  store.profile = prof;
+  renderWeightLogs();
+  alert(`Recorded check-in: ${w} kg`);
+}
+
+function renderWeightLogs() {
+  if (!els.weightLogHistory) return;
+  const prof = store.profile;
+  const logs = prof.logs || [];
+  if (!logs.length) {
+    els.weightLogHistory.innerHTML = `<span style="color: var(--muted); font-size: 0.82rem;">No weigh-ins logged yet. Enter your weight and tap Log.</span>`;
+    return;
+  }
+  els.weightLogHistory.innerHTML = logs.slice(0, 10).map((log) => `
+    <span class="weight-log-chip">
+      <span>${log.weight} kg</span> · ${new Date(log.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+    </span>
+  `).join("");
 }
 
 function saveSettings() {
@@ -1718,7 +1822,8 @@ function exportWorkoutData() {
     version: "2.0",
     exportDate: new Date().toISOString(),
     history: store.history,
-    settings: store.settings
+    settings: store.settings,
+    profile: store.profile
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1743,9 +1848,12 @@ function importWorkoutData(e) {
       if (data.settings && typeof data.settings === "object") {
         store.settings = { ...DEFAULT_SETTINGS, ...data.settings };
       }
+      if (data.profile && typeof data.profile === "object") {
+        store.profile = data.profile;
+      }
       renderHistory();
       renderSettings();
-      alert("Workout data imported successfully!");
+      alert("Workout data & profile imported successfully!");
     } catch {
       alert("Invalid backup file format.");
     }
