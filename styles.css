@@ -1409,6 +1409,176 @@ h3 {
   flex: 1;
 }
 
+/* Program Routine Editor Modal & Cards */
+.editor-modal-box {
+  max-width: 640px;
+}
+
+.editor-day-selector {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.editor-day-tab {
+  flex: 1;
+  min-width: 65px;
+  padding: 8px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.editor-day-tab.active {
+  background: rgba(45, 212, 191, 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.editor-steps-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.editor-step-card {
+  background: rgba(14, 23, 31, 0.95);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor-step-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.editor-step-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-step-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.editor-step-meta span {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.editor-step-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.editor-action-btn {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 120ms ease;
+}
+
+.editor-action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent);
+}
+
+.editor-action-btn.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+/* Step Edit Form */
+.step-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #000;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: 0;
+  border-color: var(--accent);
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 @media (max-width: 480px) {
   .app-shell {
     padding-left: 12px;

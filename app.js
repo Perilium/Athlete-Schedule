@@ -170,8 +170,28 @@ const store = {
   },
   set profile(v) {
     localStorage.setItem("hybrid_profile", JSON.stringify(v));
+  },
+  get workouts() {
+    try {
+      const custom = localStorage.getItem("hybrid_custom_workouts");
+      if (custom) return JSON.parse(custom);
+    } catch (_) {}
+    return JSON.parse(JSON.stringify(WORKOUTS));
+  },
+  set workouts(v) {
+    if (!v) localStorage.removeItem("hybrid_custom_workouts");
+    else localStorage.setItem("hybrid_custom_workouts", JSON.stringify(v));
   }
 };
+
+function getWorkout(day) {
+  const w = store.workouts;
+  return w[day] || WORKOUTS[day] || WORKOUTS.monday;
+}
+
+function currentWorkout() {
+  return getWorkout(state.selectedDay || state.focusedDay || "monday");
+}
 
 // Exercise constructors
 function exercise(id, name, equipment, target, sets, workSeconds, restSeconds, cues = [], unilateral = null) {
@@ -221,6 +241,7 @@ function cacheEls() {
     "soundQuickToggle", "soundInput", "testSoundBtn", "vibrationInput", "wakeLockInput",
     "defaultRestInput", "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput",
     "profileWeightInput", "profileHeightInput", "logWeightBtn", "weightLogHistory", "saveSettingsBtn",
+    "openProgramEditorBtn", "programEditorDialog", "editorModalContent", "stepEditDialog", "stepEditModalContent",
     "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
     "workoutOverviewDialog", "overviewModalContent",
     "workoutRoadmapDialog", "roadmapModalContent",
@@ -244,6 +265,7 @@ function bindGlobalEvents() {
   if (els.profileWeightInput) els.profileWeightInput.addEventListener("change", saveProfile);
   if (els.profileHeightInput) els.profileHeightInput.addEventListener("change", saveProfile);
   if (els.logWeightBtn) els.logWeightBtn.addEventListener("click", logWeightCheckin);
+  if (els.openProgramEditorBtn) els.openProgramEditorBtn.addEventListener("click", () => openProgramEditor(state.focusedDay || "monday"));
   if (els.saveSettingsBtn) {
     els.saveSettingsBtn.addEventListener("click", () => {
       saveSettings();
@@ -421,17 +443,18 @@ function renderDaySelector() {
 }
 
 function renderSelectedDayCard(day) {
-  const workout = WORKOUTS[day];
+  const workout = getWorkout(day);
   if (!workout || !els.selectedDayCard) return;
 
   const equipmentChips = (workout.equipmentNeeded || []).map((eq) => `<span class="equipment-chip">🔧 ${eq}</span>`).join("");
-  const totalExercises = workout.steps.length;
+  const totalExercises = (workout.steps || []).length;
 
-  const exerciseSummaryList = workout.steps.map((step) => {
+  const exerciseSummaryList = (workout.steps || []).map((step) => {
     if (step.type === "exercise") return `<li><strong>${step.name}</strong> · ${step.sets} sets (${step.target})</li>`;
-    if (step.type === "superset") return `<li><strong>${step.name}</strong> · ${step.rounds} rounds (${step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ")})</li>`;
+    if (step.type === "superset") return `<li><strong>${step.name}</strong> · ${step.rounds} rounds (${(step.parts || []).filter((p) => p.type === "exercise").map((p) => p.name).join(" + ")})</li>`;
     if (step.type === "intervals") return `<li><strong>${step.name}</strong> · ${step.rounds} rounds (60s sprint / jog recovery)</li>`;
     if (step.type === "timed") return `<li><strong>${step.name}</strong> · ${formatDuration(step.seconds)}</li>`;
+    if (step.type === "equipment") return `<li><strong>Convert Gear</strong> · ${step.from} ➔ ${step.to} (${step.seconds || 90}s)</li>`;
     return "";
   }).filter(Boolean).join("");
 
@@ -445,8 +468,9 @@ function renderSelectedDayCard(day) {
     </div>
 
     <div class="selected-day-actions">
-      <button class="primary-btn pulse-glow" id="startSelectedDayBtn" type="button">▶️ Begin ${workout.label} Workout</button>
-      <button class="secondary-btn" id="overviewSelectedDayBtn" type="button">📋 Full Plan</button>
+      <button class="primary-btn pulse-glow" id="startSelectedDayBtn" type="button" style="flex: 2;">▶️ Begin ${workout.label}</button>
+      <button class="secondary-btn" id="overviewSelectedDayBtn" type="button" style="flex: 1;">📋 Full Plan</button>
+      <button class="secondary-btn" id="editSelectedDayBtn" type="button" style="flex: 1;">✏️ Edit</button>
     </div>
 
     <details class="card-expandable-drawer">
@@ -455,9 +479,8 @@ function renderSelectedDayCard(day) {
         <span class="drawer-icon">▾</span>
       </summary>
       <div class="drawer-content-box">
-        <p style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Required Equipment</p>
-        <div class="equipment-tag-cloud">${equipmentChips}</div>
-        <p style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--muted); margin:12px 0 6px;">Exercise Sequence</p>
+        ${equipmentChips ? `<p style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Required Equipment</p><div class="equipment-tag-cloud">${equipmentChips}</div>` : ""}
+        <p style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--muted); margin:${equipmentChips ? '12px 0 6px' : '0 0 6px'};">Exercise Sequence</p>
         <ul class="preview-exercise-list">
           ${exerciseSummaryList}
         </ul>
@@ -467,6 +490,7 @@ function renderSelectedDayCard(day) {
 
   document.getElementById("startSelectedDayBtn")?.addEventListener("click", () => startSession(day));
   document.getElementById("overviewSelectedDayBtn")?.addEventListener("click", () => openDayOverview(day));
+  document.getElementById("editSelectedDayBtn")?.addEventListener("click", () => openProgramEditor(day));
 }
 
 function renderRecovery() {
@@ -484,7 +508,7 @@ function switchScreen(name) {
 
 // Day Overview Pre-Workout Modal
 function openDayOverview(day) {
-  const workout = WORKOUTS[day];
+  const workout = getWorkout(day);
   if (!workout) return;
 
   const equipmentChips = (workout.equipmentNeeded || []).map((eq) => `<span class="equipment-chip">🔧 ${eq}</span>`).join("");
@@ -544,12 +568,17 @@ function openDayOverview(day) {
 
     <div class="modal-actions" style="margin-top: 18px;">
       <button class="primary-btn" id="startWorkoutBtn" type="button">▶️ Begin Workout</button>
+      <button class="secondary-btn" id="editOverviewRoutineBtn" type="button">✏️ Edit Routine</button>
       <button class="ghost-btn" id="closeOverviewSecondary" type="button">Close</button>
     </div>
   `;
 
   document.getElementById("closeOverviewBtn").addEventListener("click", () => els.workoutOverviewDialog.close());
   document.getElementById("closeOverviewSecondary").addEventListener("click", () => els.workoutOverviewDialog.close());
+  document.getElementById("editOverviewRoutineBtn").addEventListener("click", () => {
+    els.workoutOverviewDialog.close();
+    openProgramEditor(day);
+  });
   document.getElementById("startWorkoutBtn").addEventListener("click", () => {
     els.workoutOverviewDialog.close();
     startSession(day);
@@ -559,6 +588,280 @@ function openDayOverview(day) {
     els.workoutOverviewDialog.showModal();
   }
 }
+
+// Program / Routine Editor Functions
+function openProgramEditor(day = "monday") {
+  state.editorDay = day;
+  renderProgramEditorContent();
+  if (els.programEditorDialog && typeof els.programEditorDialog.showModal === "function") {
+    els.programEditorDialog.showModal();
+  }
+}
+
+function renderProgramEditorContent() {
+  const day = state.editorDay || "monday";
+  const workout = getWorkout(day);
+  const daysList = [
+    { key: "monday", label: "Mon" },
+    { key: "tuesday", label: "Tue" },
+    { key: "thursday", label: "Thu" },
+    { key: "friday", label: "Fri" }
+  ];
+
+  const dayTabs = daysList.map((d) => `
+    <button class="editor-day-tab ${d.key === day ? "active" : ""}" data-editorday="${d.key}" type="button">${d.label}</button>
+  `).join("");
+
+  const stepsHtml = (workout.steps || []).map((step, idx) => {
+    let typeBadge = "Exercise";
+    let meta = "";
+    if (step.type === "exercise") {
+      typeBadge = "Exercise";
+      meta = `<span>${step.sets} sets</span><span>${step.target}</span><span>Work: ${step.workSeconds || 45}s</span><span>Rest: ${step.restSeconds || 60}s</span><span>🔧 ${step.equipment}</span>`;
+    } else if (step.type === "superset") {
+      typeBadge = "Superset";
+      const count = (step.parts || []).filter((p) => p.type === "exercise").length;
+      meta = `<span>${step.rounds} rounds</span><span>${count} movements</span><span>Rest: ${step.restSeconds || 60}s</span>`;
+    } else if (step.type === "intervals") {
+      typeBadge = "VO2 Intervals";
+      meta = `<span>${step.rounds} rounds</span><span>Sprint: ${step.hardSeconds || 60}s</span>`;
+    } else if (step.type === "equipment") {
+      typeBadge = "Gear Convert";
+      meta = `<span>${step.from} ➔ ${step.to}</span><span>⏱ ${step.seconds || 90}s</span>`;
+    } else if (step.type === "timed") {
+      typeBadge = "Timed Hold";
+      meta = `<span>⏱ ${formatDuration(step.seconds || 60)}</span><span>🔧 ${step.equipment}</span>`;
+    }
+
+    const isFirst = idx === 0;
+    const isLast = idx === (workout.steps.length - 1);
+
+    return `
+      <div class="editor-step-card">
+        <div class="editor-step-info">
+          <div class="editor-step-header">
+            <span class="badge" style="font-size:0.7rem; min-height:22px; padding:2px 6px;">${idx + 1}. ${typeBadge}</span>
+            <span class="editor-step-title">${step.name || "Step"}</span>
+          </div>
+          <div class="editor-step-meta">${meta}</div>
+        </div>
+        <div class="editor-step-actions">
+          <button class="editor-action-btn" onclick="moveEditorStep('${day}', ${idx}, -1)" ${isFirst ? "disabled style='opacity:0.3;'" : ""} title="Move Up">⬆️</button>
+          <button class="editor-action-btn" onclick="moveEditorStep('${day}', ${idx}, 1)" ${isLast ? "disabled style='opacity:0.3;'" : ""} title="Move Down">⬇️</button>
+          <button class="editor-action-btn" onclick="openStepEditModal('${day}', ${idx})" title="Edit timing and details">✏️</button>
+          <button class="editor-action-btn btn-delete" onclick="deleteEditorStep('${day}', ${idx})" title="Delete step">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  els.editorModalContent.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <p class="eyebrow">Custom Routine Builder</p>
+        <h3 style="margin: 0 0 2px;">Edit ${workout.label} Program</h3>
+        <p class="modal-subtitle">Customize exercise order, sets, targets, work timers & rest periods</p>
+      </div>
+      <button id="closeEditorBtn" class="danger-link" type="button" style="font-size: 1.25rem;">✕</button>
+    </div>
+
+    <div class="editor-day-selector" id="editorDaySelector">
+      ${dayTabs}
+    </div>
+
+    <div class="editor-steps-container">
+      ${stepsHtml || "<p style='color:var(--muted); text-align:center; padding:20px;'>No steps in this workout. Tap ➕ Add Step below.</p>"}
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+      <button class="primary-btn" onclick="openStepEditModal('${day}', null)" type="button" style="flex:1;">➕ Add Exercise / Step</button>
+      <button class="secondary-btn" onclick="resetEditorDayToMaster('${day}')" type="button" style="flex:1;">↺ Reset to Default Plan</button>
+    </div>
+
+    <div class="modal-actions" style="margin-top: 12px;">
+      <button class="ghost-btn" id="closeEditorSecondary" type="button">Done Editing</button>
+    </div>
+  `;
+
+  document.getElementById("closeEditorBtn")?.addEventListener("click", () => els.programEditorDialog.close());
+  document.getElementById("closeEditorSecondary")?.addEventListener("click", () => els.programEditorDialog.close());
+
+  document.querySelectorAll("[data-editorday]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.editorDay = btn.dataset.editorday;
+      renderProgramEditorContent();
+    });
+  });
+}
+
+window.openStepEditModal = function (day, index) {
+  const workout = getWorkout(day);
+  const isNew = index === null || index === undefined;
+  const step = !isNew ? workout.steps[index] : exercise("custom-ex", "New Exercise", "Dumbbells", "3 x 10-12", 3, 45, 60, []);
+
+  els.stepEditModalContent.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h3 style="margin: 0;">${isNew ? "➕ Add New Step" : `✏️ Edit Step ${index + 1}`}</h3>
+      <button id="closeStepEditBtn" class="danger-link" type="button" style="font-size: 1.25rem;">✕</button>
+    </div>
+
+    <form id="stepEditForm" class="step-edit-form" onsubmit="event.preventDefault(); saveStepEdit('${day}', ${isNew ? 'null' : index});">
+      <div class="form-group">
+        <label>Step Type</label>
+        <select id="editStepType" ${!isNew ? "disabled" : ""}>
+          <option value="exercise" ${step.type === "exercise" ? "selected" : ""}>Exercise (Standard / Sets & Reps)</option>
+          <option value="equipment" ${step.type === "equipment" ? "selected" : ""}>Convert Gear / Barbell Transition</option>
+          <option value="intervals" ${step.type === "intervals" ? "selected" : ""}>VO2 Max Intervals</option>
+          <option value="timed" ${step.type === "timed" ? "selected" : ""}>Timed Hold / Carry</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Exercise / Step Name</label>
+        <input id="editStepName" type="text" required value="${step.name || ''}" placeholder="e.g. Barbell Bent-Over Row">
+      </div>
+
+      <div class="form-group">
+        <label>Equipment / Load</label>
+        <input id="editStepEquip" type="text" value="${step.equipment || ''}" placeholder="e.g. 20 kg barbell, 10 kg DB">
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Target Reps / Time</label>
+          <input id="editStepTarget" type="text" value="${step.target || '3 x 10-15'}" placeholder="e.g. 4 x 8-15">
+        </div>
+        <div class="form-group">
+          <label>Number of Sets</label>
+          <input id="editStepSets" type="number" min="1" max="20" value="${step.sets || 3}">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Work Timer (Seconds)</label>
+          <input id="editStepWorkSec" type="number" min="5" max="600" step="5" value="${step.workSeconds || step.seconds || 45}">
+        </div>
+        <div class="form-group">
+          <label>Rest Timer (Seconds)</label>
+          <input id="editStepRestSec" type="number" min="0" max="600" step="5" value="${step.restSeconds || 60}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Technique Cues (comma or line separated)</label>
+        <textarea id="editStepCues" rows="2" placeholder="e.g. Hinge at hips. Neutral spine.">${(step.cues || []).join("\n")}</textarea>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 14px;">
+        <button class="primary-btn" type="submit">💾 Save Step</button>
+        <button class="ghost-btn" id="cancelStepEditBtn" type="button">Cancel</button>
+      </div>
+    </form>
+  `;
+
+  document.getElementById("closeStepEditBtn")?.addEventListener("click", () => els.stepEditDialog.close());
+  document.getElementById("cancelStepEditBtn")?.addEventListener("click", () => els.stepEditDialog.close());
+
+  if (typeof els.stepEditDialog.showModal === "function") {
+    els.stepEditDialog.showModal();
+  }
+};
+
+window.saveStepEdit = function (day, index) {
+  const type = document.getElementById("editStepType")?.value || "exercise";
+  const name = document.getElementById("editStepName")?.value || "Exercise";
+  const equipment = document.getElementById("editStepEquip")?.value || "Dumbbells";
+  const target = document.getElementById("editStepTarget")?.value || "3 x 10-15";
+  const sets = parseInt(document.getElementById("editStepSets")?.value, 10) || 3;
+  const workSeconds = parseInt(document.getElementById("editStepWorkSec")?.value, 10) || 45;
+  const restSeconds = parseInt(document.getElementById("editStepRestSec")?.value, 10) || 60;
+  const cuesRaw = document.getElementById("editStepCues")?.value || "";
+  const cues = cuesRaw.split(/[\n,]/).map((c) => c.trim()).filter(Boolean);
+
+  const workouts = store.workouts;
+  const workout = workouts[day] || WORKOUTS[day];
+  if (!workout.steps) workout.steps = [];
+
+  let stepObj;
+  if (type === "equipment") {
+    stepObj = { type: "equipment", from: equipment, to: target || "Next Gear", seconds: workSeconds };
+  } else if (type === "intervals") {
+    stepObj = { type: "intervals", id: "vo2-" + Date.now(), name, rounds: sets, hardSeconds: workSeconds, easySettingKey: "easyRecoverySeconds" };
+  } else if (type === "timed") {
+    stepObj = { type: "timed", id: "timed-" + Date.now(), name, equipment, seconds: workSeconds, cues };
+  } else {
+    stepObj = {
+      type: "exercise",
+      id: "ex-" + Date.now(),
+      name,
+      equipment,
+      target,
+      sets,
+      workSeconds,
+      restSeconds,
+      cues,
+      unilateral: target.toLowerCase().includes("each") ? "side" : null
+    };
+  }
+
+  if (index === null || index === undefined) {
+    workout.steps.push(stepObj);
+  } else {
+    const existing = workout.steps[index];
+    if (existing.type === "superset") {
+      existing.name = name;
+      existing.rounds = sets;
+      existing.restSeconds = restSeconds;
+      stepObj = existing;
+    } else {
+      stepObj.id = existing.id || stepObj.id;
+    }
+    workout.steps[index] = stepObj;
+  }
+
+  workouts[day] = workout;
+  store.workouts = workouts;
+  els.stepEditDialog.close();
+  renderProgramEditorContent();
+  renderSelectedDayCard(day);
+};
+
+window.moveEditorStep = function (day, index, delta) {
+  const workouts = store.workouts;
+  const workout = workouts[day] || WORKOUTS[day];
+  const targetIdx = index + delta;
+  if (targetIdx < 0 || targetIdx >= workout.steps.length) return;
+
+  const temp = workout.steps[index];
+  workout.steps[index] = workout.steps[targetIdx];
+  workout.steps[targetIdx] = temp;
+
+  workouts[day] = workout;
+  store.workouts = workouts;
+  renderProgramEditorContent();
+  renderSelectedDayCard(day);
+};
+
+window.deleteEditorStep = function (day, index) {
+  if (!confirm("Are you sure you want to remove this step from the workout?")) return;
+  const workouts = store.workouts;
+  const workout = workouts[day] || WORKOUTS[day];
+  workout.steps.splice(index, 1);
+  workouts[day] = workout;
+  store.workouts = workouts;
+  renderProgramEditorContent();
+  renderSelectedDayCard(day);
+};
+
+window.resetEditorDayToMaster = function (day) {
+  if (!confirm(`Reset ${day.toUpperCase()} back to the official Hybrid 5.2 master specification?`)) return;
+  const workouts = store.workouts;
+  workouts[day] = JSON.parse(JSON.stringify(WORKOUTS[day]));
+  store.workouts = workouts;
+  renderProgramEditorContent();
+  renderSelectedDayCard(day);
+};
 
 // In-Workout Roadmap / Plan Modal
 function openWorkoutRoadmap() {
@@ -2032,7 +2335,8 @@ function exportWorkoutData() {
     exportDate: new Date().toISOString(),
     history: store.history,
     settings: store.settings,
-    profile: store.profile
+    profile: store.profile,
+    customWorkouts: store.workouts
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -2060,9 +2364,13 @@ function importWorkoutData(e) {
       if (data.profile && typeof data.profile === "object") {
         store.profile = data.profile;
       }
+      if (data.customWorkouts && typeof data.customWorkouts === "object") {
+        store.workouts = data.customWorkouts;
+      }
       renderHistory();
       renderSettings();
-      alert("Workout data & profile imported successfully!");
+      renderSelectedDayCard(state.focusedDay || "monday");
+      alert("Workout data, custom routine, & profile imported successfully!");
     } catch {
       alert("Invalid backup file format.");
     }

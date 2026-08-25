@@ -9,7 +9,7 @@
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon.svg">
     <title>Hybrid 5.2 Workout Coach</title>
-    <link rel="stylesheet" href="styles.css?v=16">
+    <link rel="stylesheet" href="styles.css?v=17">
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -226,6 +226,23 @@
             <button id="saveSettingsBtn" class="primary-btn" type="button">💾 Save Settings & Profile</button>
           </div>
 
+          <!-- Workout Routine Editor Card -->
+          <div class="section-heading" style="margin-top: 24px;">
+            <div>
+              <p class="eyebrow">Workout Program</p>
+              <h2>Customize Routine</h2>
+            </div>
+          </div>
+          <div class="settings-list">
+            <div class="setting-row">
+              <div>
+                <strong>Program & Step Editor</strong>
+                <span class="setting-desc">Add, remove, re-order exercises and adjust work & rest times</span>
+              </div>
+              <button id="openProgramEditorBtn" class="primary-btn small-btn" type="button">✏️ Edit Program</button>
+            </div>
+          </div>
+
           <div class="section-heading" style="margin-top: 24px;">
             <div>
               <p class="eyebrow">Data Backup & Export</p>
@@ -236,7 +253,7 @@
             <div class="setting-row">
               <div>
                 <strong>Export Workout Data</strong>
-                <span class="setting-desc">Save your entire history and settings as JSON</span>
+                <span class="setting-desc">Save your entire history, custom program, and settings as JSON</span>
               </div>
               <button id="exportDataBtn" class="secondary-btn small-btn" type="button">⬇️ Export</button>
             </div>
@@ -260,6 +277,20 @@
     <!-- Pre-Workout Day Overview Modal -->
     <dialog id="workoutOverviewDialog" class="modal-dialog overview-modal">
       <div id="overviewModalContent" class="modal-box">
+        <!-- Injected via JavaScript -->
+      </div>
+    </dialog>
+
+    <!-- Program / Routine Editor Modal -->
+    <dialog id="programEditorDialog" class="modal-dialog overview-modal">
+      <div id="editorModalContent" class="modal-box editor-modal-box">
+        <!-- Injected via JavaScript -->
+      </div>
+    </dialog>
+
+    <!-- Step Edit / Add Dialog -->
+    <dialog id="stepEditDialog" class="modal-dialog">
+      <div id="stepEditModalContent" class="modal-box">
         <!-- Injected via JavaScript -->
       </div>
     </dialog>
@@ -315,6 +346,6 @@
       </div>
     </dialog>
 
-    <script src="app.js?v=16" defer></script>
+    <script src="app.js?v=17" defer></script>
   </body>
 </html>
