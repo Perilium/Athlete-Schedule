@@ -637,7 +637,7 @@ function startSession(day) {
   state.setIndex = 1;
   state.roundIndex = 1;
   state.supersetPartIndex = 0;
-  state.phase = "exercise";
+  state.phase = "work";
   state.intervalPhase = "hard";
   state.startedAt = Date.now();
   state.sessionRecords = [];
@@ -645,8 +645,46 @@ function startSession(day) {
   checkResumeBanner();
   saveActiveSession();
   requestWakeLock();
+  startCurrentStepAuto();
+}
+
+function startCurrentStepAuto() {
+  const step = currentStep();
+  if (!step) return finishSession();
+
+  if (step.type === "exercise") {
+    startWork(step);
+    return;
+  }
+  if (step.type === "superset") {
+    const part = currentPlayable();
+    if (part.type === "transition") {
+      state.phase = "transition";
+      renderSession();
+      startCountdown(part.seconds || 10, nextStepUnit);
+    } else {
+      startWork(part);
+    }
+    return;
+  }
+  if (step.type === "equipment") {
+    state.phase = "equipment";
+    renderSession();
+    const sec = store.settings.equipChangeSeconds || step.seconds || 90;
+    startCountdown(sec, nextStepUnit);
+    return;
+  }
+  if (step.type === "intervals") {
+    startInterval(step);
+    return;
+  }
+  if (step.type === "timed") {
+    state.phase = "timed";
+    renderSession();
+    startCountdown(step.seconds, nextStepUnit);
+    return;
+  }
   renderSession();
-  playStartChime();
 }
 
 function currentWorkout() {
@@ -890,7 +928,6 @@ function renderExercise(ex, progress, total, supersetLabel) {
   const last = getLastExercise(ex.id);
   const restTime = ex.restSeconds || store.settings.defaultRest;
   const isResting = state.phase === "rest";
-  const isWorkRunning = state.phase === "work" && state.running;
   const timerLabel = isResting ? "REST TIMER" : `WORK SET ${state.setIndex}`;
   const phaseClass = isResting ? "phase-rest" : "phase-work";
   const displaySeconds = isResting ? (state.remaining || restTime) : (state.remaining || ex.workSeconds || 45);
@@ -907,9 +944,8 @@ function renderExercise(ex, progress, total, supersetLabel) {
     ${cueMarkup(ex.cues)}
     
     <div class="session-actions" style="margin-top: 18px;">
-      ${!isResting && !isWorkRunning ? `<button class="secondary-btn" data-action="start-work" type="button">▶️ Start Set ${state.setIndex} Timer</button>` : ""}
-      ${!isResting ? `<button class="primary-btn" data-action="complete-set" type="button">✓ Log Set ${state.setIndex} & Rest (${restTime}s)</button>` : ""}
-      ${isResting ? `<button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Next Set ➔</button>` : ""}
+      ${!isResting ? `<button class="primary-btn" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} & Rest (${restTime}s)</button>` : ""}
+      ${isResting ? `<button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Set ${state.setIndex} ➔</button>` : ""}
       <button class="ghost-btn" data-action="end-session" type="button">✕ Exit</button>
     </div>
   `;
@@ -934,8 +970,7 @@ function renderTransition(step, part, progress, total) {
     ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
     ${upNextMarkup()}
     <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "▶ Start Transition Timer"}</button>
-      <button class="secondary-btn" data-action="skip" type="button">Ready Now ➔</button>
+      <button class="primary-btn" data-action="skip" type="button">Ready Now ➔</button>
     </div>
   `;
   bindSessionButtons(part);
@@ -950,8 +985,7 @@ function renderTimed(step, progress, total) {
     ${upNextMarkup()}
     ${cueMarkup(step.cues)}
     <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "▶ Start Timer"}</button>
-      <button class="secondary-btn" data-action="skip" type="button">Complete ➔</button>
+      <button class="primary-btn" data-action="skip" type="button">Complete ➔</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -968,7 +1002,6 @@ function renderEquipment(step, progress, total) {
     ${upNextMarkup()}
     <div class="session-actions" style="margin-top: 14px;">
       <button class="primary-btn" data-action="ready-early" type="button">Ready Now ➔</button>
-      <button class="secondary-btn" data-action="start-timer" type="button">${state.running ? "Running" : `▶ Start ${sec}s Timer`}</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -988,8 +1021,7 @@ function renderIntervals(step, progress, total) {
     ${activeTimerMarkup(label, seconds, phaseClass)}
     ${upNextMarkup()}
     <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="start-interval" type="button">${state.running ? "Pause / Resume" : `▶ Start ${label} (${seconds}s)`}</button>
-      <button class="secondary-btn" data-action="skip" type="button">Next Round ➔</button>
+      <button class="primary-btn" data-action="skip" type="button">Next Phase ➔</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -1046,24 +1078,11 @@ function bindSessionButtons(context) {
 
 function handleAction(action, context) {
   if (action === "open-roadmap") openWorkoutRoadmap();
-  if (action === "start-work") {
-    state.phase = "work";
-    renderSession();
-    startCountdown(context.workSeconds || 45, () => {
-      notifyDone();
-      state.phase = "exercise";
-      renderSession();
-    });
-  }
   if (action === "complete-set") completeSet(context);
   if (action === "end-session") {
     if (confirm("End and save workout now?")) finishSession();
   }
   if (action === "ready-early") nextStepUnit();
-  if (action === "start-timer") {
-    const sec = context.seconds || store.settings.defaultRest;
-    startCountdown(sec, nextStepUnit);
-  }
   if (action === "start-interval") startInterval(context);
   if (action === "pause") togglePause();
   if (action === "plus") adjustTimer(15);
@@ -1072,12 +1091,20 @@ function handleAction(action, context) {
   if (action === "skip") {
     if (state.phase === "rest") {
       stopTimer();
-      state.phase = "exercise";
-      renderSession();
+      startWork(currentPlayable() || currentStep());
     } else {
       nextStepUnit();
     }
   }
+}
+
+function startWork(ex) {
+  state.phase = "work";
+  renderSession();
+  startCountdown(ex.workSeconds || 45, () => {
+    notifyDone();
+    completeSet(ex);
+  });
 }
 
 function completeSet(ex) {
@@ -1129,7 +1156,14 @@ function advanceSuperset() {
     state.supersetPartIndex += 1;
   }
   if (state.supersetPartIndex < step.parts.length) {
-    renderSession();
+    const part = currentPlayable();
+    if (part.type === "transition") {
+      state.phase = "transition";
+      renderSession();
+      startCountdown(part.seconds || 10, nextStepUnit);
+    } else {
+      startWork(part);
+    }
     return;
   }
   if (state.roundIndex < step.rounds) {
@@ -1147,8 +1181,7 @@ function startRest(seconds) {
   renderSession();
   startCountdown(seconds, () => {
     notifyDone();
-    state.phase = "exercise";
-    renderSession();
+    startWork(currentPlayable() || currentStep());
   });
 }
 
@@ -1174,6 +1207,7 @@ function startInterval(step) {
       state.intervalPhase = "easy";
     }
     renderSession();
+    startInterval(step);
   });
 }
 
@@ -1298,12 +1332,22 @@ function nextStepUnit() {
       if (state.roundIndex < step.rounds) {
         state.roundIndex += 1;
         state.supersetPartIndex = 0;
+        const restTime = store.settings.supersetRest || step.restSeconds || 60;
+        startRest(restTime);
+        return;
       } else {
         nextStep();
         return;
       }
     }
-    renderSession();
+    const part = currentPlayable();
+    if (part.type === "transition") {
+      state.phase = "transition";
+      renderSession();
+      startCountdown(part.seconds || 10, nextStepUnit);
+    } else {
+      startWork(part);
+    }
     return;
   }
   nextStep();
@@ -1316,9 +1360,11 @@ function nextStep() {
   state.roundIndex = 1;
   state.supersetPartIndex = 0;
   state.remaining = 0;
-  state.phase = "exercise";
-  if (state.stepIndex >= currentWorkout().steps.length) finishSession();
-  else renderSession();
+  if (state.stepIndex >= currentWorkout().steps.length) {
+    finishSession();
+  } else {
+    startCurrentStepAuto();
+  }
 }
 
 function finishSession() {
