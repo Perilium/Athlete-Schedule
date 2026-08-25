@@ -1158,27 +1158,37 @@ function renderIntervals(step) {
 function activeTimerMarkup(label, seconds, phaseClass = "phase-rest") {
   const shown = state.remaining > 0 ? state.remaining : seconds;
   const totalSec = state.totalTimerSeconds > 0 ? state.totalTimerSeconds : seconds;
-  const radius = 90;
+  const radius = 88;
   const circumference = 2 * Math.PI * radius;
   const pct = totalSec > 0 ? Math.max(0, Math.min(1, shown / totalSec)) : 1;
   const offset = circumference * (1 - pct);
 
+  let shortPhase = "WORK";
+  if (phaseClass.includes("phase-rest")) shortPhase = "REST";
+  else if (phaseClass.includes("phase-hard")) shortPhase = "HARD SPRINT";
+  else if (phaseClass.includes("phase-easy")) shortPhase = "RECOVERY";
+  else if ((label || "").toLowerCase().includes("transition")) shortPhase = "TRANSITION";
+  else if ((label || "").toLowerCase().includes("gear")) shortPhase = "CONVERT";
+
   return `
     <div class="timer-container">
-      <div class="timer-ring-wrapper">
+      ${label ? `<div class="timer-stage-title">${label}</div>` : ""}
+      
+      <div class="timer-ring-wrapper" id="timerCenterClick" title="Tap to adjust timer">
         <svg class="timer-svg" viewBox="0 0 200 200">
           <circle class="timer-svg-track" cx="100" cy="100" r="${radius}"></circle>
           <circle id="timerRingFill" class="timer-svg-fill ${phaseClass}" cx="100" cy="100" r="${radius}"
             style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${offset};"></circle>
         </svg>
-        <div class="timer-center-content" id="timerCenterClick" title="Tap to customize time">
-          <div class="timer-label">${label}</div>
+        <div class="timer-center-content">
+          <span class="timer-phase-pill ${phaseClass}">${shortPhase}</span>
           <div class="timer-time" id="timerTime">${formatTime(shown)}</div>
           <div class="timer-edit-hint">✏️ tap to edit</div>
         </div>
       </div>
+
       <div class="timer-controls" style="margin-top: 14px; width: 100%;">
-        <button class="timer-btn" data-action="pause" type="button">${state.running ? "Pause" : "Resume"}</button>
+        <button class="timer-btn ${!state.running ? "timer-btn-paused" : ""}" data-action="pause" type="button">${state.running ? "⏸ Pause" : "▶ Resume"}</button>
         <button class="timer-btn" data-action="minus" type="button">-15s</button>
         <button class="timer-btn" data-action="plus" type="button">+15s</button>
         <button class="timer-btn" data-action="custom-time" type="button">Edit</button>
@@ -1207,7 +1217,10 @@ function handleAction(action, context) {
   if (action === "open-roadmap") openWorkoutRoadmap();
   if (action === "complete-set") completeSet(context);
   if (action === "end-session") {
-    if (confirm("End and save workout now?")) finishSession();
+    if (confirm("End and save workout now?")) {
+      finishSession();
+      if (els.workoutSelectionWrapper) els.workoutSelectionWrapper.classList.remove("hidden");
+    }
   }
   if (action === "ready-early") nextStepUnit();
   if (action === "start-interval") startInterval(context);
@@ -1313,10 +1326,6 @@ function startRest(seconds) {
 }
 
 function startInterval(step) {
-  if (state.running) {
-    togglePause();
-    return;
-  }
   const isHard = state.intervalPhase === "hard";
   const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 75);
   playIntervalCue(isHard);
@@ -1346,6 +1355,7 @@ function startCountdown(seconds, onDone) {
   state.running = true;
   state.timerDone = onDone;
   updateTimerDisplay();
+  updatePauseButtons();
   playStartChime();
 
   state.timer = setInterval(() => {
@@ -1369,14 +1379,27 @@ function stopTimer() {
   if (state.timer) clearInterval(state.timer);
   state.timer = null;
   state.running = false;
+  updatePauseButtons();
 }
 
 function togglePause() {
   if (state.running) {
     stopTimer();
-  } else if (state.remaining > 0) {
+  } else {
+    if (!state.remaining || state.remaining <= 0) {
+      state.remaining = state.totalTimerSeconds > 0 ? state.totalTimerSeconds : getCurrentStepDefaultDuration();
+      state.totalTimerSeconds = state.remaining;
+    }
+
+    if (!state.timerDone) {
+      state.timerDone = getTimerDoneCallback();
+    }
+
     state.running = true;
+    updateTimerDisplay();
+    updatePauseButtons();
     playStartChime();
+
     state.timer = setInterval(() => {
       state.remaining -= 1;
       updateTimerDisplay();
@@ -1391,12 +1414,91 @@ function togglePause() {
       }
     }, 1000);
   }
-  const pauseButton = els.sessionPanel.querySelector("[data-action='pause']");
-  if (pauseButton) pauseButton.textContent = state.running ? "Pause" : "Resume";
+  updatePauseButtons();
+}
+
+function updatePauseButtons() {
+  const pauseButtons = els.sessionPanel.querySelectorAll("[data-action='pause']");
+  pauseButtons.forEach((btn) => {
+    btn.innerHTML = state.running ? "⏸ Pause" : "▶ Resume";
+    btn.classList.toggle("timer-btn-paused", !state.running);
+  });
+}
+
+function getCurrentStepDefaultDuration() {
+  const step = currentStep();
+  if (!step) return 60;
+  if (state.phase === "rest") {
+    if (step.type === "superset") return step.restSeconds || store.settings.supersetRest || 60;
+    const ex = currentPlayable() || step;
+    return ex.restSeconds || store.settings.defaultRest || 45;
+  }
+  if (step.type === "exercise") return step.workSeconds || 45;
+  if (step.type === "superset") {
+    const part = currentPlayable();
+    if (part.type === "transition") return part.seconds || 10;
+    return part.workSeconds || 45;
+  }
+  if (step.type === "intervals") {
+    return state.intervalPhase === "hard" ? (store.settings.vo2Hard || 60) : (store.settings.easyRecoverySeconds || 75);
+  }
+  if (step.type === "timed") return step.seconds || 300;
+  if (step.type === "equipment") return store.settings.equipChangeSeconds || step.seconds || 90;
+  return 60;
+}
+
+function getTimerDoneCallback() {
+  const step = currentStep();
+  if (!step) return finishSession;
+
+  if (state.phase === "rest") {
+    return () => {
+      notifyDone();
+      startWork(currentPlayable() || currentStep());
+    };
+  }
+
+  if (step.type === "exercise") {
+    return () => {
+      notifyDone();
+      completeSet(step);
+    };
+  }
+
+  if (step.type === "superset") {
+    const part = currentPlayable();
+    if (part.type === "transition") {
+      return nextStepUnit;
+    }
+    return () => {
+      notifyDone();
+      completeSet(part);
+    };
+  }
+
+  if (step.type === "intervals") {
+    return () => {
+      notifyDone();
+      if (state.intervalPhase === "easy") {
+        if (state.roundIndex >= step.rounds) {
+          nextStep();
+          return;
+        }
+        state.roundIndex += 1;
+        state.intervalPhase = "hard";
+      } else {
+        state.intervalPhase = "easy";
+      }
+      renderSession();
+      startInterval(step);
+    };
+  }
+
+  return nextStepUnit;
 }
 
 function adjustTimer(delta) {
-  state.remaining = Math.max(1, state.remaining + delta);
+  state.remaining = Math.max(1, (state.remaining || 0) + delta);
   if (state.totalTimerSeconds < state.remaining) {
     state.totalTimerSeconds = state.remaining;
   }
@@ -1409,14 +1511,12 @@ function updateTimerDisplay() {
 
   const ringFill = document.getElementById("timerRingFill");
   if (ringFill && state.totalTimerSeconds > 0) {
-    const radius = 90;
+    const radius = 88;
     const circumference = 2 * Math.PI * radius;
     const pct = Math.max(0, Math.min(1, state.remaining / state.totalTimerSeconds));
     const offset = circumference * (1 - pct);
     ringFill.style.strokeDashoffset = offset;
   }
-}
-
 // Mobile Timer Pad Controller
 function openTimerModal() {
   const current = state.remaining > 0 ? state.remaining : (currentStep()?.restSeconds || 60);
@@ -1442,8 +1542,14 @@ function applyTimerPad() {
   state.remaining = total;
   state.totalTimerSeconds = total;
   updateTimerDisplay();
-  els.editTimerDialog.close();
-  playStartChime();
+  if (typeof els.editTimerDialog.close === "function") {
+    els.editTimerDialog.close();
+  }
+  if (!state.running) {
+    togglePause();
+  } else {
+    playStartChime();
+  }
 }
 
 function nextStepUnit() {
