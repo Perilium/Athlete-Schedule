@@ -1,0 +1,19 @@
+{
+  "name": "Hybrid 5.2 Workout Coach",
+  "short_name": "Hybrid 5.2",
+  "description": "Mobile-first guided workout coach with timers, rep tracking, and progression history.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#081014",
+  "theme_color": "#101820",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
