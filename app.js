@@ -889,21 +889,27 @@ function renderSession() {
 function renderExercise(ex, progress, total, supersetLabel) {
   const last = getLastExercise(ex.id);
   const restTime = ex.restSeconds || store.settings.defaultRest;
-  const isWorkTimerActive = state.phase === "work";
+  const isResting = state.phase === "rest";
+  const isWorkRunning = state.phase === "work" && state.running;
+  const timerLabel = isResting ? "REST TIMER" : `WORK SET ${state.setIndex}`;
+  const phaseClass = isResting ? "phase-rest" : "phase-work";
+  const displaySeconds = isResting ? (state.remaining || restTime) : (state.remaining || ex.workSeconds || 45);
 
   els.sessionPanel.innerHTML = `
     ${statusMarkup(progress, total, supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
     <h2 class="exercise-name">${ex.name}</h2>
     <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest between sets</p>
     
-    ${isWorkTimerActive ? activeTimerMarkup(`WORK SET ${state.setIndex}`, ex.workSeconds || 45, "phase-work") : ""}
+    ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
     
     ${setsTableMarkup(ex, last)}
     ${upNextMarkup()}
     ${cueMarkup(ex.cues)}
+    
     <div class="session-actions" style="margin-top: 18px;">
-      ${!isWorkTimerActive ? `<button class="secondary-btn" data-action="start-work" type="button">▶️ Start Set ${state.setIndex} Timer (${ex.workSeconds || 45}s)</button>` : ""}
-      <button class="primary-btn" data-action="complete-set" type="button">✓ Log Set ${state.setIndex} & Rest (${restTime}s)</button>
+      ${!isResting && !isWorkRunning ? `<button class="secondary-btn" data-action="start-work" type="button">▶️ Start Set ${state.setIndex} Timer</button>` : ""}
+      ${!isResting ? `<button class="primary-btn" data-action="complete-set" type="button">✓ Log Set ${state.setIndex} & Rest (${restTime}s)</button>` : ""}
+      ${isResting ? `<button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Next Set ➔</button>` : ""}
       <button class="ghost-btn" data-action="end-session" type="button">✕ Exit</button>
     </div>
   `;
@@ -1045,6 +1051,8 @@ function handleAction(action, context) {
     renderSession();
     startCountdown(context.workSeconds || 45, () => {
       notifyDone();
+      state.phase = "exercise";
+      renderSession();
     });
   }
   if (action === "complete-set") completeSet(context);
@@ -1061,12 +1069,19 @@ function handleAction(action, context) {
   if (action === "plus") adjustTimer(15);
   if (action === "minus") adjustTimer(-15);
   if (action === "custom-time") openTimerModal();
-  if (action === "skip") nextStepUnit();
+  if (action === "skip") {
+    if (state.phase === "rest") {
+      stopTimer();
+      state.phase = "exercise";
+      renderSession();
+    } else {
+      nextStepUnit();
+    }
+  }
 }
 
 function completeSet(ex) {
   stopTimer();
-  state.phase = "exercise";
   recordReps(ex);
   const step = currentStep();
   if (step.type === "superset") {
@@ -1129,22 +1144,7 @@ function advanceSuperset() {
 
 function startRest(seconds) {
   state.phase = "rest";
-  const step = currentStep();
-  const next = getNextStepPreview();
-
-  els.sessionPanel.innerHTML = `
-    ${statusMarkup(Math.round((state.stepIndex / currentWorkout().steps.length) * 100), currentWorkout().steps.length)}
-    <span class="badge badge-rest">Resting</span>
-    <h2 class="exercise-name">Rest & Recover</h2>
-    <p class="equipment">Take deep breaths. Prepare for next set.</p>
-    ${activeTimerMarkup("REST TIMER", seconds, "phase-rest")}
-    ${upNextMarkup()}
-    <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Next Set ➔</button>
-    </div>
-  `;
-  bindSessionButtons({});
-
+  renderSession();
   startCountdown(seconds, () => {
     notifyDone();
     state.phase = "exercise";
