@@ -220,7 +220,7 @@ function cacheEls() {
     "recoveryInfo", "sessionPanel", "historyList", "clearHistoryBtn",
     "soundQuickToggle", "soundInput", "testSoundBtn", "vibrationInput", "wakeLockInput",
     "defaultRestInput", "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput",
-    "profileWeightInput", "profileHeightInput", "logWeightBtn", "weightLogHistory",
+    "profileWeightInput", "profileHeightInput", "logWeightBtn", "weightLogHistory", "saveSettingsBtn",
     "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
     "workoutOverviewDialog", "overviewModalContent",
     "workoutRoadmapDialog", "roadmapModalContent",
@@ -240,10 +240,17 @@ function bindGlobalEvents() {
   if (els.exportDataBtn) els.exportDataBtn.addEventListener("click", exportWorkoutData);
   if (els.importDataInput) els.importDataInput.addEventListener("change", importWorkoutData);
 
-  // Athlete Profile Events
+  // Athlete Profile & Settings Save
   if (els.profileWeightInput) els.profileWeightInput.addEventListener("change", saveProfile);
   if (els.profileHeightInput) els.profileHeightInput.addEventListener("change", saveProfile);
   if (els.logWeightBtn) els.logWeightBtn.addEventListener("click", logWeightCheckin);
+  if (els.saveSettingsBtn) {
+    els.saveSettingsBtn.addEventListener("click", () => {
+      saveSettings();
+      saveProfile();
+      alert("✓ Settings and profile saved successfully!");
+    });
+  }
 
   // Settings inputs
   [
@@ -420,25 +427,42 @@ function renderSelectedDayCard(day) {
   const equipmentChips = (workout.equipmentNeeded || []).map((eq) => `<span class="equipment-chip">🔧 ${eq}</span>`).join("");
   const totalExercises = workout.steps.length;
 
+  const exerciseSummaryList = workout.steps.map((step) => {
+    if (step.type === "exercise") return `<li><strong>${step.name}</strong> · ${step.sets} sets (${step.target})</li>`;
+    if (step.type === "superset") return `<li><strong>${step.name}</strong> · ${step.rounds} rounds (${step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ")})</li>`;
+    if (step.type === "intervals") return `<li><strong>${step.name}</strong> · ${step.rounds} rounds (60s sprint / jog recovery)</li>`;
+    if (step.type === "timed") return `<li><strong>${step.name}</strong> · ${formatDuration(step.seconds)}</li>`;
+    return "";
+  }).filter(Boolean).join("");
+
   els.selectedDayCard.innerHTML = `
     <div class="selected-day-top">
       <div>
-        <span class="selected-day-tag">${workout.label} Workout</span>
+        <span class="selected-day-tag">${workout.label} Session</span>
         <h3 class="selected-day-title">${workout.title}</h3>
       </div>
       <span class="selected-day-duration">⏱ ${workout.duration}</span>
     </div>
 
-    ${equipmentChips ? `<div class="equipment-tag-cloud" style="margin: 4px 0 0;">${equipmentChips}</div>` : ""}
-
-    <div style="color: var(--muted); font-size: 0.85rem; font-weight: 700;">
-      📋 ${totalExercises} Exercises / Stages · Auto-guided set & rest timers
-    </div>
-
     <div class="selected-day-actions">
-      <button class="primary-btn" id="startSelectedDayBtn" type="button">▶️ Begin ${workout.label}</button>
+      <button class="primary-btn pulse-glow" id="startSelectedDayBtn" type="button">▶️ Begin ${workout.label} Workout</button>
       <button class="secondary-btn" id="overviewSelectedDayBtn" type="button">📋 Full Plan</button>
     </div>
+
+    <details class="card-expandable-drawer">
+      <summary class="card-drawer-summary">
+        <span>ℹ️ Equipment & Routine Details (${totalExercises} Steps)</span>
+        <span class="drawer-icon">▾</span>
+      </summary>
+      <div class="drawer-content-box">
+        <p style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--muted); margin:0 0 6px;">Required Equipment</p>
+        <div class="equipment-tag-cloud">${equipmentChips}</div>
+        <p style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--muted); margin:12px 0 6px;">Exercise Sequence</p>
+        <ul class="preview-exercise-list">
+          ${exerciseSummaryList}
+        </ul>
+      </div>
+    </details>
   `;
 
   document.getElementById("startSelectedDayBtn")?.addEventListener("click", () => startSession(day));
@@ -1658,18 +1682,30 @@ function finishSession() {
   releaseWakeLock();
   clearActiveSession();
 
-  if (state.selectedDay && state.sessionRecords.length) {
+  if (state.selectedDay) {
+    const workout = currentWorkout();
     const history = store.history;
+    const recordsToSave = (state.sessionRecords && state.sessionRecords.length > 0)
+      ? [...state.sessionRecords]
+      : [{
+          date: new Date().toISOString(),
+          day: workout ? workout.label : state.selectedDay,
+          exerciseName: workout ? workout.title : "Workout Session",
+          set: 1,
+          durationSeconds: elapsedSeconds()
+        }];
+
     history.unshift({
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       date: new Date().toISOString(),
-      day: currentWorkout().label,
-      title: currentWorkout().title,
-      durationSeconds: elapsedSeconds(),
-      records: state.sessionRecords
+      day: workout ? workout.label : state.selectedDay,
+      title: workout ? workout.title : "Workout Session",
+      durationSeconds: Math.max(1, elapsedSeconds()),
+      records: recordsToSave
     });
     store.history = history.slice(0, 150);
   }
+
   els.sessionPanel.innerHTML = `
     <span class="badge badge-work">Complete</span>
     <h2 class="exercise-name">Session Complete!</h2>
@@ -1694,21 +1730,85 @@ function elapsedSeconds() {
 
 function renderHistory() {
   const history = store.history;
-  if (!history.length) {
-    els.historyList.innerHTML = `<div class="history-card"><p>No saved workouts yet. Complete a session and it will appear here automatically.</p></div>`;
+  if (!history || !history.length) {
+    els.historyList.innerHTML = `
+      <div class="history-card" style="text-align: center; padding: 24px 16px;">
+        <p style="font-size: 1.1rem; font-weight: 800; color: var(--ink);">No saved workouts yet</p>
+        <p style="color: var(--muted); font-size: 0.88rem; margin-top: 6px;">Start any workout and tap complete/exit to record your session here automatically.</p>
+      </div>
+    `;
     return;
   }
-  els.historyList.innerHTML = history.map((session) => `
-    <article class="history-card">
-      <h3>${session.day}: ${session.title}</h3>
-      <p>${new Date(session.date).toLocaleString()} · ${formatDuration(session.durationSeconds)} · ${session.records.length} recorded sets</p>
-      <p style="color: var(--ink); font-size: 0.88rem;">${summarizeSession(session)}</p>
-    </article>
-  `).join("");
+
+  els.historyList.innerHTML = history.map((session, sIdx) => {
+    const formattedDate = new Date(session.date).toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+    const records = session.records || [];
+    const grouped = {};
+    records.forEach((r) => {
+      const name = r.exerciseName || "Exercise";
+      if (!grouped[name]) grouped[name] = [];
+      grouped[name].push(r);
+    });
+
+    const exerciseDetailRows = Object.entries(grouped).map(([exName, sets]) => {
+      const setStrings = sets.map((s) => {
+        const wtStr = (s.weight !== undefined && s.weight !== null && s.weight > 0) ? `${s.weight}kg × ` : "";
+        if (s.left !== undefined) return `Set ${s.set}: ${wtStr}${s.left}L/${s.right}R`;
+        if (s.reps !== undefined) return `Set ${s.set}: ${wtStr}${s.reps}r`;
+        return `Set ${s.set}: ✓`;
+      }).join(", ");
+      return `
+        <div style="margin-bottom: 6px;">
+          <strong style="color: var(--ink); font-size: 0.85rem;">${exName}</strong>
+          <div style="color: var(--muted); font-size: 0.8rem;">${setStrings}</div>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <article class="history-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div>
+            <span class="badge badge-work" style="margin-bottom: 4px;">${session.day || "Workout"}</span>
+            <h3 style="margin: 2px 0 4px; font-size: 1.15rem;">${session.title || "Workout Session"}</h3>
+            <p style="color: var(--muted); font-size: 0.8rem; font-weight: 700;">📅 ${formattedDate} · ⏱ ${formatDuration(session.durationSeconds || 0)} · ${records.length} logged sets</p>
+          </div>
+          <button class="danger-link" onclick="deleteHistoryEntry(${sIdx})" type="button" title="Delete entry" style="font-size: 0.85rem; padding: 4px;">🗑</button>
+        </div>
+
+        ${records.length > 0 ? `
+          <details class="history-detail-drawer" style="margin-top: 10px;">
+            <summary style="cursor: pointer; font-size: 0.82rem; font-weight: 800; color: var(--accent); display:flex; justify-content:space-between; align-items:center;">
+              <span>📊 View Logged Sets (${Object.keys(grouped).length} Exercises)</span>
+              <span class="drawer-icon">▾</span>
+            </summary>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 8px;">
+              ${exerciseDetailRows}
+            </div>
+          </details>
+        ` : ""}
+      </article>
+    `;
+  }).join("");
 }
 
+window.deleteHistoryEntry = function (index) {
+  if (!confirm("Delete this workout log?")) return;
+  const history = store.history;
+  history.splice(index, 1);
+  store.history = history;
+  renderHistory();
+};
+
 function summarizeSession(session) {
-  const names = [...new Set(session.records.map((r) => r.exerciseName))];
+  const names = [...new Set((session.records || []).map((r) => r.exerciseName))];
   return names.slice(0, 5).join(", ") + (names.length > 5 ? ` + ${names.length - 5} more` : "");
 }
 

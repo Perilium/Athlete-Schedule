@@ -323,11 +323,79 @@ h3 {
 .selected-day-actions {
   display: flex;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .selected-day-actions > * {
   flex: 1;
+}
+
+/* Collapsible Card Expandable Drawer */
+.card-expandable-drawer {
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-drawer-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--accent);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.card-drawer-summary::-webkit-details-marker {
+  display: none;
+}
+
+.card-drawer-summary:hover {
+  color: var(--accent-2);
+}
+
+.drawer-content-box {
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.preview-exercise-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink);
+  font-size: 0.84rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-exercise-list li {
+  line-height: 1.35;
+}
+
+/* History Card & Details */
+.history-card {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(14, 23, 31, 0.92);
+}
+
+.history-detail-drawer summary {
+  list-style: none;
+  user-select: none;
+}
+
+.history-detail-drawer summary::-webkit-details-marker {
+  display: none;
 }
 
 /* Collapsible Recovery Drawer */
@@ -364,7 +432,9 @@ h3 {
   font-size: 0.9rem;
 }
 
-.recovery-drawer[open] .drawer-icon {
+.recovery-drawer[open] .drawer-icon,
+.card-expandable-drawer[open] .drawer-icon,
+.history-detail-drawer[open] .drawer-icon {
   transform: rotate(180deg);
 }
 
