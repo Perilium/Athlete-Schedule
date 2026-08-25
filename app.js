@@ -976,7 +976,10 @@ function statusMarkup(extra = "") {
         <span>${workout.label} · ${setDetail}</span>
         <span class="pct-badge">${progressInfo.pct}% DONE</span>
       </div>
-      <button class="roadmap-toggle-btn" data-action="open-roadmap" type="button">📋 Full Plan</button>
+      <div style="display: flex; gap: 6px;">
+        <button class="roadmap-toggle-btn" data-action="prev-step" type="button" title="Rewind to previous set or exercise">⏮ Prev</button>
+        <button class="roadmap-toggle-btn" data-action="open-roadmap" type="button">📋 Plan</button>
+      </div>
     </div>
     <div class="progress-bar" style="margin: 4px 0 10px; height: 6px;"><div class="progress-fill" style="width:${progressInfo.pct}%"></div></div>
     ${stepCarouselMarkup()}
@@ -1142,10 +1145,11 @@ function renderExercise(ex, supersetLabel) {
     ${upNextMarkup()}
     ${cueMarkup(ex.cues)}
     
-    <div class="session-actions" style="margin-top: 18px;">
-      ${!isResting ? `<button class="primary-btn" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)</button>` : ""}
-      ${isResting ? `<button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔</button>` : ""}
-      <button class="ghost-btn" data-action="end-session" type="button">✕ Exit</button>
+    <div class="session-actions" style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px;">
+      ${!isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)</button>` : ""}
+      ${isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔</button>` : ""}
+      <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
+      <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
   `;
   bindSessionButtons(ex);
@@ -1168,8 +1172,10 @@ function renderTransition(step, part) {
     <p class="equipment">Move quickly to the next movement.</p>
     ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
     ${upNextMarkup()}
-    <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="skip" type="button">Ready Now ➔</button>
+    <div class="session-actions" style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+      <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Ready Now ➔</button>
+      <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
+      <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
   `;
   bindSessionButtons(part);
@@ -1183,8 +1189,10 @@ function renderTimed(step) {
     ${activeTimerMarkup("WORK TIMER", step.seconds, "phase-work")}
     ${upNextMarkup()}
     ${cueMarkup(step.cues)}
-    <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="skip" type="button">Complete ➔</button>
+    <div class="session-actions" style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+      <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Complete ➔</button>
+      <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
+      <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -1199,8 +1207,10 @@ function renderEquipment(step) {
     <p class="equipment">${step.from} ➔ ${step.to}</p>
     ${activeTimerMarkup("GEAR TIMER", sec, "phase-rest")}
     ${upNextMarkup()}
-    <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="ready-early" type="button">Ready Now ➔</button>
+    <div class="session-actions" style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+      <button class="primary-btn" style="flex: 1 1 100%;" data-action="ready-early" type="button">Ready Now ➔</button>
+      <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
+      <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -1219,8 +1229,10 @@ function renderIntervals(step) {
     <p class="equipment">${isHard ? "⚡ 8-9/10 exertion sprint." : "🚶 Active recovery walk / gentle breathing jog."}</p>
     ${activeTimerMarkup(label, seconds, phaseClass)}
     ${upNextMarkup()}
-    <div class="session-actions" style="margin-top: 14px;">
-      <button class="primary-btn" data-action="skip" type="button">Next Phase ➔</button>
+    <div class="session-actions" style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+      <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Next Phase ➔</button>
+      <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
+      <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
   `;
   bindSessionButtons(step);
@@ -1287,6 +1299,7 @@ function bindSessionButtons(context) {
 
 function handleAction(action, context) {
   if (action === "open-roadmap") openWorkoutRoadmap();
+  if (action === "prev-step") prevStepUnit();
   if (action === "complete-set") completeSet(context);
   if (action === "end-session") {
     if (confirm("End and save workout now?")) {
@@ -1626,6 +1639,100 @@ function applyTimerPad() {
     togglePause();
   } else {
     playStartChime();
+  }
+}
+
+function prevStepUnit() {
+  stopTimer();
+  const step = currentStep();
+  if (!step) return;
+
+  if (step.type === "exercise") {
+    if (state.phase === "rest") {
+      state.phase = "work";
+      renderSession();
+      startCountdown(step.workSeconds || 45, () => {
+        notifyDone();
+        completeSet(step);
+      });
+      return;
+    } else if (state.setIndex > 1) {
+      state.setIndex -= 1;
+      state.phase = "work";
+      state.sessionRecords = state.sessionRecords.filter((r) => !(r.exerciseId === step.id && r.set >= state.setIndex));
+      renderSession();
+      startCountdown(step.workSeconds || 45, () => {
+        notifyDone();
+        completeSet(step);
+      });
+      return;
+    }
+  } else if (step.type === "superset") {
+    if (state.phase === "rest") {
+      state.phase = "work";
+      state.supersetPartIndex = step.parts.length - 1;
+      renderSession();
+      startWork(currentPlayable() || currentStep());
+      return;
+    } else if (state.supersetPartIndex > 0) {
+      state.supersetPartIndex -= 1;
+      state.phase = "work";
+      renderSession();
+      startWork(currentPlayable() || currentStep());
+      return;
+    } else if (state.roundIndex > 1) {
+      state.roundIndex -= 1;
+      state.supersetPartIndex = step.parts.length - 1;
+      state.phase = "work";
+      renderSession();
+      startWork(currentPlayable() || currentStep());
+      return;
+    }
+  } else if (step.type === "intervals") {
+    if (state.intervalPhase === "easy") {
+      state.intervalPhase = "hard";
+      state.phase = "work";
+      renderSession();
+      startCountdown(store.settings.vo2Hard || step.hardSeconds || 60, () => {
+        notifyDone();
+        state.intervalPhase = "easy";
+        renderSession();
+        const easySec = store.settings.easyRecoverySeconds || 75;
+        startCountdown(easySec, () => {
+          notifyDone();
+          advanceIntervalRound(step);
+        });
+      });
+      return;
+    } else if (state.roundIndex > 1) {
+      state.roundIndex -= 1;
+      state.intervalPhase = "hard";
+      state.phase = "work";
+      renderSession();
+      startCountdown(store.settings.vo2Hard || step.hardSeconds || 60, () => {
+        notifyDone();
+        state.intervalPhase = "easy";
+        renderSession();
+        const easySec = store.settings.easyRecoverySeconds || 75;
+        startCountdown(easySec, () => {
+          notifyDone();
+          advanceIntervalRound(step);
+        });
+      });
+      return;
+    }
+  }
+
+  // Jump to previous step in the workout if available
+  if (state.stepIndex > 0) {
+    state.stepIndex -= 1;
+    const prevStepObj = currentWorkout().steps[state.stepIndex];
+    state.setIndex = prevStepObj.sets || 1;
+    state.roundIndex = prevStepObj.rounds || 1;
+    state.supersetPartIndex = (prevStepObj.parts ? prevStepObj.parts.length - 1 : 0);
+    state.phase = "work";
+    state.remaining = 0;
+    startCurrentStepAuto();
   }
 }
 
