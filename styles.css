@@ -873,30 +873,95 @@ h3 {
   font-weight: 700;
 }
 
-.timer-picker {
+/* Mobile Timer Pad Styles */
+.timer-pad-modal {
+  max-width: 400px;
+}
+
+.pad-display-wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin: 20px 0;
-}
-
-.timer-picker input {
-  width: 80px;
-  height: 64px;
-  font-size: 2.2rem;
-  font-weight: 900;
-  text-align: center;
-  border: 2px solid var(--line);
-  border-radius: 12px;
+  margin: 14px 0 16px;
+  padding: 16px;
   background: #04080b;
-  color: var(--ink);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
 }
 
-.timer-picker .colon {
-  font-size: 2.5rem;
+.pad-time-display {
+  font-size: clamp(3rem, 15vw, 4rem);
   font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--accent-2);
+  line-height: 1;
+}
+
+.pad-display-label {
+  margin-top: 4px;
+  font-size: 0.76rem;
+  font-weight: 700;
   color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pad-section-label {
+  margin: 12px 0 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pad-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.pad-preset-btn {
+  min-height: 48px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.95rem;
+  transition: all 120ms ease;
+}
+
+.pad-preset-btn:hover,
+.pad-preset-btn.active {
+  background: rgba(45, 212, 191, 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.25);
+}
+
+.pad-steppers-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.pad-stepper-btn {
+  min-height: 44px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.pad-stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .modal-actions {

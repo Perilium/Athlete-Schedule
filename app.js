@@ -203,7 +203,7 @@ function cacheEls() {
     "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
     "workoutOverviewDialog", "overviewModalContent",
     "workoutRoadmapDialog", "roadmapModalContent",
-    "editTimerDialog", "editTimerForm", "customTimerMinutes", "customTimerSeconds", "cancelTimerModalBtn"
+    "editTimerDialog", "padTimeDisplay", "saveTimerModalBtn", "cancelTimerModalBtn"
   ].forEach((id) => (els[id] = document.getElementById(id)));
 }
 
@@ -227,13 +227,29 @@ function bindGlobalEvents() {
     if (els[id]) els[id].addEventListener("change", saveSettings);
   });
 
-  // Modal events
+  // Mobile Timer Pad Events
   if (els.cancelTimerModalBtn) {
     els.cancelTimerModalBtn.addEventListener("click", () => els.editTimerDialog.close());
   }
-  if (els.editTimerForm) {
-    els.editTimerForm.addEventListener("submit", handleTimerModalSave);
+  if (els.saveTimerModalBtn) {
+    els.saveTimerModalBtn.addEventListener("click", applyTimerPad);
   }
+
+  // Presets and Steppers
+  document.querySelectorAll(".pad-preset-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.padSelectedSeconds = parseInt(btn.dataset.sec, 10) || 60;
+      updatePadDisplay();
+    });
+  });
+
+  document.querySelectorAll(".pad-stepper-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const delta = parseInt(btn.dataset.delta, 10) || 0;
+      state.padSelectedSeconds = Math.max(5, (state.padSelectedSeconds || 60) + delta);
+      updatePadDisplay();
+    });
+  });
 
   // PWA install
   if (els.installBtn) els.installBtn.addEventListener("click", installApp);
@@ -1205,27 +1221,33 @@ function updateTimerDisplay() {
   }
 }
 
-// Timer Edit Modal Dialog
+// Mobile Timer Pad Controller
 function openTimerModal() {
-  const current = state.remaining > 0 ? state.remaining : 60;
-  const mins = Math.floor(current / 60);
-  const secs = current % 60;
-  els.customTimerMinutes.value = mins;
-  els.customTimerSeconds.value = String(secs).padStart(2, "0");
+  const current = state.remaining > 0 ? state.remaining : (currentStep()?.restSeconds || 60);
+  state.padSelectedSeconds = current;
+  updatePadDisplay();
   if (typeof els.editTimerDialog.showModal === "function") {
     els.editTimerDialog.showModal();
   }
 }
 
-function handleTimerModalSave(e) {
-  e.preventDefault();
-  const mins = parseInt(els.customTimerMinutes.value, 10) || 0;
-  const secs = parseInt(els.customTimerSeconds.value, 10) || 0;
-  const total = Math.max(5, mins * 60 + secs);
+function updatePadDisplay() {
+  if (els.padTimeDisplay) {
+    els.padTimeDisplay.textContent = formatTime(state.padSelectedSeconds || 60);
+  }
+  document.querySelectorAll(".pad-preset-btn").forEach((btn) => {
+    const sec = parseInt(btn.dataset.sec, 10);
+    btn.classList.toggle("active", sec === state.padSelectedSeconds);
+  });
+}
+
+function applyTimerPad() {
+  const total = Math.max(5, state.padSelectedSeconds || 60);
   state.remaining = total;
   state.totalTimerSeconds = total;
   updateTimerDisplay();
   els.editTimerDialog.close();
+  playStartChime();
 }
 
 function nextStepUnit() {

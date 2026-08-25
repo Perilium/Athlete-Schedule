@@ -9,7 +9,7 @@
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon.svg">
     <title>Hybrid 5.2 Workout Coach</title>
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="styles.css?v=4">
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -192,23 +192,50 @@
       </div>
     </dialog>
 
-    <!-- Edit Timer Modal -->
-    <dialog id="editTimerDialog" class="modal-dialog">
-      <form method="dialog" id="editTimerForm" class="modal-box">
-        <h3>Adjust Timer</h3>
-        <p class="modal-subtitle">Set custom time for this countdown</p>
-        <div class="timer-picker">
-          <input id="customTimerMinutes" type="number" min="0" max="59" value="1" placeholder="MM">
-          <span class="colon">:</span>
-          <input id="customTimerSeconds" type="number" min="0" max="59" value="00" placeholder="SS">
+    <!-- Mobile Timer Pad Modal -->
+    <dialog id="editTimerDialog" class="modal-dialog timer-pad-modal">
+      <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <div>
+            <p class="eyebrow">Timer Control</p>
+            <h3 style="margin: 0;">Adjust Duration</h3>
+          </div>
+          <button id="cancelTimerModalBtn" class="danger-link" type="button" style="font-size: 1.25rem;">✕</button>
         </div>
-        <div class="modal-actions">
-          <button id="cancelTimerModalBtn" type="button" class="ghost-btn">Cancel</button>
-          <button id="saveTimerModalBtn" type="submit" class="primary-btn">Set Time</button>
+
+        <div class="pad-display-wrapper">
+          <div id="padTimeDisplay" class="pad-time-display">01:00</div>
+          <span class="pad-display-label">Selected Duration</span>
         </div>
-      </form>
+
+        <p class="pad-section-label">⚡ Quick Presets</p>
+        <div class="pad-presets-grid" id="padPresetsGrid">
+          <button class="pad-preset-btn" data-sec="30" type="button">30s</button>
+          <button class="pad-preset-btn" data-sec="45" type="button">45s</button>
+          <button class="pad-preset-btn" data-sec="60" type="button">60s</button>
+          <button class="pad-preset-btn" data-sec="75" type="button">75s</button>
+          <button class="pad-preset-btn" data-sec="90" type="button">90s</button>
+          <button class="pad-preset-btn" data-sec="120" type="button">2:00</button>
+          <button class="pad-preset-btn" data-sec="150" type="button">2:30</button>
+          <button class="pad-preset-btn" data-sec="180" type="button">3:00</button>
+        </div>
+
+        <p class="pad-section-label" style="margin-top: 14px;">⏱ Fine Tune</p>
+        <div class="pad-steppers-grid">
+          <button class="pad-stepper-btn" data-delta="-30" type="button">-30s</button>
+          <button class="pad-stepper-btn" data-delta="-15" type="button">-15s</button>
+          <button class="pad-stepper-btn" data-delta="15" type="button">+15s</button>
+          <button class="pad-stepper-btn" data-delta="30" type="button">+30s</button>
+          <button class="pad-stepper-btn" data-delta="-60" type="button">-1 min</button>
+          <button class="pad-stepper-btn" data-delta="60" type="button">+1 min</button>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+          <button id="saveTimerModalBtn" type="button" class="primary-btn">✓ Apply & Start</button>
+        </div>
+      </div>
     </dialog>
 
-    <script src="app.js?v=3" defer></script>
+    <script src="app.js?v=4" defer></script>
   </body>
 </html>
