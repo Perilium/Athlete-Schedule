@@ -1,0 +1,9 @@
+# Archives
+*.zip
+*.tar.gz
+
+# OS / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
