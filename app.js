@@ -638,19 +638,19 @@ function renderProgramEditorContent() {
 
     return `
       <div class="editor-step-card">
-        <div class="editor-step-info">
+        <div class="editor-step-top-row">
           <div class="editor-step-header">
             <span class="badge" style="font-size:0.7rem; min-height:22px; padding:2px 6px;">${idx + 1}. ${typeBadge}</span>
             <span class="editor-step-title">${step.name || "Step"}</span>
           </div>
-          <div class="editor-step-meta">${meta}</div>
+          <div class="editor-step-actions">
+            <button class="editor-action-btn" onclick="moveEditorStep('${day}', ${idx}, -1)" ${isFirst ? "disabled style='opacity:0.3;'" : ""} title="Move Up">⬆️</button>
+            <button class="editor-action-btn" onclick="moveEditorStep('${day}', ${idx}, 1)" ${isLast ? "disabled style='opacity:0.3;'" : ""} title="Move Down">⬇️</button>
+            <button class="editor-action-btn" onclick="openStepEditModal('${day}', ${idx})" title="Edit timing and details">✏️</button>
+            <button class="editor-action-btn btn-delete" onclick="deleteEditorStep('${day}', ${idx})" title="Delete step">🗑</button>
+          </div>
         </div>
-        <div class="editor-step-actions">
-          <button class="editor-action-btn" onclick="moveEditorStep('${day}', ${idx}, -1)" ${isFirst ? "disabled style='opacity:0.3;'" : ""} title="Move Up">⬆️</button>
-          <button class="editor-action-btn" onclick="moveEditorStep('${day}', ${idx}, 1)" ${isLast ? "disabled style='opacity:0.3;'" : ""} title="Move Down">⬇️</button>
-          <button class="editor-action-btn" onclick="openStepEditModal('${day}', ${idx})" title="Edit timing and details">✏️</button>
-          <button class="editor-action-btn btn-delete" onclick="deleteEditorStep('${day}', ${idx})" title="Delete step">🗑</button>
-        </div>
+        <div class="editor-step-meta">${meta}</div>
       </div>
     `;
   }).join("");

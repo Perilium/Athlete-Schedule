@@ -1193,14 +1193,18 @@ h3 {
 .modal-dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--panel);
+  background: #091118;
   color: var(--ink);
-  padding: 20px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
-  max-width: 480px;
-  width: 92%;
-  max-height: 88vh;
+  padding: 20px 16px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+  max-width: 540px;
+  width: min(540px, calc(100vw - 20px));
+  max-height: 90vh;
+  margin: auto;
+  inset: 0;
+  position: fixed;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .modal-dialog::backdrop {
@@ -1446,37 +1450,40 @@ h3 {
 .editor-steps-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 50vh;
+  gap: 8px;
+  max-height: 52vh;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 2px;
+  scrollbar-width: thin;
 }
 
 .editor-step-card {
   background: rgba(14, 23, 31, 0.95);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editor-step-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-}
-
-.editor-step-info {
-  flex: 1;
-  min-width: 0;
+  gap: 8px;
 }
 
 .editor-step-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 .editor-step-title {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: var(--ink);
   white-space: nowrap;
@@ -1485,15 +1492,15 @@ h3 {
 }
 
 .editor-step-meta {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--muted);
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .editor-step-meta span {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -1501,7 +1508,7 @@ h3 {
 .editor-step-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
 }
 
@@ -1510,9 +1517,9 @@ h3 {
   border: 1px solid var(--line);
   border-radius: 6px;
   color: var(--ink);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 800;
-  padding: 6px 8px;
+  padding: 5px 7px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
