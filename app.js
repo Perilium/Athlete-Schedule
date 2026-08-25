@@ -61,28 +61,36 @@ const WORKOUTS = {
     label: "Friday",
     title: "Upper Hypertrophy + Abs + Rotation",
     duration: "35-40 min",
-    equipmentNeeded: ["2 x 10 kg Dumbbells", "Incline Bench", "Resistance Band / Cable"],
+    equipmentNeeded: ["10 kg DB / Dumbbells", "Incline Bench / Mat", "Light Resistance / DBs"],
     steps: [
-      exercise("dumbbell-bench-press", "Dumbbell Bench Press", "2 x 10 kg DB", "4 x 8-15", 4, 45, 75, ["Controlled descent.", "Full press at top."]),
-      exercise("incline-dumbbell-row", "Incline Dumbbell Row", "2 x 10 kg DB", "4 x 8-15", 4, 45, 75, ["Chest supported on incline.", "Pull through elbows."]),
-      superset("Superset A", 3, 50, [
-        exercise("lateral-raise", "Lateral Raise", "Light DBs / bands", "3 x 12-20", 3, 35, 0, ["Lead with elbows.", "Slight forward lean."]),
-        transition(8),
-        exercise("overhead-triceps-extension", "Overhead Triceps Extension", "DB", "3 x 10-15", 3, 40, 0, ["Keep elbows relatively fixed.", "Full stretch at bottom."])
+      superset("Superset A", 3, 60, [
+        exercise("single-arm-db-row", "Single-Arm DB Row", "10 kg DB", "3 x 10-15 each arm", 3, 60, 0, ["Support hand/knee on bench.", "Pull elbow toward hip.", "Control eccentric."], "arm"),
+        transition(10),
+        exercise("push-ups", "Push-Ups", "Bodyweight", "3 x 10-20", 3, 40, 0, ["Plank body line.", "Chest touches mat.", "Full lockout."])
       ]),
-      superset("Superset B (Core & Rotation)", 3, 45, [
-        exercise("hollow-body-hold", "Hollow Body Hold", "Bodyweight", "3 x 20-30 sec", 3, 35, 0, ["Lower back firmly pressed to floor.", "Tuck knees if too difficult."]),
-        transition(8),
-        exercise("pallof-press", "Pallof Press", "Band / Cable", "3 x 10-12 each side", 3, 40, 0, ["Resist rotational twist.", "Slow controlled press."], "side")
+      superset("Superset B", 3, 50, [
+        exercise("lateral-raise", "Lateral Raise", "Light resistance", "3 x 12-20", 3, 40, 0, ["Lead with elbows.", "Slight forward torso lean."]),
+        transition(10),
+        exercise("incline-db-curl", "Incline DB Curl", "2 x 10 kg DB", "3 x 10-15", 3, 40, 0, ["Palms forward.", "Elbows pinned.", "Full stretch at bottom."])
+      ]),
+      superset("Superset C", 3, 45, [
+        exercise("overhead-triceps-extension", "Overhead Triceps Extension", "10 kg DB", "3 x 10-15", 3, 40, 0, ["Keep elbows high and relatively fixed.", "Full stretch at bottom."]),
+        transition(10),
+        exercise("reverse-crunch", "Reverse Crunch", "Bodyweight", "3 x 10-15", 3, 35, 0, ["Curl pelvis off floor.", "Controlled descent.", "No swinging."])
+      ]),
+      superset("Superset D", 3, 45, [
+        exercise("db-woodchopper", "DB Woodchopper", "10 kg DB", "3 x 8-12 each side", 3, 55, 0, ["Pivot through back foot.", "Drive rotation through torso.", "Control descent."], "side"),
+        transition(10),
+        exercise("front-plank", "Front Plank", "Bodyweight", "2 x 30-60 sec", 2, 45, 0, ["Elbows directly under shoulders.", "Brace glutes and abs.", "Neutral neck."])
       ])
     ]
   }
 };
 
 const RECOVERY = [
-  ["Wednesday", "Zone 2 Cardio (45-60 min easy jog/cycle) + Full Body Mobility"],
-  ["Saturday", "Zone 2 Active Recovery (30-45 min) or Complete Rest"],
-  ["Sunday", "Full Rest & Recovery / Light Walking"]
+  ["Wednesday", "Option A: Full rest; Option B: 30-45 min Zone 2, conversational intensity."],
+  ["Saturday", "30-60 min Zone 2 / active life: brisk walking, hiking, easy cycling, swimming, or easy jogging."],
+  ["Sunday", "Full rest; normal walking/activity fine."]
 ];
 
 const DEFAULT_SETTINGS = {
@@ -884,7 +892,8 @@ function statusMarkup(extra = "") {
 
 // Interactive Sets Table Builder
 function setsTableMarkup(ex, last) {
-  const targetRepsDefault = defaultTargetReps(ex.target);
+  const isTimeTracking = ex.id === "suitcase-carry";
+  const targetRepsDefault = defaultTargetReps(ex.target, ex.id);
   let rows = "";
 
   for (let s = 1; s <= ex.sets; s++) {
@@ -892,18 +901,27 @@ function setsTableMarkup(ex, last) {
     const isActive = s === state.setIndex;
     const isUpcoming = s > state.setIndex;
 
-    // Find if we already recorded reps for this set in today's workout
     const todayRecord = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === s);
     const lastRecord = last && last.records && last.records[s - 1];
 
     let lastSummary = "-";
     if (lastRecord) {
-      if (lastRecord.left !== undefined) lastSummary = `${lastRecord.left}L/${lastRecord.right}R`;
-      else if (lastRecord.reps !== undefined) lastSummary = `${lastRecord.reps} reps`;
+      if (lastRecord.left !== undefined) {
+        lastSummary = isTimeTracking ? `${lastRecord.left}s L / ${lastRecord.right}s R` : `${lastRecord.left}L/${lastRecord.right}R`;
+      } else if (lastRecord.reps !== undefined) {
+        lastSummary = isTimeTracking ? `${lastRecord.reps}s` : `${lastRecord.reps} reps`;
+      }
     }
 
     if (isDone) {
-      let logged = todayRecord ? (todayRecord.left !== undefined ? `${todayRecord.left}L/${todayRecord.right}R` : `${todayRecord.reps} reps`) : "✓ Done";
+      let logged = "✓ Done";
+      if (todayRecord) {
+        if (todayRecord.left !== undefined) {
+          logged = isTimeTracking ? `${todayRecord.left}s L / ${todayRecord.right}s R` : `${todayRecord.left}L/${todayRecord.right}R`;
+        } else if (todayRecord.reps !== undefined) {
+          logged = isTimeTracking ? `${todayRecord.reps}s` : `${todayRecord.reps} reps`;
+        }
+      }
       rows += `
         <div class="set-row set-row-done">
           <span class="set-num-badge">${s}</span>
@@ -917,12 +935,12 @@ function setsTableMarkup(ex, last) {
       if (ex.unilateral) {
         inputHtml = `
           <div class="unilateral-inputs-wrap">
-            <input id="left" inputmode="numeric" type="number" min="0" max="99" value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L">
-            <input id="right" inputmode="numeric" type="number" min="0" max="99" value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R">
+            <input id="left" inputmode="numeric" type="number" min="0" max="180" value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L">
+            <input id="right" inputmode="numeric" type="number" min="0" max="180" value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R">
           </div>
         `;
       } else {
-        inputHtml = `<input id="reps" class="set-rep-input" inputmode="numeric" type="number" min="0" max="99" value="${todayRecord?.reps ?? targetRepsDefault}">`;
+        inputHtml = `<input id="reps" class="set-rep-input" inputmode="numeric" type="number" min="0" max="180" value="${todayRecord?.reps ?? targetRepsDefault}">`;
       }
 
       rows += `
@@ -945,23 +963,28 @@ function setsTableMarkup(ex, last) {
     }
   }
 
+  let colHeader = "Reps";
+  if (isTimeTracking) colHeader = "L / R (sec)";
+  else if (ex.unilateral) colHeader = "L / R Reps";
+
   return `
     <div class="sets-table-card">
       <div class="sets-table-header">
         <span>Set</span>
         <span>Target</span>
         <span>Last</span>
-        <span>${ex.unilateral ? "L / R Reps" : "Reps"}</span>
+        <span>${colHeader}</span>
       </div>
       ${rows}
     </div>
   `;
 }
 
-function defaultTargetReps(target) {
-  const match = target.match(/(\d+)\s*-\s*(\d+)/);
+function defaultTargetReps(target, exerciseId) {
+  if (exerciseId === "suitcase-carry") return 45;
+  const match = (target || "").match(/(\d+)\s*-\s*(\d+)/);
   if (match) return Number(match[1]); // e.g. 8 for 8-15
-  const single = target.match(/(\d+)/);
+  const single = (target || "").match(/(\d+)/);
   return single ? Number(single[1]) : 10;
 }
 
@@ -1229,7 +1252,7 @@ function advanceSuperset() {
   if (state.roundIndex < step.rounds) {
     state.roundIndex += 1;
     state.supersetPartIndex = 0;
-    const restTime = store.settings.supersetRest || step.restSeconds || 60;
+    const restTime = step.restSeconds || store.settings.supersetRest || 60;
     startRest(restTime);
     return;
   }
@@ -1392,7 +1415,7 @@ function nextStepUnit() {
       if (state.roundIndex < step.rounds) {
         state.roundIndex += 1;
         state.supersetPartIndex = 0;
-        const restTime = store.settings.supersetRest || step.restSeconds || 60;
+        const restTime = step.restSeconds || store.settings.supersetRest || 60;
         startRest(restTime);
         return;
       } else {
@@ -1521,7 +1544,7 @@ function saveSettings() {
     defaultRest: clamp(Number(els.defaultRestInput?.value) || 45, 15, 300),
     supersetRest: clamp(Number(els.supersetRestInput?.value) || 60, 15, 300),
     vo2Hard: clamp(Number(els.vo2HardInput?.value) || 60, 20, 180),
-    easyRecoverySeconds: clamp(Number(els.easyRecoveryInput?.value) || 75, 30, 180),
+    easyRecoverySeconds: clamp(Number(els.easyRecoveryInput?.value) || 75, 60, 90),
     equipChangeSeconds: clamp(Number(els.equipChangeInput?.value) || 90, 30, 300)
   };
   renderSettings();
