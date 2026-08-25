@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#101820">
-    <meta name="description" content="Hybrid 5.2 mobile workout coach with timers, rep tracking, and progression history.">
+    <meta name="theme-color" content="#081014">
+    <meta name="description" content="Hybrid 5.2 mobile workout coach with timers, audio cues, rep tracking, and progression history.">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon.svg">
@@ -18,7 +18,10 @@
           <p class="eyebrow">Hybrid 5.2</p>
           <h1>Workout Coach</h1>
         </div>
-        <button id="installBtn" class="ghost-btn hidden" type="button">Install</button>
+        <div class="topbar-actions">
+          <button id="soundQuickToggle" class="icon-btn" type="button" aria-label="Toggle Sound" title="Toggle Sound">🔊</button>
+          <button id="installBtn" class="ghost-btn hidden" type="button">Install</button>
+        </div>
       </header>
 
       <nav class="tabs" aria-label="App sections">
@@ -29,6 +32,7 @@
 
       <main>
         <section id="todayScreen" class="screen active-screen">
+          <div id="resumeBanner" class="resume-banner hidden"></div>
           <div id="dayGrid" class="day-grid"></div>
           <div id="recoveryInfo" class="recovery-strip"></div>
           <div id="sessionPanel" class="session-panel hidden"></div>
@@ -48,28 +52,148 @@
         <section id="settingsScreen" class="screen">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Fine tune</p>
-              <h2>Settings</h2>
+              <p class="eyebrow">Audio & Cues</p>
+              <h2>Sound & Timers</h2>
             </div>
           </div>
           <div class="settings-list">
             <label class="setting-row">
-              <span>Easy recovery seconds</span>
-              <input id="easyRecoveryInput" type="number" min="60" max="90" step="5">
+              <div>
+                <strong>Audio Cues & Beeps</strong>
+                <span class="setting-desc">Start chime, 3-2-1 countdown, and finish alerts</span>
+              </div>
+              <input id="soundInput" type="checkbox" checked>
             </label>
+            <div class="setting-row">
+              <div>
+                <strong>Test Sound & Volume</strong>
+                <span class="setting-desc">Play sample start & countdown chime</span>
+              </div>
+              <button id="testSoundBtn" class="secondary-btn small-btn" type="button">🔊 Test Beep</button>
+            </div>
             <label class="setting-row">
-              <span>Enable vibration</span>
+              <div>
+                <strong>Enable Vibration</strong>
+                <span class="setting-desc">Haptic pulses when timers finish</span>
+              </div>
               <input id="vibrationInput" type="checkbox">
             </label>
             <label class="setting-row">
-              <span>Keep screen awake during workouts</span>
+              <div>
+                <strong>Keep Screen Awake</strong>
+                <span class="setting-desc">Prevents phone sleep during workout</span>
+              </div>
               <input id="wakeLockInput" type="checkbox">
             </label>
           </div>
-          <p class="soft-note">History and settings stay on this phone using localStorage. No account or internet is needed once installed.</p>
+
+          <div class="section-heading" style="margin-top: 24px;">
+            <div>
+              <p class="eyebrow">Custom Timer Defaults</p>
+              <h2>Timer Durations</h2>
+            </div>
+            <button id="resetTimersBtn" class="ghost-btn small-btn" type="button">Reset Defaults</button>
+          </div>
+          <div class="settings-list">
+            <label class="setting-row">
+              <div>
+                <strong>Standard Exercise Rest</strong>
+                <span class="setting-desc">Default rest between regular sets</span>
+              </div>
+              <div class="input-with-unit">
+                <input id="defaultRestInput" type="number" min="15" max="300" step="5">
+                <span>sec</span>
+              </div>
+            </label>
+            <label class="setting-row">
+              <div>
+                <strong>Superset Rest</strong>
+                <span class="setting-desc">Rest between superset rounds</span>
+              </div>
+              <div class="input-with-unit">
+                <input id="supersetRestInput" type="number" min="15" max="300" step="5">
+                <span>sec</span>
+              </div>
+            </label>
+            <label class="setting-row">
+              <div>
+                <strong>VO2 Max Hard Interval</strong>
+                <span class="setting-desc">Sprint / high intensity work time</span>
+              </div>
+              <div class="input-with-unit">
+                <input id="vo2HardInput" type="number" min="20" max="180" step="5">
+                <span>sec</span>
+              </div>
+            </label>
+            <label class="setting-row">
+              <div>
+                <strong>VO2 Max Easy Recovery</strong>
+                <span class="setting-desc">Jog / walk recovery interval</span>
+              </div>
+              <div class="input-with-unit">
+                <input id="easyRecoveryInput" type="number" min="30" max="180" step="5">
+                <span>sec</span>
+              </div>
+            </label>
+            <label class="setting-row">
+              <div>
+                <strong>Gear / Barbell Transition</strong>
+                <span class="setting-desc">Equipment change screen duration</span>
+              </div>
+              <div class="input-with-unit">
+                <input id="equipChangeInput" type="number" min="30" max="300" step="5">
+                <span>sec</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="section-heading" style="margin-top: 24px;">
+            <div>
+              <p class="eyebrow">Data Backup & Export</p>
+              <h2>Local Storage</h2>
+            </div>
+          </div>
+          <div class="settings-list">
+            <div class="setting-row">
+              <div>
+                <strong>Export Workout Data</strong>
+                <span class="setting-desc">Save your entire history and settings as JSON</span>
+              </div>
+              <button id="exportDataBtn" class="secondary-btn small-btn" type="button">⬇️ Export</button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <strong>Restore Workout Data</strong>
+                <span class="setting-desc">Import a previously saved backup file</span>
+              </div>
+              <label class="secondary-btn small-btn" style="display:inline-flex; align-items:center; cursor:pointer;">
+                ⬆️ Import
+                <input id="importDataInput" type="file" accept=".json" style="display:none;">
+              </label>
+            </div>
+          </div>
+
+          <p class="soft-note">All data is saved automatically on this device. No account or internet connection is required once opened.</p>
         </section>
       </main>
     </div>
+
+    <!-- Edit Timer Modal -->
+    <dialog id="editTimerDialog" class="modal-dialog">
+      <form method="dialog" id="editTimerForm" class="modal-box">
+        <h3>Adjust Timer</h3>
+        <p class="modal-subtitle">Set custom time for this countdown</p>
+        <div class="timer-picker">
+          <input id="customTimerMinutes" type="number" min="0" max="59" value="1" placeholder="MM">
+          <span class="colon">:</span>
+          <input id="customTimerSeconds" type="number" min="0" max="59" value="00" placeholder="SS">
+        </div>
+        <div class="modal-actions">
+          <button id="cancelTimerModalBtn" type="button" class="ghost-btn">Cancel</button>
+          <button id="saveTimerModalBtn" type="submit" class="primary-btn">Set Time</button>
+        </div>
+      </form>
+    </dialog>
 
     <script src="app.js" defer></script>
   </body>

@@ -1,5 +1,6 @@
 "use strict";
 
+// Hybrid 5.2 Workout Program Data (No Side Planks)
 const WORKOUTS = {
   monday: {
     label: "Monday",
@@ -58,42 +59,40 @@ const WORKOUTS = {
     title: "Upper Hypertrophy + Abs + Rotation",
     duration: "35-40 min",
     steps: [
-      superset("Superset A", 3, 60, [
-        exercise("single-arm-db-row", "Single-Arm DB Row", "10 kg DB", "3 x 10-15 each arm", 3, 60, 0, ["Controlled stretch.", "Pull elbow toward hip."], "arm"),
-        transition(10),
-        exercise("push-ups", "Push-Ups", "Bodyweight", "3 x 10-20", 3, 40, 0, ["Rigid body.", "Comfortable full range."])
+      exercise("dumbbell-bench-press", "Dumbbell Bench Press", "2 x 10 kg DB", "4 x 8-15", 4, 45, 75, ["Controlled descent.", "Full press at top."]),
+      exercise("incline-dumbbell-row", "Incline Dumbbell Row", "2 x 10 kg DB", "4 x 8-15", 4, 45, 75, ["Chest supported on incline.", "Pull through elbows."]),
+      superset("Superset A", 3, 50, [
+        exercise("lateral-raise", "Lateral Raise", "Light DBs / bands", "3 x 12-20", 3, 35, 0, ["Lead with elbows.", "Slight forward lean."]),
+        transition(8),
+        exercise("overhead-triceps-extension", "Overhead Triceps Extension", "DB", "3 x 10-15", 3, 40, 0, ["Keep elbows relatively fixed.", "Full stretch at bottom."])
       ]),
-      superset("Superset B", 3, 50, [
-        exercise("lateral-raise", "Lateral Raise", "Light resistance", "3 x 12-20", 3, 40, 0, ["10 kg may be too heavy.", "Do not encourage swinging."]),
-        transition(10),
-        exercise("incline-db-curl", "Incline DB Curl", "2 x 10 kg DB", "3 x 10-15", 3, 40, 0, ["Arms slightly behind torso.", "Elbows controlled."])
-      ]),
-      superset("Superset C", 3, 45, [
-        exercise("overhead-triceps-extension", "Overhead Triceps Extension", "10 kg DB", "3 x 10-15", 3, 40, 0, []),
-        transition(10),
-        exercise("reverse-crunch", "Reverse Crunch", "Bodyweight", "3 x 10-15", 3, 35, 0, ["Curl pelvis toward ribs.", "Don't simply swing legs."])
-      ]),
-      superset("Superset D", 3, 45, [
-        exercise("db-woodchopper", "DB Woodchopper", "10 kg DB", "3 x 8-12 each side", 3, 55, 0, ["Controlled rotation.", "Do not violently twist through lower back."], "side"),
-        transition(10),
-        exercise("front-plank", "Front Plank", "Bodyweight", "2 x 30-60 sec", 2, 45, 0, ["Brace trunk.", "Neutral position.", "Once 60 sec is easy, increase difficulty rather than endlessly increasing duration."])
+      superset("Superset B (Core & Rotation)", 3, 45, [
+        exercise("hollow-body-hold", "Hollow Body Hold", "Bodyweight", "3 x 20-30 sec", 3, 35, 0, ["Lower back firmly pressed to floor.", "Tuck knees if too difficult."]),
+        transition(8),
+        exercise("pallof-press", "Pallof Press", "Band / Cable", "3 x 10-12 each side", 3, 40, 0, ["Resist rotational twist.", "Slow controlled press."], "side")
       ])
     ]
   }
 };
 
 const RECOVERY = [
-  ["Wednesday", "Full rest or 30-45 min Zone 2 at conversational intensity."],
-  ["Saturday", "30-60 min Zone 2: brisk walk, hike, easy cycle, swim, or easy jog."],
-  ["Sunday", "Full rest. Normal walking and activity is fine."]
+  ["Wednesday", "Zone 2 Cardio (45-60 min easy jog/cycle) + Full Body Mobility"],
+  ["Saturday", "Zone 2 Active Recovery (30-45 min) or Complete Rest"],
+  ["Sunday", "Full Rest & Recovery / Light Walking"]
 ];
 
 const DEFAULT_SETTINGS = {
-  easyRecoverySeconds: 75,
+  sound: true,
   vibration: true,
-  wakeLock: true
+  wakeLock: true,
+  defaultRest: 45,
+  supersetRest: 60,
+  vo2Hard: 60,
+  easyRecoverySeconds: 75,
+  equipChangeSeconds: 90
 };
 
+// State & Storage
 const state = {
   selectedDay: null,
   mode: "guided",
@@ -101,58 +100,82 @@ const state = {
   setIndex: 1,
   roundIndex: 1,
   supersetPartIndex: 0,
-  phase: "idle",
-  intervalPhase: "hard",
-  timer: null,
-  timerDone: null,
-  remaining: 0,
-  running: false,
+  phase: "ready", // ready, work, rest, timer
+  intervalPhase: "hard", // hard, easy
   startedAt: null,
   sessionRecords: [],
+  timer: null,
+  remaining: 0,
+  totalTimerSeconds: 0,
+  running: false,
+  timerDone: null,
   wakeLock: null,
-  deferredPrompt: null
+  deferredPrompt: null,
+  audioCtx: null
 };
 
 const els = {};
+
 const store = {
   get history() {
-    return JSON.parse(localStorage.getItem("hybrid52.history") || "[]");
+    try {
+      return JSON.parse(localStorage.getItem("hybrid_history") || "[]");
+    } catch {
+      return [];
+    }
   },
-  set history(value) {
-    localStorage.setItem("hybrid52.history", JSON.stringify(value));
+  set history(v) {
+    localStorage.setItem("hybrid_history", JSON.stringify(v));
   },
   get settings() {
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("hybrid52.settings") || "{}") };
+    try {
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("hybrid_settings") || "{}") };
+    } catch {
+      return { ...DEFAULT_SETTINGS };
+    }
   },
-  set settings(value) {
-    localStorage.setItem("hybrid52.settings", JSON.stringify(value));
+  set settings(v) {
+    localStorage.setItem("hybrid_settings", JSON.stringify(v));
+  },
+  get activeSession() {
+    try {
+      return JSON.parse(localStorage.getItem("hybrid_active_session") || "null");
+    } catch {
+      return null;
+    }
+  },
+  set activeSession(v) {
+    if (v === null) localStorage.removeItem("hybrid_active_session");
+    else localStorage.setItem("hybrid_active_session", JSON.stringify(v));
   }
 };
 
-function exercise(id, name, equipmentLabel, target, sets, workSeconds, restSeconds, cues = [], unilateral = null) {
-  return { type: "exercise", id, name, equipment: equipmentLabel, target, sets, workSeconds, restSeconds, cues, unilateral };
-}
-
-function timed(id, name, equipmentLabel, seconds, cues = []) {
-  return { type: "timed", id, name, equipment: equipmentLabel, seconds, cues };
-}
-
-function equipment(from, to, seconds) {
-  return { type: "equipment", id: `equipment-${from}-${to}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"), from, to, seconds };
+// Exercise constructors
+function exercise(id, name, equipment, target, sets, workSeconds, restSeconds, cues = [], unilateral = null) {
+  return { type: "exercise", id, name, equipment, target, sets, workSeconds, restSeconds, cues, unilateral };
 }
 
 function superset(name, rounds, restSeconds, parts) {
-  return { type: "superset", id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name, rounds, restSeconds, parts };
+  return { type: "superset", name, rounds, restSeconds, parts };
 }
 
 function transition(seconds) {
-  return { type: "transition", id: `transition-${seconds}`, seconds };
+  return { type: "transition", seconds };
+}
+
+function equipment(from, to, seconds) {
+  return { type: "equipment", from, to, seconds };
+}
+
+function timed(id, name, equipment, seconds, cues = []) {
+  return { type: "timed", id, name, equipment, seconds, cues };
 }
 
 function intervals(id, name, rounds, hardSeconds, easySettingKey) {
   return { type: "intervals", id, name, rounds, hardSeconds, easySettingKey };
 }
 
+// Initialization
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
@@ -162,38 +185,173 @@ function init() {
   bindGlobalEvents();
   renderHistory();
   renderSettings();
+  updateSoundQuickBtn();
+  checkResumeBanner();
   registerServiceWorker();
+  initStoragePersistence();
 }
 
 function cacheEls() {
   [
     "dayGrid", "recoveryInfo", "sessionPanel", "historyList", "clearHistoryBtn",
-    "easyRecoveryInput", "vibrationInput", "wakeLockInput", "installBtn"
-  ].forEach((id) => els[id] = document.getElementById(id));
+    "soundQuickToggle", "soundInput", "testSoundBtn", "vibrationInput", "wakeLockInput",
+    "defaultRestInput", "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput",
+    "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
+    "editTimerDialog", "editTimerForm", "customTimerMinutes", "customTimerSeconds", "cancelTimerModalBtn"
+  ].forEach((id) => (els[id] = document.getElementById(id)));
 }
 
 function bindGlobalEvents() {
   document.querySelectorAll(".tab").forEach((tab) => {
     tab.addEventListener("click", () => switchScreen(tab.dataset.screen));
   });
-  els.clearHistoryBtn.addEventListener("click", clearHistory);
-  els.easyRecoveryInput.addEventListener("change", saveSettings);
-  els.vibrationInput.addEventListener("change", saveSettings);
-  els.wakeLockInput.addEventListener("change", saveSettings);
-  els.installBtn.addEventListener("click", installApp);
+
+  if (els.clearHistoryBtn) els.clearHistoryBtn.addEventListener("click", clearHistory);
+  if (els.soundQuickToggle) els.soundQuickToggle.addEventListener("click", toggleSoundQuick);
+  if (els.testSoundBtn) els.testSoundBtn.addEventListener("click", testAudio);
+  if (els.resetTimersBtn) els.resetTimersBtn.addEventListener("click", resetTimerDefaults);
+  if (els.exportDataBtn) els.exportDataBtn.addEventListener("click", exportWorkoutData);
+  if (els.importDataInput) els.importDataInput.addEventListener("change", importWorkoutData);
+
+  // Settings inputs
+  [
+    "soundInput", "vibrationInput", "wakeLockInput", "defaultRestInput",
+    "supersetRestInput", "vo2HardInput", "easyRecoveryInput", "equipChangeInput"
+  ].forEach((id) => {
+    if (els[id]) els[id].addEventListener("change", saveSettings);
+  });
+
+  // Modal events
+  if (els.cancelTimerModalBtn) {
+    els.cancelTimerModalBtn.addEventListener("click", () => els.editTimerDialog.close());
+  }
+  if (els.editTimerForm) {
+    els.editTimerForm.addEventListener("submit", handleTimerModalSave);
+  }
+
+  // PWA install
+  if (els.installBtn) els.installBtn.addEventListener("click", installApp);
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     state.deferredPrompt = event;
-    els.installBtn.classList.remove("hidden");
+    if (els.installBtn) els.installBtn.classList.remove("hidden");
   });
+
+  // Global touch / click to unlock AudioContext
+  document.addEventListener("click", unlockAudio, { once: true });
+  document.addEventListener("touchstart", unlockAudio, { once: true });
 }
 
+// Audio Engine (Web Audio API Synthesizer)
+function getAudioContext() {
+  if (!state.audioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) state.audioCtx = new AudioCtx();
+  }
+  if (state.audioCtx && state.audioCtx.state === "suspended") {
+    state.audioCtx.resume();
+  }
+  return state.audioCtx;
+}
+
+function unlockAudio() {
+  getAudioContext();
+}
+
+function playTone(freq, type, durationMs, gainLevel = 0.1, delayMs = 0) {
+  if (!store.settings.sound) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  setTimeout(() => {
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(gainLevel, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + durationMs / 1000);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + durationMs / 1000);
+    } catch (_) {}
+  }, delayMs);
+}
+
+function playStartChime() {
+  // Rising 2-tone chime (D5 -> A5)
+  playTone(587.33, "sine", 120, 0.12, 0);
+  playTone(880.00, "sine", 200, 0.14, 110);
+}
+
+function playCountdownTick(secondsLeft) {
+  // Warning tick at 3, 2, 1 seconds
+  const freq = secondsLeft === 1 ? 880 : 740;
+  playTone(freq, "triangle", 90, 0.15, 0);
+}
+
+function playFinishChime() {
+  // Distinct celebratory double completion chime (A5 -> D6)
+  playTone(880.00, "sine", 160, 0.15, 0);
+  playTone(1174.66, "triangle", 320, 0.18, 140);
+}
+
+function playIntervalCue(isHard) {
+  if (isHard) {
+    // High energy start alert
+    playTone(1046.50, "square", 150, 0.12, 0);
+    playTone(1318.51, "sine", 250, 0.14, 120);
+  } else {
+    // Calming recovery chime
+    playTone(659.25, "sine", 180, 0.10, 0);
+    playTone(440.00, "sine", 280, 0.10, 140);
+  }
+}
+
+function testAudio() {
+  unlockAudio();
+  playStartChime();
+  setTimeout(() => playCountdownTick(3), 400);
+  setTimeout(() => playCountdownTick(2), 750);
+  setTimeout(() => playCountdownTick(1), 1100);
+  setTimeout(() => playFinishChime(), 1450);
+}
+
+function notifyDone() {
+  playFinishChime();
+  if (store.settings.vibration && navigator.vibrate) {
+    try { navigator.vibrate([200, 100, 200]); } catch (_) {}
+  }
+}
+
+function toggleSoundQuick() {
+  const current = store.settings.sound;
+  const next = !current;
+  const s = store.settings;
+  s.sound = next;
+  store.settings = s;
+  renderSettings();
+  updateSoundQuickBtn();
+  if (next) playStartChime();
+}
+
+function updateSoundQuickBtn() {
+  if (els.soundQuickToggle) {
+    els.soundQuickToggle.textContent = store.settings.sound ? "🔊" : "🔇";
+    els.soundQuickToggle.title = store.settings.sound ? "Sound Enabled (Tap to mute)" : "Sound Muted (Tap to unmute)";
+  }
+}
+
+// Navigation & Screen Rendering
 function renderDays() {
   els.dayGrid.innerHTML = Object.entries(WORKOUTS).map(([key, workout]) => `
     <button class="day-card" type="button" data-day="${key}">
-      <strong>${workout.label}</strong>
-      <span>${workout.title}</span>
-      <span>${workout.duration}</span>
+      <div>
+        <strong>${workout.label}</strong>
+        <span class="day-title">${workout.title}</span>
+      </div>
+      <span class="day-duration">⏱ ${workout.duration}</span>
     </button>
   `).join("");
   els.dayGrid.querySelectorAll(".day-card").forEach((card) => {
@@ -208,10 +366,85 @@ function renderRecovery() {
 function switchScreen(name) {
   document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.screen === name));
   document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active-screen"));
-  document.getElementById(`${name}Screen`).classList.add("active-screen");
+  const screenEl = document.getElementById(`${name}Screen`);
+  if (screenEl) screenEl.classList.add("active-screen");
   if (name === "history") renderHistory();
+  if (name === "settings") renderSettings();
 }
 
+// In-Progress Auto-Save & Recovery Banner
+function saveActiveSession() {
+  if (!state.selectedDay) {
+    store.activeSession = null;
+    return;
+  }
+  store.activeSession = {
+    selectedDay: state.selectedDay,
+    mode: state.mode,
+    stepIndex: state.stepIndex,
+    setIndex: state.setIndex,
+    roundIndex: state.roundIndex,
+    supersetPartIndex: state.supersetPartIndex,
+    phase: state.phase,
+    intervalPhase: state.intervalPhase,
+    startedAt: state.startedAt,
+    sessionRecords: state.sessionRecords
+  };
+  checkResumeBanner();
+}
+
+function clearActiveSession() {
+  store.activeSession = null;
+  checkResumeBanner();
+}
+
+function checkResumeBanner() {
+  const saved = store.activeSession;
+  if (!saved || !WORKOUTS[saved.selectedDay] || !els.sessionPanel.classList.contains("hidden")) {
+    if (els.resumeBanner) els.resumeBanner.classList.add("hidden");
+    return;
+  }
+  const workout = WORKOUTS[saved.selectedDay];
+  els.resumeBanner.innerHTML = `
+    <div class="resume-banner-info">
+      <strong>🏃 Workout in progress</strong>
+      <span>${workout.label} (${workout.title})</span>
+    </div>
+    <div class="resume-banner-actions">
+      <button class="primary-btn small-btn" id="resumeSessionBtn" type="button">Resume</button>
+      <button class="ghost-btn small-btn" id="discardSessionBtn" type="button">Discard</button>
+    </div>
+  `;
+  els.resumeBanner.classList.remove("hidden");
+  document.getElementById("resumeSessionBtn").addEventListener("click", resumeSavedSession);
+  document.getElementById("discardSessionBtn").addEventListener("click", discardSavedSession);
+}
+
+function resumeSavedSession() {
+  const saved = store.activeSession;
+  if (!saved) return;
+  stopTimer();
+  state.selectedDay = saved.selectedDay;
+  state.mode = saved.mode || "guided";
+  state.stepIndex = saved.stepIndex || 0;
+  state.setIndex = saved.setIndex || 1;
+  state.roundIndex = saved.roundIndex || 1;
+  state.supersetPartIndex = saved.supersetPartIndex || 0;
+  state.phase = saved.phase || "ready";
+  state.intervalPhase = saved.intervalPhase || "hard";
+  state.startedAt = saved.startedAt || Date.now();
+  state.sessionRecords = saved.sessionRecords || [];
+  els.sessionPanel.classList.remove("hidden");
+  els.resumeBanner.classList.add("hidden");
+  requestWakeLock();
+  renderSession();
+}
+
+function discardSavedSession() {
+  clearActiveSession();
+}
+
+// Workout Session Flow
 function startSession(day) {
   stopTimer();
   state.selectedDay = day;
@@ -225,8 +458,11 @@ function startSession(day) {
   state.startedAt = Date.now();
   state.sessionRecords = [];
   els.sessionPanel.classList.remove("hidden");
+  checkResumeBanner();
+  saveActiveSession();
   requestWakeLock();
   renderSession();
+  playStartChime();
 }
 
 function currentWorkout() {
@@ -239,11 +475,13 @@ function currentStep() {
 
 function currentPlayable() {
   const step = currentStep();
+  if (!step) return null;
   if (step.type !== "superset") return step;
   return step.parts[state.supersetPartIndex];
 }
 
 function renderSession() {
+  saveActiveSession();
   const step = currentStep();
   const total = currentWorkout().steps.length;
   const progress = Math.min(100, Math.round((state.stepIndex / total) * 100));
@@ -261,7 +499,7 @@ function statusMarkup(progress, total, extra = "") {
   return `
     <div class="status-row">
       <span>${currentWorkout().label} · Step ${Math.min(state.stepIndex + 1, total)} of ${total}</span>
-      <span>${state.mode === "guided" ? "Guided" : "Flow"} Mode</span>
+      <span>${state.mode === "guided" ? "Guided Mode" : "Flow Mode"}</span>
     </div>
     <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
     ${extra}
@@ -270,12 +508,12 @@ function statusMarkup(progress, total, extra = "") {
 
 function renderExercise(ex, progress, total, supersetLabel) {
   const last = getLastExercise(ex.id);
+  const restTime = ex.restSeconds || store.settings.defaultRest;
   els.sessionPanel.innerHTML = `
     ${statusMarkup(progress, total, supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
     <h2 class="exercise-name">${ex.name}</h2>
     <p class="equipment">${ex.equipment}</p>
-    <div class="target"><strong>Set ${state.setIndex} of ${ex.sets}</strong><br>Target: ${ex.target}</div>
-    ${timerMarkup("WORK", ex.workSeconds)}
+    <div class="target"><strong>Set ${state.setIndex} of ${ex.sets}</strong><br>Target: ${ex.target} · Rest: ${restTime}s</div>
     ${repInputs(ex)}
     ${lastSessionMarkup(ex, last)}
     ${cueMarkup(ex.cues)}
@@ -294,18 +532,19 @@ function renderSuperset(step, progress, total) {
 }
 
 function renderTransition(step, part, progress, total) {
+  const sec = part.seconds || 10;
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(progress, total, `<span class="badge">${step.name} · Round ${state.roundIndex}/${step.rounds}</span>`)}
+    ${statusMarkup(progress, total, `<span class="badge badge-easy">${step.name} · Round ${state.roundIndex}/${step.rounds}</span>`)}
     <h2 class="exercise-name">Transition</h2>
-    <p class="equipment">Move to the next exercise.</p>
-    ${activeTimerMarkup("TRANSITION", part.seconds)}
+    <p class="equipment">Move quickly to the next movement.</p>
+    ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
     <div class="session-actions">
-      <button class="primary-btn" data-action="start-timer" type="button">Start</button>
+      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "Start"}</button>
       <button class="secondary-btn" data-action="skip" type="button">Skip</button>
     </div>
   `;
   bindSessionButtons(part);
-  if (state.mode === "flow" && state.phase !== "timer") startCountdown(part.seconds, nextStepUnit);
+  if (state.mode === "flow" && state.phase !== "timer") startCountdown(sec, nextStepUnit);
 }
 
 function renderTimed(step, progress, total) {
@@ -313,10 +552,10 @@ function renderTimed(step, progress, total) {
     ${statusMarkup(progress, total)}
     <h2 class="exercise-name">${step.name}</h2>
     <p class="equipment">${step.equipment}</p>
-    ${activeTimerMarkup("WORK", step.seconds)}
+    ${activeTimerMarkup("WORK", step.seconds, "phase-work")}
     ${cueMarkup(step.cues)}
     <div class="session-actions">
-      <button class="primary-btn" data-action="start-timer" type="button">Start</button>
+      <button class="primary-btn" data-action="start-timer" type="button">${state.running ? "Running..." : "Start"}</button>
       <button class="secondary-btn" data-action="skip" type="button">Skip</button>
     </div>
   `;
@@ -324,57 +563,70 @@ function renderTimed(step, progress, total) {
 }
 
 function renderEquipment(step, progress, total) {
+  const sec = store.settings.equipChangeSeconds || step.seconds || 90;
   els.sessionPanel.innerHTML = `
     ${statusMarkup(progress, total)}
-    <span class="badge">Equipment Change</span>
+    <span class="badge badge-rest">Equipment Change</span>
     <h2 class="exercise-name">Convert Gear</h2>
-    <p class="equipment">${step.from} → ${step.to}</p>
-    ${activeTimerMarkup("READY TIMER", step.seconds)}
+    <p class="equipment">${step.from} ➔ ${step.to}</p>
+    ${activeTimerMarkup("READY TIMER", sec, "phase-rest")}
     <div class="session-actions">
       <button class="primary-btn" data-action="ready-early" type="button">Ready Early</button>
-      <button class="secondary-btn" data-action="start-timer" type="button">Start 90 sec</button>
+      <button class="secondary-btn" data-action="start-timer" type="button">${state.running ? "Running" : `Start ${sec}s`}</button>
     </div>
   `;
   bindSessionButtons(step);
 }
 
 function renderIntervals(step, progress, total) {
-  const label = state.intervalPhase === "easy" ? "EASY" : "HARD";
-  const seconds = state.intervalPhase === "easy" ? store.settings.easyRecoverySeconds : step.hardSeconds;
+  const isHard = state.intervalPhase === "hard";
+  const label = isHard ? "HARD EFFORT" : "EASY RECOVERY";
+  const phaseClass = isHard ? "phase-hard" : "phase-easy";
+  const badgeClass = isHard ? "badge-hard" : "badge-easy";
+  const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 75);
+
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(progress, total, `<span class="badge">Round ${state.roundIndex}/${step.rounds}</span>`)}
+    ${statusMarkup(progress, total, `<span class="badge ${badgeClass}">Round ${state.roundIndex} of ${step.rounds} · ${label}</span>`)}
     <h2 class="exercise-name">${step.name}</h2>
-    <p class="equipment">Hard effort 8-9/10. Not an uncontrolled sprint.</p>
-    ${activeTimerMarkup(label, seconds)}
+    <p class="equipment">${isHard ? "Hard effort 8-9/10 rate of perceived exertion." : "Active recovery walk / gentle breathing jog."}</p>
+    ${activeTimerMarkup(label, seconds, phaseClass)}
     <div class="session-actions">
-      <button class="primary-btn" data-action="start-interval" type="button">${state.running ? "Running" : "Start"}</button>
-      <button class="secondary-btn" data-action="skip" type="button">Skip</button>
+      <button class="primary-btn" data-action="start-interval" type="button">${state.running ? "Pause / Resume" : "Start Interval"}</button>
+      <button class="secondary-btn" data-action="skip" type="button">Skip Round</button>
     </div>
   `;
   bindSessionButtons(step);
 }
 
-function timerMarkup(label, seconds) {
-  return `
-    <div class="timer">
-      <div class="timer-label">${label}</div>
-      <div class="timer-time">${formatTime(seconds)}</div>
-    </div>
-  `;
-}
+// Circular Animated Timer Markup
+function activeTimerMarkup(label, seconds, phaseClass = "phase-rest") {
+  const shown = state.remaining > 0 ? state.remaining : seconds;
+  const totalSec = state.totalTimerSeconds > 0 ? state.totalTimerSeconds : seconds;
+  const radius = 90;
+  const circumference = 2 * Math.PI * radius; // ~565.48
+  const pct = totalSec > 0 ? Math.max(0, Math.min(1, shown / totalSec)) : 1;
+  const offset = circumference * (1 - pct);
 
-function activeTimerMarkup(label, seconds) {
-  const shown = state.remaining || seconds;
   return `
-    <div class="timer">
-      <div class="timer-label">${label}</div>
-      <div class="timer-time" id="timerTime">${formatTime(shown)}</div>
-    </div>
-    <div class="timer-controls">
-      <button class="timer-btn" data-action="pause" type="button">${state.running ? "Pause" : "Resume"}</button>
-      <button class="timer-btn" data-action="minus" type="button">-15 sec</button>
-      <button class="timer-btn" data-action="plus" type="button">+15 sec</button>
-      <button class="timer-btn" data-action="skip" type="button">Skip</button>
+    <div class="timer-container">
+      <div class="timer-ring-wrapper">
+        <svg class="timer-svg" viewBox="0 0 200 200">
+          <circle class="timer-svg-track" cx="100" cy="100" r="${radius}"></circle>
+          <circle id="timerRingFill" class="timer-svg-fill ${phaseClass}" cx="100" cy="100" r="${radius}"
+            style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${offset};"></circle>
+        </svg>
+        <div class="timer-center-content" id="timerCenterClick" title="Tap to customize time">
+          <div class="timer-label">${label}</div>
+          <div class="timer-time" id="timerTime">${formatTime(shown)}</div>
+          <div class="timer-edit-hint">✏️ tap to edit</div>
+        </div>
+      </div>
+      <div class="timer-controls" style="margin-top: 14px; width: 100%;">
+        <button class="timer-btn" data-action="pause" type="button">${state.running ? "Pause" : "Resume"}</button>
+        <button class="timer-btn" data-action="minus" type="button">-15s</button>
+        <button class="timer-btn" data-action="plus" type="button">+15s</button>
+        <button class="timer-btn" data-action="custom-time" type="button">Edit</button>
+      </div>
     </div>
   `;
 }
@@ -384,19 +636,19 @@ function repInputs(ex) {
     const labels = ex.unilateral === "arm" ? ["Left", "Right"] : ex.unilateral === "leg" ? ["Left Leg", "Right Leg"] : ["Left Side", "Right Side"];
     return `<div class="rep-grid">${labels.map((label, index) => repField(index === 0 ? "left" : "right", label)).join("")}</div>`;
   }
-  return `<div class="rep-grid">${repField("reps", "Actual reps")}</div>`;
+  return `<div class="rep-grid">${repField("reps", "Actual reps completed")}</div>`;
 }
 
 function repField(id, label) {
-  return `<div class="rep-field"><label for="${id}">${label}</label><input id="${id}" inputmode="numeric" type="number" min="0" max="99"></div>`;
+  return `<div class="rep-field"><label for="${id}">${label}</label><input id="${id}" inputmode="numeric" type="number" min="0" max="99" placeholder="0"></div>`;
 }
 
 function actionMarkup(ex) {
   return `
     <div class="session-actions">
-      <button class="primary-btn" data-action="complete-set" type="button">Complete Set</button>
-      <button class="secondary-btn" data-action="start-work" type="button">${state.mode === "guided" ? "Start Work Timer" : "Run Flow"}</button>
-      <button class="ghost-btn" data-action="toggle-mode" type="button">Switch to ${state.mode === "guided" ? "Flow" : "Guided"}</button>
+      <button class="primary-btn" data-action="complete-set" type="button">✓ Log Set & Rest</button>
+      <button class="secondary-btn" data-action="start-work" type="button">${state.mode === "guided" ? "⏱ Work Timer" : "Run Flow"}</button>
+      <button class="ghost-btn" data-action="toggle-mode" type="button">${state.mode === "guided" ? "Flow" : "Guided"}</button>
       <button class="ghost-btn" data-action="end-session" type="button">End</button>
     </div>
   `;
@@ -409,11 +661,10 @@ function cueMarkup(cues = []) {
 
 function lastSessionMarkup(ex, last) {
   if (!last) return "";
-  const progression = isReadyToProgress(ex, last) ? `<div class="ready">READY TO PROGRESS</div>` : "";
+  const progression = isReadyToProgress(ex, last) ? `<div class="ready">🔥 READY TO PROGRESS (+Weight/Reps)</div>` : "";
   return `
     <div class="last-session">
-      <strong>Last session</strong><br>
-      ${formatRecordSummary(last)}
+      <strong>Previous Session:</strong> ${formatRecordSummary(last)}
       ${progression}
     </div>
   `;
@@ -423,6 +674,8 @@ function bindSessionButtons(context) {
   els.sessionPanel.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", () => handleAction(button.dataset.action, context));
   });
+  const center = document.getElementById("timerCenterClick");
+  if (center) center.addEventListener("click", openTimerModal);
 }
 
 function handleAction(action, context) {
@@ -431,11 +684,15 @@ function handleAction(action, context) {
   if (action === "toggle-mode") toggleMode();
   if (action === "end-session") finishSession();
   if (action === "ready-early") nextStepUnit();
-  if (action === "start-timer") startCountdown(context.seconds || context.workSeconds || 45, nextStepUnit);
+  if (action === "start-timer") {
+    const sec = context.seconds || context.workSeconds || store.settings.defaultRest;
+    startCountdown(sec, nextStepUnit);
+  }
   if (action === "start-interval") startInterval(context);
   if (action === "pause") togglePause();
   if (action === "plus") adjustTimer(15);
   if (action === "minus") adjustTimer(-15);
+  if (action === "custom-time") openTimerModal();
   if (action === "skip") nextStepUnit();
   if (action === "skip-work") {
     stopTimer();
@@ -461,9 +718,9 @@ function renderWorkTimer(ex) {
     <h2 class="exercise-name">${ex.name}</h2>
     <p class="equipment">${ex.equipment}</p>
     <div class="target"><strong>Set ${state.setIndex} of ${ex.sets}</strong><br>Target: ${ex.target}</div>
-    ${activeTimerMarkup("WORK", ex.workSeconds)}
+    ${activeTimerMarkup("WORK SET", ex.workSeconds, "phase-work")}
     <div class="session-actions">
-      <button class="primary-btn" data-action="complete-set" type="button">Complete Set</button>
+      <button class="primary-btn" data-action="complete-set" type="button">✓ Complete Set</button>
       <button class="secondary-btn" data-action="skip-work" type="button">Skip Timer</button>
     </div>
   `;
@@ -477,7 +734,8 @@ function completeSet(ex, fromFlow = false) {
     advanceSuperset();
   } else if (state.setIndex < ex.sets) {
     state.setIndex += 1;
-    startRest(ex.restSeconds || 45);
+    const restTime = ex.restSeconds || store.settings.defaultRest;
+    startRest(restTime);
   } else {
     nextStep();
   }
@@ -501,6 +759,7 @@ function recordReps(ex) {
     record.reps = numberValue("reps");
   }
   state.sessionRecords.push(record);
+  saveActiveSession();
 }
 
 function numberValue(id) {
@@ -527,7 +786,8 @@ function advanceSuperset() {
   if (state.roundIndex < step.rounds) {
     state.roundIndex += 1;
     state.supersetPartIndex = 0;
-    startRest(step.restSeconds);
+    const restTime = store.settings.supersetRest || step.restSeconds || 60;
+    startRest(restTime);
     return;
   }
   nextStep();
@@ -537,9 +797,10 @@ function startRest(seconds) {
   state.phase = "rest";
   els.sessionPanel.innerHTML = `
     ${statusMarkup(Math.round((state.stepIndex / currentWorkout().steps.length) * 100), currentWorkout().steps.length)}
-    <h2 class="exercise-name">Rest</h2>
-    <p class="equipment">Next set will be ready when this finishes.</p>
-    ${activeTimerMarkup("REST", seconds)}
+    <span class="badge badge-rest">Resting</span>
+    <h2 class="exercise-name">Rest & Recover</h2>
+    <p class="equipment">Deep breaths. Next set prepares automatically.</p>
+    ${activeTimerMarkup("REST", seconds, "phase-rest")}
   `;
   bindSessionButtons({});
   startCountdown(seconds, () => {
@@ -547,13 +808,20 @@ function startRest(seconds) {
     renderSession();
     if (state.mode === "flow") {
       const next = currentPlayable();
-      if (next.type === "exercise") startCountdown(next.workSeconds, () => completeSet(next, true));
+      if (next && next.type === "exercise") startCountdown(next.workSeconds, () => completeSet(next, true));
     }
   });
 }
 
 function startInterval(step) {
-  const seconds = state.intervalPhase === "easy" ? store.settings.easyRecoverySeconds : step.hardSeconds;
+  if (state.running) {
+    togglePause();
+    return;
+  }
+  const isHard = state.intervalPhase === "hard";
+  const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 75);
+  playIntervalCue(isHard);
+
   startCountdown(seconds, () => {
     notifyDone();
     if (state.intervalPhase === "easy") {
@@ -571,16 +839,26 @@ function startInterval(step) {
   });
 }
 
+// Timer Core Engine with Audio Beeps & Progress Ring
 function startCountdown(seconds, onDone) {
   stopTimer();
   state.remaining = seconds;
+  state.totalTimerSeconds = seconds;
   state.running = true;
   state.phase = "timer";
   state.timerDone = onDone;
   updateTimerDisplay();
+  playStartChime();
+
   state.timer = setInterval(() => {
     state.remaining -= 1;
     updateTimerDisplay();
+
+    // 3, 2, 1 Countdown Beeps
+    if (state.remaining === 3 || state.remaining === 2 || state.remaining === 1) {
+      playCountdownTick(state.remaining);
+    }
+
     if (state.remaining <= 0) {
       stopTimer();
       notifyDone();
@@ -600,9 +878,13 @@ function togglePause() {
     stopTimer();
   } else if (state.remaining > 0) {
     state.running = true;
+    playStartChime();
     state.timer = setInterval(() => {
       state.remaining -= 1;
       updateTimerDisplay();
+      if (state.remaining === 3 || state.remaining === 2 || state.remaining === 1) {
+        playCountdownTick(state.remaining);
+      }
       if (state.remaining <= 0) {
         const done = state.timerDone || nextStepUnit;
         stopTimer();
@@ -617,12 +899,47 @@ function togglePause() {
 
 function adjustTimer(delta) {
   state.remaining = Math.max(1, state.remaining + delta);
+  if (state.totalTimerSeconds < state.remaining) {
+    state.totalTimerSeconds = state.remaining;
+  }
   updateTimerDisplay();
 }
 
 function updateTimerDisplay() {
-  const el = document.getElementById("timerTime");
-  if (el) el.textContent = formatTime(state.remaining);
+  const timeEl = document.getElementById("timerTime");
+  if (timeEl) timeEl.textContent = formatTime(state.remaining);
+
+  const ringFill = document.getElementById("timerRingFill");
+  if (ringFill && state.totalTimerSeconds > 0) {
+    const radius = 90;
+    const circumference = 2 * Math.PI * radius;
+    const pct = Math.max(0, Math.min(1, state.remaining / state.totalTimerSeconds));
+    const offset = circumference * (1 - pct);
+    ringFill.style.strokeDashoffset = offset;
+  }
+}
+
+// Timer Edit Modal Dialog
+function openTimerModal() {
+  const current = state.remaining > 0 ? state.remaining : 60;
+  const mins = Math.floor(current / 60);
+  const secs = current % 60;
+  els.customTimerMinutes.value = mins;
+  els.customTimerSeconds.value = String(secs).padStart(2, "0");
+  if (typeof els.editTimerDialog.showModal === "function") {
+    els.editTimerDialog.showModal();
+  }
+}
+
+function handleTimerModalSave(e) {
+  e.preventDefault();
+  const mins = parseInt(els.customTimerMinutes.value, 10) || 0;
+  const secs = parseInt(els.customTimerSeconds.value, 10) || 0;
+  const total = Math.max(5, mins * 60 + secs);
+  state.remaining = total;
+  state.totalTimerSeconds = total;
+  updateTimerDisplay();
+  els.editTimerDialog.close();
 }
 
 function nextStepUnit() {
@@ -668,6 +985,8 @@ function toggleMode() {
 function finishSession() {
   stopTimer();
   releaseWakeLock();
+  clearActiveSession();
+
   if (state.selectedDay && state.sessionRecords.length) {
     const history = store.history;
     history.unshift({
@@ -678,18 +997,21 @@ function finishSession() {
       durationSeconds: elapsedSeconds(),
       records: state.sessionRecords
     });
-    store.history = history.slice(0, 100);
+    store.history = history.slice(0, 150);
   }
   els.sessionPanel.innerHTML = `
-    <span class="badge">Complete</span>
-    <h2 class="exercise-name">Session Saved</h2>
-    <p class="equipment">Nice. Your reps are saved on this phone for next time.</p>
+    <span class="badge badge-work">Complete</span>
+    <h2 class="exercise-name">Session Complete!</h2>
+    <p class="equipment">Great work. Your reps and weights are saved automatically on this device.</p>
     <div class="session-actions">
       <button class="primary-btn" data-action="new-session" type="button">Choose Workout</button>
       <button class="secondary-btn" data-action="history" type="button">View History</button>
     </div>
   `;
-  els.sessionPanel.querySelector("[data-action='new-session']").addEventListener("click", () => els.sessionPanel.classList.add("hidden"));
+  els.sessionPanel.querySelector("[data-action='new-session']").addEventListener("click", () => {
+    els.sessionPanel.classList.add("hidden");
+    checkResumeBanner();
+  });
   els.sessionPanel.querySelector("[data-action='history']").addEventListener("click", () => switchScreen("history"));
   renderHistory();
 }
@@ -701,22 +1023,21 @@ function elapsedSeconds() {
 function renderHistory() {
   const history = store.history;
   if (!history.length) {
-    els.historyList.innerHTML = `<div class="history-card"><p>No saved workouts yet. Finish a guided session and it will appear here.</p></div>`;
+    els.historyList.innerHTML = `<div class="history-card"><p>No saved workouts yet. Complete a guided session and it will appear here automatically.</p></div>`;
     return;
   }
   els.historyList.innerHTML = history.map((session) => `
     <article class="history-card">
       <h3>${session.day}: ${session.title}</h3>
-      <p>${new Date(session.date).toLocaleString()} · ${formatDuration(session.durationSeconds)}</p>
-      <p>${session.records.length} recorded sets</p>
-      <p>${summarizeSession(session)}</p>
+      <p>${new Date(session.date).toLocaleString()} · ${formatDuration(session.durationSeconds)} · ${session.records.length} recorded sets</p>
+      <p style="color: var(--ink); font-size: 0.88rem;">${summarizeSession(session)}</p>
     </article>
   `).join("");
 }
 
 function summarizeSession(session) {
-  const names = [...new Set(session.records.map((record) => record.exerciseName))];
-  return names.slice(0, 4).join(", ") + (names.length > 4 ? ` + ${names.length - 4} more` : "");
+  const names = [...new Set(session.records.map((r) => r.exerciseName))];
+  return names.slice(0, 5).join(", ") + (names.length > 5 ? ` + ${names.length - 5} more` : "");
 }
 
 function clearHistory() {
@@ -736,8 +1057,8 @@ function getLastExercise(exerciseId) {
 function formatRecordSummary(last) {
   return last.records.map((record) => {
     if (record.left !== undefined || record.right !== undefined) return `${record.left ?? "-"}L / ${record.right ?? "-"}R`;
-    return record.reps ?? "-";
-  }).join(" / ");
+    return `${record.reps ?? "-"} reps`;
+  }).join(" · ");
 }
 
 function isReadyToProgress(ex, last) {
@@ -754,19 +1075,37 @@ function targetMax(target) {
   return ranges ? Number(ranges[2]) : null;
 }
 
+// Settings & Timers Management
 function renderSettings() {
   const settings = store.settings;
-  els.easyRecoveryInput.value = settings.easyRecoverySeconds;
-  els.vibrationInput.checked = settings.vibration;
-  els.wakeLockInput.checked = settings.wakeLock;
+  if (els.soundInput) els.soundInput.checked = settings.sound !== false;
+  if (els.vibrationInput) els.vibrationInput.checked = settings.vibration !== false;
+  if (els.wakeLockInput) els.wakeLockInput.checked = settings.wakeLock !== false;
+  if (els.defaultRestInput) els.defaultRestInput.value = settings.defaultRest || 45;
+  if (els.supersetRestInput) els.supersetRestInput.value = settings.supersetRest || 60;
+  if (els.vo2HardInput) els.vo2HardInput.value = settings.vo2Hard || 60;
+  if (els.easyRecoveryInput) els.easyRecoveryInput.value = settings.easyRecoverySeconds || 75;
+  if (els.equipChangeInput) els.equipChangeInput.value = settings.equipChangeSeconds || 90;
+  updateSoundQuickBtn();
 }
 
 function saveSettings() {
   store.settings = {
-    easyRecoverySeconds: clamp(Number(els.easyRecoveryInput.value) || 75, 60, 90),
-    vibration: els.vibrationInput.checked,
-    wakeLock: els.wakeLockInput.checked
+    sound: els.soundInput ? els.soundInput.checked : true,
+    vibration: els.vibrationInput ? els.vibrationInput.checked : true,
+    wakeLock: els.wakeLockInput ? els.wakeLockInput.checked : true,
+    defaultRest: clamp(Number(els.defaultRestInput?.value) || 45, 15, 300),
+    supersetRest: clamp(Number(els.supersetRestInput?.value) || 60, 15, 300),
+    vo2Hard: clamp(Number(els.vo2HardInput?.value) || 60, 20, 180),
+    easyRecoverySeconds: clamp(Number(els.easyRecoveryInput?.value) || 75, 30, 180),
+    equipChangeSeconds: clamp(Number(els.equipChangeInput?.value) || 90, 30, 300)
   };
+  renderSettings();
+}
+
+function resetTimerDefaults() {
+  if (!confirm("Reset all timer durations to program defaults?")) return;
+  store.settings = { ...DEFAULT_SETTINGS, sound: store.settings.sound, vibration: store.settings.vibration, wakeLock: store.settings.wakeLock };
   renderSettings();
 }
 
@@ -774,28 +1113,58 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-function notifyDone() {
-  beep();
-  if (store.settings.vibration && navigator.vibrate) navigator.vibrate([180, 80, 180]);
+// Backup Export & Import
+function exportWorkoutData() {
+  const data = {
+    app: "Hybrid 5.2 Workout Coach",
+    version: "2.0",
+    exportDate: new Date().toISOString(),
+    history: store.history,
+    settings: store.settings
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const dateStr = new Date().toISOString().split("T")[0];
+  a.href = url;
+  a.download = `hybrid-5-2-workout-backup-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-function beep() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  const ctx = new AudioContext();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.frequency.value = 880;
-  gain.gain.value = 0.08;
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start();
-  setTimeout(() => {
-    osc.stop();
-    ctx.close();
-  }, 170);
+function importWorkoutData(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const data = JSON.parse(event.target.result);
+      if (Array.isArray(data.history)) {
+        store.history = data.history;
+      }
+      if (data.settings && typeof data.settings === "object") {
+        store.settings = { ...DEFAULT_SETTINGS, ...data.settings };
+      }
+      renderHistory();
+      renderSettings();
+      alert("Workout data imported successfully!");
+    } catch {
+      alert("Invalid backup file format.");
+    }
+  };
+  reader.readAsText(file);
 }
 
+// Storage persistence request
+async function initStoragePersistence() {
+  if (navigator.storage && navigator.storage.persist) {
+    try {
+      await navigator.storage.persist();
+    } catch (_) {}
+  }
+}
+
+// Wake Lock
 async function requestWakeLock() {
   if (!store.settings.wakeLock || !("wakeLock" in navigator)) return;
   try {
@@ -809,12 +1178,11 @@ async function releaseWakeLock() {
   if (!state.wakeLock) return;
   try {
     await state.wakeLock.release();
-  } catch (_) {
-    // Wake Lock support varies by browser and battery mode.
-  }
+  } catch (_) {}
   state.wakeLock = null;
 }
 
+// Helpers
 function formatTime(seconds) {
   const safe = Math.max(0, seconds);
   const mins = Math.floor(safe / 60);
@@ -827,13 +1195,12 @@ function formatDuration(seconds) {
   return `${mins} min`;
 }
 
+// Service Worker & PWA Install
 async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
   try {
     await navigator.serviceWorker.register("./service-worker.js");
-  } catch (_) {
-    // Local file previews do not support service workers; GitHub Pages will.
-  }
+  } catch (_) {}
 }
 
 async function installApp() {
@@ -841,5 +1208,5 @@ async function installApp() {
   state.deferredPrompt.prompt();
   await state.deferredPrompt.userChoice;
   state.deferredPrompt = null;
-  els.installBtn.classList.add("hidden");
+  if (els.installBtn) els.installBtn.classList.add("hidden");
 }
