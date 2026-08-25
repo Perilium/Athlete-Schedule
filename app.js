@@ -812,15 +812,71 @@ function stepCarouselMarkup() {
   return `<div class="step-carousel-wrapper">${pills}</div>`;
 }
 
-function statusMarkup(progress, total, extra = "") {
+// Granular Progress Tracker (Updates with every single set completed)
+function getWorkoutProgress() {
+  const workout = currentWorkout();
+  if (!workout) return { pct: 0, completedUnits: 0, totalUnits: 0 };
+
+  let totalUnits = 0;
+  let completedUnits = 0;
+
+  workout.steps.forEach((step, idx) => {
+    let stepUnits = 1;
+    if (step.type === "exercise") {
+      stepUnits = step.sets || 4;
+    } else if (step.type === "superset") {
+      const exCount = step.parts.filter((p) => p.type === "exercise").length || 2;
+      stepUnits = (step.rounds || 3) * exCount;
+    } else if (step.type === "intervals") {
+      stepUnits = (step.rounds || 8) * 2;
+    }
+
+    totalUnits += stepUnits;
+
+    if (idx < state.stepIndex) {
+      completedUnits += stepUnits;
+    } else if (idx === state.stepIndex) {
+      if (step.type === "exercise") {
+        completedUnits += Math.max(0, state.setIndex - 1);
+      } else if (step.type === "superset") {
+        const exCount = step.parts.filter((p) => p.type === "exercise").length || 2;
+        const currentExIdx = step.parts.slice(0, state.supersetPartIndex).filter((p) => p.type === "exercise").length;
+        completedUnits += Math.max(0, (state.roundIndex - 1) * exCount + currentExIdx);
+      } else if (step.type === "intervals") {
+        const phaseUnit = state.intervalPhase === "easy" ? 1 : 0;
+        completedUnits += Math.max(0, (state.roundIndex - 1) * 2 + phaseUnit);
+      }
+    }
+  });
+
+  const pct = totalUnits > 0 ? Math.min(100, Math.round((completedUnits / totalUnits) * 100)) : 0;
+  return { pct, completedUnits, totalUnits };
+}
+
+function statusMarkup(extra = "") {
+  const workout = currentWorkout();
+  const totalSteps = workout.steps.length;
+  const progressInfo = getWorkoutProgress();
+  const step = currentStep();
+
+  let setDetail = `Step ${state.stepIndex + 1} of ${totalSteps}`;
+  if (step.type === "exercise") {
+    setDetail = `Ex ${state.stepIndex + 1}/${totalSteps} · Set ${state.setIndex} of ${step.sets}`;
+  } else if (step.type === "superset") {
+    setDetail = `Superset ${state.stepIndex + 1}/${totalSteps} · Round ${state.roundIndex} of ${step.rounds}`;
+  } else if (step.type === "intervals") {
+    setDetail = `VO2 Intervals · Round ${state.roundIndex} of ${step.rounds}`;
+  }
+
   return `
     <div class="workout-header-bar">
       <div class="workout-stats-pill">
-        <span>${currentWorkout().label} · Step ${Math.min(state.stepIndex + 1, total)} of ${total}</span>
-        <span class="pct-badge">${progress}% DONE</span>
+        <span>${workout.label} · ${setDetail}</span>
+        <span class="pct-badge">${progressInfo.pct}% DONE</span>
       </div>
       <button class="roadmap-toggle-btn" data-action="open-roadmap" type="button">📋 Full Plan</button>
     </div>
+    <div class="progress-bar" style="margin: 4px 0 10px; height: 6px;"><div class="progress-fill" style="width:${progressInfo.pct}%"></div></div>
     ${stepCarouselMarkup()}
     ${extra}
   `;
@@ -912,28 +968,32 @@ function defaultTargetReps(target) {
 function renderSession() {
   saveActiveSession();
   const step = currentStep();
-  const total = currentWorkout().steps.length;
-  const progress = Math.min(100, Math.round((state.stepIndex / total) * 100));
-
   if (!step) return finishSession();
 
-  if (step.type === "equipment") return renderEquipment(step, progress, total);
-  if (step.type === "intervals") return renderIntervals(step, progress, total);
-  if (step.type === "timed") return renderTimed(step, progress, total);
-  if (step.type === "superset") return renderSuperset(step, progress, total);
-  renderExercise(step, progress, total, null);
+  if (step.type === "equipment") return renderEquipment(step);
+  if (step.type === "intervals") return renderIntervals(step);
+  if (step.type === "timed") return renderTimed(step);
+  if (step.type === "superset") return renderSuperset(step);
+  renderExercise(step, null);
 }
 
-function renderExercise(ex, progress, total, supersetLabel) {
+function renderExercise(ex, supersetLabel) {
   const last = getLastExercise(ex.id);
   const restTime = ex.restSeconds || store.settings.defaultRest;
   const isResting = state.phase === "rest";
-  const timerLabel = isResting ? "REST TIMER" : `WORK SET ${state.setIndex}`;
+
+  let timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets}`;
+  if (isResting) {
+    timerLabel = `REST · AFTER SET ${Math.max(1, state.setIndex - 1)} OF ${ex.sets}`;
+  } else if (state.setIndex === ex.sets) {
+    timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets} (FINAL 🔥)`;
+  }
+
   const phaseClass = isResting ? "phase-rest" : "phase-work";
   const displaySeconds = isResting ? (state.remaining || restTime) : (state.remaining || ex.workSeconds || 45);
 
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(progress, total, supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
+    ${statusMarkup(supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
     <h2 class="exercise-name">${ex.name}</h2>
     <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest between sets</p>
     
@@ -944,27 +1004,27 @@ function renderExercise(ex, progress, total, supersetLabel) {
     ${cueMarkup(ex.cues)}
     
     <div class="session-actions" style="margin-top: 18px;">
-      ${!isResting ? `<button class="primary-btn" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} & Rest (${restTime}s)</button>` : ""}
-      ${isResting ? `<button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Set ${state.setIndex} ➔</button>` : ""}
+      ${!isResting ? `<button class="primary-btn" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)</button>` : ""}
+      ${isResting ? `<button class="primary-btn" data-action="skip" type="button">Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔</button>` : ""}
       <button class="ghost-btn" data-action="end-session" type="button">✕ Exit</button>
     </div>
   `;
   bindSessionButtons(ex);
 }
 
-function renderSuperset(step, progress, total) {
+function renderSuperset(step) {
   const part = currentPlayable();
   if (part.type === "transition") {
-    renderTransition(step, part, progress, total);
+    renderTransition(step, part);
     return;
   }
-  renderExercise(part, progress, total, `${step.name} · Round ${state.roundIndex}/${step.rounds}`);
+  renderExercise(part, `${step.name} · Round ${state.roundIndex}/${step.rounds}`);
 }
 
-function renderTransition(step, part, progress, total) {
+function renderTransition(step, part) {
   const sec = part.seconds || 10;
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(progress, total, `<span class="badge badge-easy">${step.name} · Round ${state.roundIndex}/${step.rounds}</span>`)}
+    ${statusMarkup(`<span class="badge badge-easy">${step.name} · Round ${state.roundIndex}/${step.rounds}</span>`)}
     <h2 class="exercise-name">Transition</h2>
     <p class="equipment">Move quickly to the next movement.</p>
     ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
@@ -976,9 +1036,9 @@ function renderTransition(step, part, progress, total) {
   bindSessionButtons(part);
 }
 
-function renderTimed(step, progress, total) {
+function renderTimed(step) {
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(progress, total)}
+    ${statusMarkup()}
     <h2 class="exercise-name">${step.name}</h2>
     <p class="equipment">${step.equipment}</p>
     ${activeTimerMarkup("WORK TIMER", step.seconds, "phase-work")}
@@ -991,10 +1051,10 @@ function renderTimed(step, progress, total) {
   bindSessionButtons(step);
 }
 
-function renderEquipment(step, progress, total) {
+function renderEquipment(step) {
   const sec = store.settings.equipChangeSeconds || step.seconds || 90;
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(progress, total)}
+    ${statusMarkup()}
     <span class="badge badge-rest">Equipment Change</span>
     <h2 class="exercise-name">Convert Gear</h2>
     <p class="equipment">${step.from} ➔ ${step.to}</p>
@@ -1007,7 +1067,7 @@ function renderEquipment(step, progress, total) {
   bindSessionButtons(step);
 }
 
-function renderIntervals(step, progress, total) {
+function renderIntervals(step) {
   const isHard = state.intervalPhase === "hard";
   const label = isHard ? "HARD SPRINT" : "EASY RECOVERY";
   const phaseClass = isHard ? "phase-hard" : "phase-easy";
@@ -1015,7 +1075,7 @@ function renderIntervals(step, progress, total) {
   const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 75);
 
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(progress, total, `<span class="badge ${badgeClass}">Round ${state.roundIndex} of ${step.rounds} · ${label}</span>`)}
+    ${statusMarkup(`<span class="badge ${badgeClass}">Round ${state.roundIndex} of ${step.rounds} · ${label}</span>`)}
     <h2 class="exercise-name">${step.name}</h2>
     <p class="equipment">${isHard ? "⚡ 8-9/10 exertion sprint." : "🚶 Active recovery walk / gentle breathing jog."}</p>
     ${activeTimerMarkup(label, seconds, phaseClass)}
