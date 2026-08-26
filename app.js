@@ -1446,18 +1446,31 @@ function setsTableMarkup(ex, last) {
       if (ex.unilateral) {
         inputHtml = `
           <div class="unilateral-inputs-wrap">
-            <input id="left" inputmode="numeric" type="number" min="0" max="180" value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L">
-            <input id="right" inputmode="numeric" type="number" min="0" max="180" value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R">
+            <input class="set-rep-input" inputmode="numeric" type="number" min="0" max="180" 
+              value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L"
+              oninput="syncActiveSetInputs('left', this.value)">
+            <input class="set-rep-input" inputmode="numeric" type="number" min="0" max="180" 
+              value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R"
+              oninput="syncActiveSetInputs('right', this.value)">
           </div>
         `;
       } else {
-        inputHtml = `<input id="reps" class="set-rep-input" inputmode="numeric" type="number" min="0" max="180" value="${todayRecord?.reps ?? targetRepsDefault}">`;
+        inputHtml = `
+          <input class="set-rep-input" inputmode="numeric" type="number" min="0" max="180" 
+            value="${todayRecord?.reps ?? targetRepsDefault}"
+            oninput="syncActiveSetInputs('reps', this.value)">
+        `;
       }
 
       rows += `
         <div class="set-row ${isUnilateral ? "set-row-unilateral" : ""} set-row-active">
           <span class="set-num-badge">${s}</span>
-          <div><input id="setWeight" class="set-wt-input" inputmode="decimal" type="number" step="0.5" min="0" max="300" value="${todayRecord?.weight ?? (activeWeightDefault || "")}" placeholder="${defaultWt ? defaultWt + 'kg' : '0'}"></div>
+          <div>
+            <input class="set-wt-input" inputmode="decimal" type="number" step="0.5" min="0" max="300" 
+              value="${todayRecord?.weight ?? (activeWeightDefault || "")}" 
+              placeholder="${defaultWt ? defaultWt + 'kg' : '0'}"
+              oninput="syncActiveSetInputs('weight', this.value)">
+          </div>
           <div>${targetLabel}</div>
           <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
           <div>${inputHtml}</div>
@@ -1490,16 +1503,177 @@ function setsTableMarkup(ex, last) {
         <span>${colHeader}</span>
       </div>
       ${rows}
-      <div class="progressive-overload-card">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-          <span style="font-size:0.8rem; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em;">📈 Progressive Loading</span>
-          <span style="font-size:0.75rem; color:var(--muted); font-weight:700;">Fatigue Taper Active</span>
+    </div>
+  `;
+}
+
+window.stepInputValue = function (id, delta) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  const current = parseFloat(input.value) || 0;
+  const next = Math.max(0, current + delta);
+  input.value = (Math.round(next * 10) / 10).toString();
+  input.dispatchEvent(new Event("change"));
+};
+
+window.syncActiveSetInputs = function (field, val) {
+  if (field === "weight") {
+    const hero = document.getElementById("setWeight");
+    if (hero && hero.value !== val) hero.value = val;
+  } else if (field === "reps") {
+    const hero = document.getElementById("reps");
+    if (hero && hero.value !== val) hero.value = val;
+  } else if (field === "left") {
+    const hero = document.getElementById("left");
+    if (hero && hero.value !== val) hero.value = val;
+  } else if (field === "right") {
+    const hero = document.getElementById("right");
+    if (hero && hero.value !== val) hero.value = val;
+  }
+};
+
+function activeSetHeroMarkup(ex, last) {
+  const s = state.setIndex;
+  const isTimeTracking = ex.id === "suitcase-carry";
+  const defaultWt = getExerciseDefaultWeight(ex.equipment);
+  const isUnilateral = !!ex.unilateral;
+
+  const todayRecord = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === s);
+  const prevCompletedSet = state.sessionRecords.filter((r) => r.exerciseId === ex.id && r.set < s).pop();
+  const lastRecord = last && last.records && last.records[s - 1];
+
+  const progressiveTarget = getProgressiveTarget(ex.target, s, ex.sets);
+  const activeWeightDefault = (todayRecord?.weight !== undefined && todayRecord?.weight !== null)
+    ? todayRecord.weight
+    : (prevCompletedSet?.weight !== undefined && prevCompletedSet?.weight !== null)
+      ? prevCompletedSet.weight
+      : defaultWt;
+
+  const targetRepsDefault = getSuggestedReps(ex.target, s, ex.sets, prevCompletedSet, ex.id);
+
+  let lastSummary = "";
+  if (lastRecord) {
+    const wtPrefix = (lastRecord.weight !== undefined && lastRecord.weight !== null && lastRecord.weight > 0) ? `${lastRecord.weight}k ` : "";
+    if (lastRecord.left !== undefined) {
+      lastSummary = isTimeTracking ? `${wtPrefix}${lastRecord.left}s / ${lastRecord.right}s` : `${wtPrefix}${lastRecord.left}L / ${lastRecord.right}R`;
+    } else if (lastRecord.reps !== undefined) {
+      lastSummary = isTimeTracking ? `${wtPrefix}${lastRecord.reps}s` : `${wtPrefix}${lastRecord.reps} reps`;
+    }
+  }
+
+  let repsInputsHtml = "";
+  if (isUnilateral) {
+    repsInputsHtml = `
+      <div class="unilateral-inputs-wrap" style="gap: 8px;">
+        <div style="flex: 1;">
+          <span style="font-size: 0.68rem; color: var(--muted); font-weight: 800;">LEFT</span>
+          <div class="input-with-stepper">
+            <button type="button" class="mini-stepper-btn" onclick="stepInputValue('left', -1)">-1</button>
+            <input id="left" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
+              value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L">
+            <button type="button" class="mini-stepper-btn" onclick="stepInputValue('left', 1)">+1</button>
+          </div>
         </div>
-        <p style="margin:4px 0 0; font-size:0.78rem; color:var(--muted); line-height:1.4;">
-          Set 1 is your fresh baseline (aim for top reps). Target reps naturally taper as fatigue builds while maintaining working weight.
+        <div style="flex: 1;">
+          <span style="font-size: 0.68rem; color: var(--muted); font-weight: 800;">RIGHT</span>
+          <div class="input-with-stepper">
+            <button type="button" class="mini-stepper-btn" onclick="stepInputValue('right', -1)">-1</button>
+            <input id="right" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
+              value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R">
+            <button type="button" class="mini-stepper-btn" onclick="stepInputValue('right', 1)">+1</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    repsInputsHtml = `
+      <div class="input-with-stepper">
+        <button type="button" class="mini-stepper-btn" onclick="stepInputValue('reps', -1)">-1</button>
+        <input id="reps" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
+          value="${todayRecord?.reps ?? targetRepsDefault}">
+        <button type="button" class="mini-stepper-btn" onclick="stepInputValue('reps', 1)">+1</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="active-set-hero-card">
+      <div class="active-set-header">
+        <span class="active-set-badge">SET ${s} OF ${ex.sets}</span>
+        <span class="active-set-target">Target: <strong>${progressiveTarget} reps</strong></span>
+      </div>
+      
+      <div class="active-set-controls">
+        <div class="active-input-group">
+          <label for="setWeight">WEIGHT (KG)</label>
+          <div class="input-with-stepper">
+            <button type="button" class="mini-stepper-btn" onclick="stepInputValue('setWeight', -2.5)">-2.5</button>
+            <input id="setWeight" class="active-hero-input" inputmode="decimal" type="number" step="0.5" min="0" max="300" 
+              value="${todayRecord?.weight ?? (activeWeightDefault || '')}" placeholder="${defaultWt ? defaultWt + 'kg' : '0'}">
+            <button type="button" class="mini-stepper-btn" onclick="stepInputValue('setWeight', 2.5)">+2.5</button>
+          </div>
+        </div>
+        
+        <div class="active-input-group">
+          <label for="reps">${isTimeTracking ? "HOLD SECONDS" : (isUnilateral ? "UNILATERAL REPS" : "REPS PERFORMED")}</label>
+          ${repsInputsHtml}
+        </div>
+      </div>
+
+      ${lastSummary ? `<div class="active-set-last-hint">⏱ Last workout: <strong>${lastSummary}</strong></div>` : ""}
+    </div>
+  `;
+}
+
+function expandableSetsMarkup(ex, last) {
+  const completedCount = state.sessionRecords.filter((r) => r.exerciseId === ex.id).length;
+  const summaryText = completedCount > 0
+    ? `📊 All Sets & Retroactive Log (${completedCount}/${ex.sets} finished)`
+    : `📊 View All ${ex.sets} Sets & Target Breakdown`;
+
+  return `
+    <details class="workout-drawer">
+      <summary class="drawer-summary">
+        <span class="drawer-title">${summaryText}</span>
+        <span class="drawer-arrow">▾</span>
+      </summary>
+      <div class="drawer-content">
+        ${setsTableMarkup(ex, last)}
+      </div>
+    </details>
+  `;
+}
+
+function expandableProgressiveLoadingMarkup(ex) {
+  return `
+    <details class="workout-drawer">
+      <summary class="drawer-summary">
+        <span class="drawer-title">📈 Progressive Loading Guide (Fatigue Taper)</span>
+        <span class="drawer-arrow">▾</span>
+      </summary>
+      <div class="drawer-content">
+        <p style="margin: 0; font-size: 0.82rem; color: var(--muted); line-height: 1.5;">
+          <strong style="color: var(--accent);">Fatigue Taper Active:</strong> Set 1 is your fresh baseline (aim for maximum reps). Target reps naturally taper by 1–2 as fatigue builds while maintaining working weight. If you hit the top of the range on all sets, increase weight by 1–2.5 kg next session.
         </p>
       </div>
-    </div>
+    </details>
+  `;
+}
+
+function expandableCuesMarkup(cues = []) {
+  if (!cues || !cues.length) return "";
+  return `
+    <details class="workout-drawer">
+      <summary class="drawer-summary">
+        <span class="drawer-title">💡 Form Cues & Setup Guide (${cues.length})</span>
+        <span class="drawer-arrow">▾</span>
+      </summary>
+      <div class="drawer-content">
+        <ul class="cue-list" style="margin: 0;">
+          ${cues.map((c) => `<li>${c}</li>`).join("")}
+        </ul>
+      </div>
+    </details>
   `;
 }
 
@@ -1575,14 +1749,16 @@ function renderExercise(ex, supersetLabel) {
       </div>
 
       <div class="session-right-col">
-        ${setsTableMarkup(ex, last)}
+        ${activeSetHeroMarkup(ex, last)}
         
         <div class="mobile-actions">
           ${actionButtonsHtml}
         </div>
 
+        ${expandableSetsMarkup(ex, last)}
+        ${expandableProgressiveLoadingMarkup(ex)}
+        ${expandableCuesMarkup(ex.cues)}
         ${upNextMarkup()}
-        ${cueMarkup(ex.cues)}
       </div>
     </div>
   `;
