@@ -245,7 +245,7 @@ function cacheEls() {
     "resetTimersBtn", "exportDataBtn", "importDataInput", "resumeBanner", "installBtn",
     "workoutOverviewDialog", "overviewModalContent",
     "workoutRoadmapDialog", "roadmapModalContent",
-    "editTimerDialog", "padTimeDisplay", "saveTimerModalBtn", "cancelTimerModalBtn"
+    "editTimerDialog", "padTimeDisplay", "saveTimerThisSetBtn", "saveTimerAllSetsBtn", "saveTimerModalBtn", "cancelTimerModalBtn"
   ].forEach((id) => (els[id] = document.getElementById(id)));
 }
 
@@ -301,8 +301,14 @@ function bindGlobalEvents() {
   if (els.cancelTimerModalBtn) {
     els.cancelTimerModalBtn.addEventListener("click", () => els.editTimerDialog.close());
   }
+  if (els.saveTimerThisSetBtn) {
+    els.saveTimerThisSetBtn.addEventListener("click", () => applyTimerPad(false));
+  }
+  if (els.saveTimerAllSetsBtn) {
+    els.saveTimerAllSetsBtn.addEventListener("click", () => applyTimerPad(true));
+  }
   if (els.saveTimerModalBtn) {
-    els.saveTimerModalBtn.addEventListener("click", applyTimerPad);
+    els.saveTimerModalBtn.addEventListener("click", () => applyTimerPad(false));
   }
 
   // Presets and Steppers
@@ -2035,6 +2041,20 @@ function openTimerModal() {
   const current = state.remaining > 0 ? state.remaining : (currentStep()?.restSeconds || 60);
   state.padSelectedSeconds = current;
   updatePadDisplay();
+
+  const step = currentStep();
+  const currentItem = currentPlayable() || step;
+  const itemName = currentItem?.name || step?.name || "This Exercise";
+  const isResting = state.phase === "rest" || state.restingBetweenSteps;
+
+  if (els.saveTimerAllSetsBtn) {
+    if (isResting) {
+      els.saveTimerAllSetsBtn.innerHTML = `💾 Save as Default Rest (${itemName})`;
+    } else {
+      els.saveTimerAllSetsBtn.innerHTML = `💾 Save for All Sets of ${itemName}`;
+    }
+  }
+
   if (typeof els.editTimerDialog.showModal === "function") {
     els.editTimerDialog.showModal();
   }
@@ -2050,11 +2070,48 @@ function updatePadDisplay() {
   });
 }
 
-function applyTimerPad() {
+function applyTimerPad(applyToAll = false) {
   const total = Math.max(5, state.padSelectedSeconds || 60);
   state.remaining = total;
   state.totalTimerSeconds = total;
   updateTimerDisplay();
+
+  if (applyToAll && state.selectedDay) {
+    const workouts = store.workouts;
+    const workout = workouts[state.selectedDay];
+    if (workout && workout.steps && workout.steps[state.stepIndex]) {
+      const step = workout.steps[state.stepIndex];
+      const isResting = state.phase === "rest" || state.restingBetweenSteps;
+
+      if (step.type === "exercise") {
+        if (isResting) {
+          step.restSeconds = total;
+        } else {
+          step.workSeconds = total;
+        }
+      } else if (step.type === "superset") {
+        if (isResting) {
+          step.restSeconds = total;
+        } else if (step.parts && step.parts[state.supersetPartIndex]) {
+          step.parts[state.supersetPartIndex].workSeconds = total;
+        }
+      } else if (step.type === "intervals") {
+        if (state.intervalPhase === "hard") {
+          step.hardSeconds = total;
+        } else {
+          store.settings = { ...store.settings, easyRecoverySeconds: total };
+        }
+      } else if (step.type === "equipment") {
+        step.seconds = total;
+      } else if (step.type === "timed") {
+        step.seconds = total;
+      }
+
+      workouts[state.selectedDay] = workout;
+      store.workouts = workouts;
+    }
+  }
+
   if (typeof els.editTimerDialog.close === "function") {
     els.editTimerDialog.close();
   }

@@ -9,7 +9,7 @@
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon.svg">
     <title>Hybrid 5.2 Workout Coach</title>
-    <link rel="stylesheet" href="styles.css?v=20">
+    <link rel="stylesheet" href="styles.css?v=21">
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -340,12 +340,17 @@
           <button class="pad-stepper-btn" data-delta="60" type="button">+1 min</button>
         </div>
 
-        <div class="modal-actions" style="margin-top: 20px;">
-          <button id="saveTimerModalBtn" type="button" class="primary-btn">✓ Apply & Start</button>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 18px;">
+          <button id="saveTimerThisSetBtn" type="button" class="primary-btn">
+            ⚡ Apply to This Set Only
+          </button>
+          <button id="saveTimerAllSetsBtn" type="button" class="secondary-btn" style="border-color: var(--accent); color: var(--accent);">
+            💾 Save for All Sets of This Exercise
+          </button>
         </div>
       </div>
     </dialog>
 
-    <script src="app.js?v=20" defer></script>
+    <script src="app.js?v=21" defer></script>
   </body>
 </html>
