@@ -748,6 +748,74 @@ h3 {
   text-align: center;
 }
 
+/* Retroactively Editable Completed Set Inputs */
+.set-wt-done,
+.set-rep-done {
+  border-color: rgba(163, 230, 53, 0.4) !important;
+  background: rgba(163, 230, 53, 0.08) !important;
+  color: #bef264 !important;
+  font-weight: 800;
+  box-shadow: none !important;
+}
+
+.set-wt-done:focus,
+.set-rep-done:focus {
+  border-color: var(--accent-2) !important;
+  background: #000 !important;
+  color: var(--ink) !important;
+}
+
+/* History Set Edit Rows */
+.history-set-edit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.history-set-edit-row:last-child {
+  border-bottom: 0;
+}
+
+.history-set-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--muted);
+  min-width: 48px;
+}
+
+.history-inputs-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.history-edit-input {
+  width: 50px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #000;
+  color: var(--accent-2);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.history-edit-input:focus {
+  outline: 0;
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.history-edit-input.rep {
+  color: var(--ink);
+}
+
 /* YouTube Video Link Button */
 .youtube-link-btn {
   display: inline-flex;

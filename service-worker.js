@@ -1,9 +1,9 @@
-const CACHE_NAME = "hybrid-5-2-v18";
+const CACHE_NAME = "hybrid-5-2-v19";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=18",
-  "./app.js?v=18",
+  "./styles.css?v=19",
+  "./app.js?v=19",
   "./manifest.json",
   "./icons/icon.svg"
 ];

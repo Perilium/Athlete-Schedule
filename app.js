@@ -377,8 +377,18 @@ function playStartChime() {
 }
 
 function playCountdownTick(secondsLeft) {
-  const freq = secondsLeft === 1 ? 880 : 740;
-  playTone(freq, "triangle", 90, 0.15, 0);
+  // Ascending alert pitches for the final 5 seconds (5 -> 4 -> 3 -> 2 -> 1)
+  let freq = 740;
+  if (secondsLeft === 5) freq = 587.33; // D5
+  else if (secondsLeft === 4) freq = 659.25; // E5
+  else if (secondsLeft === 3) freq = 739.99; // F#5
+  else if (secondsLeft === 2) freq = 830.61; // G#5
+  else if (secondsLeft === 1) freq = 987.77; // B5 (High alert before finish chime)
+
+  playTone(freq, "triangle", 95, 0.16, 0);
+  if (store.settings.vibration && navigator.vibrate) {
+    try { navigator.vibrate(60); } catch (_) {}
+  }
 }
 
 function playFinishChime() {
@@ -399,10 +409,12 @@ function playIntervalCue(isHard) {
 function testAudio() {
   unlockAudio();
   playStartChime();
-  setTimeout(() => playCountdownTick(3), 400);
-  setTimeout(() => playCountdownTick(2), 750);
-  setTimeout(() => playCountdownTick(1), 1100);
-  setTimeout(() => playFinishChime(), 1450);
+  setTimeout(() => playCountdownTick(5), 350);
+  setTimeout(() => playCountdownTick(4), 700);
+  setTimeout(() => playCountdownTick(3), 1050);
+  setTimeout(() => playCountdownTick(2), 1400);
+  setTimeout(() => playCountdownTick(1), 1750);
+  setTimeout(() => playFinishChime(), 2100);
 }
 
 function notifyDone() {
@@ -1328,22 +1340,38 @@ function setsTableMarkup(ex, last) {
     }
 
     if (isDone) {
-      let logged = "✓ Done";
-      if (todayRecord) {
-        const wtPrefix = (todayRecord.weight !== undefined && todayRecord.weight !== null && todayRecord.weight > 0) ? `${todayRecord.weight}k ` : "";
-        if (todayRecord.left !== undefined) {
-          logged = isTimeTracking ? `${wtPrefix}${todayRecord.left}s/${todayRecord.right}s` : `${wtPrefix}${todayRecord.left}L/${todayRecord.right}R`;
-        } else if (todayRecord.reps !== undefined) {
-          logged = isTimeTracking ? `${wtPrefix}${todayRecord.reps}s` : `${wtPrefix}${todayRecord.reps} reps`;
-        }
+      let inputHtml = "";
+      if (ex.unilateral) {
+        inputHtml = `
+          <div class="unilateral-inputs-wrap">
+            <input class="set-rep-done" inputmode="numeric" type="number" min="0" max="180" 
+              value="${todayRecord?.left ?? ''}" placeholder="L" 
+              onchange="updateActiveSetRecord('${ex.id}', ${s}, 'left', this.value)" title="Change Left reps retroactively">
+            <input class="set-rep-done" inputmode="numeric" type="number" min="0" max="180" 
+              value="${todayRecord?.right ?? ''}" placeholder="R" 
+              onchange="updateActiveSetRecord('${ex.id}', ${s}, 'right', this.value)" title="Change Right reps retroactively">
+          </div>
+        `;
+      } else {
+        inputHtml = `
+          <input class="set-rep-input set-rep-done" inputmode="numeric" type="number" min="0" max="180" 
+            value="${todayRecord?.reps ?? ''}" 
+            onchange="updateActiveSetRecord('${ex.id}', ${s}, 'reps', this.value)" title="Change reps retroactively">
+        `;
       }
+
       rows += `
         <div class="set-row ${isUnilateral ? "set-row-unilateral" : ""} set-row-done">
           <span class="set-num-badge">${s}</span>
-          <span style="color: var(--accent-2); font-weight: 800;">${todayRecord?.weight !== undefined ? todayRecord.weight + " kg" : (defaultWt > 0 ? defaultWt + " kg" : "-")}</span>
+          <div>
+            <input class="set-wt-input set-wt-done" inputmode="decimal" type="number" step="0.5" min="0" max="300" 
+              value="${todayRecord?.weight ?? (defaultWt || '')}" 
+              placeholder="${defaultWt ? defaultWt + 'kg' : '0'}" 
+              onchange="updateActiveSetRecord('${ex.id}', ${s}, 'weight', this.value)" title="Change weight retroactively">
+          </div>
           <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
           <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
-          <span style="color: var(--accent-2); font-weight: 800;">${logged} ✅</span>
+          <div>${inputHtml}</div>
         </div>
       `;
     } else if (isActive) {
@@ -1680,6 +1708,27 @@ function numberValue(id) {
   return Number(input.value);
 }
 
+window.updateActiveSetRecord = function (exerciseId, setNum, field, value) {
+  let record = state.sessionRecords.find((r) => r.exerciseId === exerciseId && r.set === setNum);
+  if (!record) {
+    const step = currentStep();
+    record = {
+      date: new Date().toISOString(),
+      day: currentWorkout()?.label || "Workout",
+      exerciseId,
+      exerciseName: step?.name || exerciseId,
+      equipment: step?.equipment || "",
+      weight: 0,
+      set: setNum,
+      durationSeconds: elapsedSeconds()
+    };
+    state.sessionRecords.push(record);
+  }
+  const parsed = parseFloat(value);
+  record[field] = isNaN(parsed) ? 0 : parsed;
+  saveActiveSession();
+};
+
 function advanceSuperset() {
   const step = currentStep();
   state.supersetPartIndex += 1;
@@ -1753,8 +1802,8 @@ function startCountdown(seconds, onDone) {
     state.remaining -= 1;
     updateTimerDisplay();
 
-    // 3, 2, 1 Countdown Beeps
-    if (state.remaining === 3 || state.remaining === 2 || state.remaining === 1) {
+    // 5, 4, 3, 2, 1 Countdown Warning Beeps
+    if (state.remaining <= 5 && state.remaining >= 1) {
       playCountdownTick(state.remaining);
     }
 
@@ -1794,7 +1843,7 @@ function togglePause() {
     state.timer = setInterval(() => {
       state.remaining -= 1;
       updateTimerDisplay();
-      if (state.remaining === 3 || state.remaining === 2 || state.remaining === 1) {
+      if (state.remaining <= 5 && state.remaining >= 1) {
         playCountdownTick(state.remaining);
       }
       if (state.remaining <= 0) {
@@ -2168,16 +2217,36 @@ function renderHistory() {
     });
 
     const exerciseDetailRows = Object.entries(grouped).map(([exName, sets]) => {
-      const setStrings = sets.map((s) => {
-        const wtStr = (s.weight !== undefined && s.weight !== null && s.weight > 0) ? `${s.weight}kg × ` : "";
-        if (s.left !== undefined) return `Set ${s.set}: ${wtStr}${s.left}L/${s.right}R`;
-        if (s.reps !== undefined) return `Set ${s.set}: ${wtStr}${s.reps}r`;
-        return `Set ${s.set}: ✓`;
-      }).join(", ");
+      const setRowsHtml = sets.map((s) => {
+        const rIdx = records.indexOf(s);
+        return `
+          <div class="history-set-edit-row">
+            <span class="history-set-label">Set ${s.set}:</span>
+            <div class="history-inputs-wrap">
+              <input type="number" step="0.5" min="0" max="300" class="history-edit-input wt" value="${s.weight ?? ''}" placeholder="0" 
+                onchange="updatePastHistoryRecord(${sIdx}, ${rIdx}, 'weight', this.value)" title="Change weight retroactively">
+              <span>kg ×</span>
+              ${s.left !== undefined ? `
+                <input type="number" min="0" max="180" class="history-edit-input rep" value="${s.left ?? ''}" placeholder="L" 
+                  onchange="updatePastHistoryRecord(${sIdx}, ${rIdx}, 'left', this.value)" title="Change Left reps">
+                <span>L /</span>
+                <input type="number" min="0" max="180" class="history-edit-input rep" value="${s.right ?? ''}" placeholder="R" 
+                  onchange="updatePastHistoryRecord(${sIdx}, ${rIdx}, 'right', this.value)" title="Change Right reps">
+                <span>R</span>
+              ` : `
+                <input type="number" min="0" max="180" class="history-edit-input rep" value="${s.reps ?? ''}" placeholder="0" 
+                  onchange="updatePastHistoryRecord(${sIdx}, ${rIdx}, 'reps', this.value)" title="Change reps retroactively">
+                <span>reps</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join("");
+
       return `
-        <div style="margin-bottom: 6px;">
-          <strong style="color: var(--ink); font-size: 0.85rem;">${exName}</strong>
-          <div style="color: var(--muted); font-size: 0.8rem;">${setStrings}</div>
+        <div style="margin-bottom: 8px;">
+          <strong style="color: var(--ink); font-size: 0.85rem; display:block; margin-bottom:4px;">${exName}</strong>
+          ${setRowsHtml}
         </div>
       `;
     }).join("");
@@ -2196,7 +2265,7 @@ function renderHistory() {
         ${records.length > 0 ? `
           <details class="history-detail-drawer" style="margin-top: 10px;">
             <summary style="cursor: pointer; font-size: 0.82rem; font-weight: 800; color: var(--accent); display:flex; justify-content:space-between; align-items:center;">
-              <span>📊 View Logged Sets (${Object.keys(grouped).length} Exercises)</span>
+              <span>📊 View & Edit Logged Sets (${Object.keys(grouped).length} Exercises)</span>
               <span class="drawer-icon">▾</span>
             </summary>
             <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 8px;">
@@ -2208,6 +2277,15 @@ function renderHistory() {
     `;
   }).join("");
 }
+
+window.updatePastHistoryRecord = function (sIdx, rIdx, field, val) {
+  const history = store.history;
+  if (history[sIdx] && history[sIdx].records && history[sIdx].records[rIdx]) {
+    const parsed = parseFloat(val);
+    history[sIdx].records[rIdx][field] = isNaN(parsed) ? 0 : parsed;
+    store.history = history;
+  }
+};
 
 window.deleteHistoryEntry = function (index) {
   if (!confirm("Delete this workout log?")) return;
