@@ -1453,7 +1453,11 @@ function renderExercise(ex, supersetLabel) {
   const isResting = state.phase === "rest";
 
   let timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets}`;
-  if (isResting) {
+  if (state.restingBetweenSteps) {
+    const nextStepObj = currentWorkout().steps[state.stepIndex + 1];
+    const nextName = nextStepObj ? nextStepObj.name : "Next Exercise";
+    timerLabel = `REST BETWEEN EXERCISES · NEXT: ${nextName.toUpperCase()}`;
+  } else if (isResting) {
     timerLabel = `REST · AFTER SET ${Math.max(1, state.setIndex - 1)} OF ${ex.sets}`;
   } else if (state.setIndex === ex.sets) {
     timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets} (FINAL 🔥)`;
@@ -1468,7 +1472,7 @@ function renderExercise(ex, supersetLabel) {
       <h2 class="exercise-name" style="margin-bottom:0;">${ex.name}</h2>
       <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(ex.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>
     </div>
-    <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest between sets</p>
+    <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest</p>
     
     ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
     
@@ -1478,7 +1482,7 @@ function renderExercise(ex, supersetLabel) {
     
     <div class="session-actions" style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px;">
       ${!isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)</button>` : ""}
-      ${isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔</button>` : ""}
+      ${isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">${state.restingBetweenSteps ? "Ready for Next Exercise ➔" : `Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔`}</button>` : ""}
       <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
       <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
@@ -1606,6 +1610,7 @@ function activeTimerMarkup(label, seconds, phaseClass = "phase-rest") {
         <button class="timer-btn ${!state.running ? "timer-btn-paused" : ""}" data-action="pause" type="button">${state.running ? "⏸ Pause" : "▶ Resume"}</button>
         <button class="timer-btn" data-action="minus" type="button">-15s</button>
         <button class="timer-btn" data-action="plus" type="button">+15s</button>
+        <button class="timer-btn" data-action="reset" type="button" title="Reset timer to beginning">↺ Reset</button>
         <button class="timer-btn" data-action="custom-time" type="button">Edit</button>
       </div>
     </div>
@@ -1638,13 +1643,28 @@ function handleAction(action, context) {
       if (els.workoutSelectionWrapper) els.workoutSelectionWrapper.classList.remove("hidden");
     }
   }
-  if (action === "ready-early") nextStepUnit();
+  if (action === "ready-early") {
+    if (state.restingBetweenSteps) {
+      state.restingBetweenSteps = false;
+      stopTimer();
+      nextStep();
+      return;
+    }
+    nextStepUnit();
+  }
   if (action === "start-interval") startInterval(context);
   if (action === "pause") togglePause();
+  if (action === "reset") resetCurrentTimer();
   if (action === "plus") adjustTimer(15);
   if (action === "minus") adjustTimer(-15);
   if (action === "custom-time") openTimerModal();
   if (action === "skip") {
+    if (state.restingBetweenSteps) {
+      state.restingBetweenSteps = false;
+      stopTimer();
+      nextStep();
+      return;
+    }
     if (state.phase === "rest") {
       stopTimer();
       startWork(currentPlayable() || currentStep());
@@ -1654,7 +1674,22 @@ function handleAction(action, context) {
   }
 }
 
+function resetCurrentTimer() {
+  stopTimer();
+  let defaultSec = state.totalTimerSeconds > 0 ? state.totalTimerSeconds : getCurrentStepDefaultDuration();
+  if (state.restingBetweenSteps) {
+    const step = currentStep();
+    defaultSec = step?.restSeconds || store.settings.defaultRest || 60;
+  }
+  state.remaining = defaultSec;
+  state.totalTimerSeconds = defaultSec;
+  updateTimerDisplay();
+  updatePauseButtons();
+  playStartChime();
+}
+
 function startWork(ex) {
+  state.restingBetweenSteps = false;
   state.phase = "work";
   renderSession();
   startCountdown(ex.workSeconds || 45, () => {
@@ -1671,10 +1706,16 @@ function completeSet(ex) {
     advanceSuperset();
   } else if (state.setIndex < ex.sets) {
     state.setIndex += 1;
-    const restTime = ex.restSeconds || store.settings.defaultRest;
+    const restTime = ex.restSeconds || store.settings.defaultRest || 45;
     startRest(restTime);
   } else {
-    nextStep();
+    // Final set of this exercise: provide rest before advancing to the next exercise/step!
+    if (state.stepIndex < currentWorkout().steps.length - 1) {
+      const restTime = ex.restSeconds || store.settings.defaultRest || 60;
+      startRestBetweenSteps(restTime);
+    } else {
+      nextStep();
+    }
   }
 }
 
@@ -1753,15 +1794,34 @@ function advanceSuperset() {
     startRest(restTime);
     return;
   }
+  // Final round of superset completed: rest between activities!
+  if (state.stepIndex < currentWorkout().steps.length - 1) {
+    const restTime = step.restSeconds || store.settings.supersetRest || 60;
+    startRestBetweenSteps(restTime);
+    return;
+  }
   nextStep();
 }
 
 function startRest(seconds) {
+  state.restingBetweenSteps = false;
   state.phase = "rest";
   renderSession();
   startCountdown(seconds, () => {
     notifyDone();
     startWork(currentPlayable() || currentStep());
+  });
+}
+
+function startRestBetweenSteps(seconds) {
+  stopTimer();
+  state.phase = "rest";
+  state.restingBetweenSteps = true;
+  renderSession();
+  startCountdown(seconds, () => {
+    notifyDone();
+    state.restingBetweenSteps = false;
+    nextStep();
   });
 }
 
@@ -1868,6 +1928,9 @@ function updatePauseButtons() {
 function getCurrentStepDefaultDuration() {
   const step = currentStep();
   if (!step) return 60;
+  if (state.restingBetweenSteps) {
+    return step.restSeconds || store.settings.defaultRest || 60;
+  }
   if (state.phase === "rest") {
     if (step.type === "superset") return step.restSeconds || store.settings.supersetRest || 60;
     const ex = currentPlayable() || step;
@@ -1890,6 +1953,14 @@ function getCurrentStepDefaultDuration() {
 function getTimerDoneCallback() {
   const step = currentStep();
   if (!step) return finishSession;
+
+  if (state.restingBetweenSteps) {
+    return () => {
+      notifyDone();
+      state.restingBetweenSteps = false;
+      nextStep();
+    };
+  }
 
   if (state.phase === "rest") {
     return () => {
@@ -1996,6 +2067,14 @@ function applyTimerPad() {
 
 function prevStepUnit() {
   stopTimer();
+  if (state.restingBetweenSteps) {
+    state.restingBetweenSteps = false;
+    state.phase = "work";
+    renderSession();
+    startWork(currentPlayable() || currentStep());
+    return;
+  }
+
   const step = currentStep();
   if (!step) return;
 
@@ -2090,6 +2169,12 @@ function prevStepUnit() {
 
 function nextStepUnit() {
   stopTimer();
+  if (state.restingBetweenSteps) {
+    state.restingBetweenSteps = false;
+    nextStep();
+    return;
+  }
+
   const step = currentStep();
   if (step.type === "intervals") {
     nextStep();
@@ -2105,7 +2190,12 @@ function nextStepUnit() {
         startRest(restTime);
         return;
       } else {
-        nextStep();
+        if (state.stepIndex < currentWorkout().steps.length - 1) {
+          const restTime = step.restSeconds || store.settings.supersetRest || 60;
+          startRestBetweenSteps(restTime);
+        } else {
+          nextStep();
+        }
         return;
       }
     }
@@ -2124,6 +2214,7 @@ function nextStepUnit() {
 
 function nextStep() {
   stopTimer();
+  state.restingBetweenSteps = false;
   state.stepIndex += 1;
   state.setIndex = 1;
   state.roundIndex = 1;
