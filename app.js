@@ -124,7 +124,9 @@ const state = {
   deferredPrompt: null,
   audioCtx: null,
   padSelectedSeconds: 60,
-  focusedDay: "monday"
+  focusedDay: "monday",
+  lastTransitionNotice: null,
+  flashTimeout: null
 };
 
 const els = {};
@@ -1080,7 +1082,9 @@ function startCurrentStepAuto() {
     return;
   }
   if (step.type === "superset") {
+    state.setIndex = state.roundIndex || 1;
     const part = currentPlayable();
+    if (!part) return;
     if (part.type === "transition") {
       state.phase = "transition";
       renderSession();
@@ -1320,10 +1324,51 @@ function getExerciseYouTubeUrl(exerciseName) {
   return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + " exercise form tutorial")}`;
 }
 
+function getProgressiveTarget(baseTarget, setNum, totalSets) {
+  if (!baseTarget) return "-";
+  const clean = baseTarget.replace(/\d+\s*x\s*/, "").trim();
+  const match = clean.match(/(\d+)\s*-\s*(\d+)/);
+  if (!match) return clean;
+  const minR = parseInt(match[1], 10);
+  const maxR = parseInt(match[2], 10);
+  if (totalSets <= 1) return `${minR}-${maxR}`;
+  
+  if (setNum === 1) {
+    const freshMin = Math.max(minR, Math.round(minR + (maxR - minR) * 0.5));
+    return `${freshMin}-${maxR}`;
+  } else if (setNum === totalSets) {
+    const fatigueMax = Math.min(maxR, Math.round(minR + (maxR - minR) * 0.5));
+    return `${minR}-${fatigueMax}`;
+  } else {
+    return `${minR + 1}-${maxR - 1}`;
+  }
+}
+
+function getSuggestedReps(baseTarget, setNum, totalSets, prevSetRecord, exerciseId) {
+  if (exerciseId === "suitcase-carry") return 45;
+  if (prevSetRecord) {
+    if (prevSetRecord.reps !== undefined && prevSetRecord.reps > 0) {
+      return Math.max(5, prevSetRecord.reps >= 10 ? prevSetRecord.reps - 1 : prevSetRecord.reps);
+    }
+    if (prevSetRecord.left !== undefined && prevSetRecord.left > 0) {
+      return Math.max(5, prevSetRecord.left >= 10 ? prevSetRecord.left - 1 : prevSetRecord.left);
+    }
+  }
+  const match = (baseTarget || "").match(/(\d+)\s*-\s*(\d+)/);
+  if (match) {
+    const minR = parseInt(match[1], 10);
+    const maxR = parseInt(match[2], 10);
+    if (setNum === 1) return maxR;
+    if (setNum === 2) return Math.round((minR + maxR) / 2);
+    return minR;
+  }
+  const single = (baseTarget || "").match(/(\d+)/);
+  return single ? Number(single[1]) : 10;
+}
+
 function setsTableMarkup(ex, last) {
   const isTimeTracking = ex.id === "suitcase-carry";
   const defaultWt = getExerciseDefaultWeight(ex.equipment);
-  const targetRepsDefault = defaultTargetReps(ex.target, ex.id);
   const isUnilateral = !!ex.unilateral;
   let rows = "";
 
@@ -1333,7 +1378,23 @@ function setsTableMarkup(ex, last) {
     const isUpcoming = s > state.setIndex;
 
     const todayRecord = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === s);
+    const prevCompletedSet = state.sessionRecords.filter((r) => r.exerciseId === ex.id && r.set < s).pop();
     const lastRecord = last && last.records && last.records[s - 1];
+
+    const progressiveTarget = getProgressiveTarget(ex.target, s, ex.sets);
+    const targetLabel = s === 1
+      ? `<span class="target-badge-fresh" title="Fresh baseline set">${progressiveTarget}</span>`
+      : (s === ex.sets
+          ? `<span class="target-badge-fatigue" title="Fatigue taper">${progressiveTarget}</span>`
+          : `<span>${progressiveTarget}</span>`);
+
+    const activeWeightDefault = (todayRecord?.weight !== undefined && todayRecord?.weight !== null)
+      ? todayRecord.weight
+      : (prevCompletedSet?.weight !== undefined && prevCompletedSet?.weight !== null)
+        ? prevCompletedSet.weight
+        : defaultWt;
+
+    const targetRepsDefault = getSuggestedReps(ex.target, s, ex.sets, prevCompletedSet, ex.id);
 
     let lastSummary = "-";
     if (lastRecord) {
@@ -1371,11 +1432,11 @@ function setsTableMarkup(ex, last) {
           <span class="set-num-badge">${s}</span>
           <div>
             <input class="set-wt-input set-wt-done" inputmode="decimal" type="number" step="0.5" min="0" max="300" 
-              value="${todayRecord?.weight ?? (defaultWt || '')}" 
+              value="${todayRecord?.weight ?? (activeWeightDefault || '')}" 
               placeholder="${defaultWt ? defaultWt + 'kg' : '0'}" 
               onchange="updateActiveSetRecord('${ex.id}', ${s}, 'weight', this.value)" title="Change weight retroactively">
           </div>
-          <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
+          <div>${targetLabel}</div>
           <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
           <div>${inputHtml}</div>
         </div>
@@ -1396,8 +1457,8 @@ function setsTableMarkup(ex, last) {
       rows += `
         <div class="set-row ${isUnilateral ? "set-row-unilateral" : ""} set-row-active">
           <span class="set-num-badge">${s}</span>
-          <div><input id="setWeight" class="set-wt-input" inputmode="decimal" type="number" step="0.5" min="0" max="300" value="${todayRecord?.weight ?? (defaultWt || "")}" placeholder="${defaultWt ? defaultWt + 'kg' : '0'}"></div>
-          <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
+          <div><input id="setWeight" class="set-wt-input" inputmode="decimal" type="number" step="0.5" min="0" max="300" value="${todayRecord?.weight ?? (activeWeightDefault || "")}" placeholder="${defaultWt ? defaultWt + 'kg' : '0'}"></div>
+          <div>${targetLabel}</div>
           <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
           <div>${inputHtml}</div>
         </div>
@@ -1406,8 +1467,8 @@ function setsTableMarkup(ex, last) {
       rows += `
         <div class="set-row ${isUnilateral ? "set-row-unilateral" : ""} set-row-upcoming">
           <span class="set-num-badge">${s}</span>
-          <span style="color: var(--muted);">${defaultWt > 0 ? defaultWt + " kg" : "-"}</span>
-          <span>${ex.target.replace(/\d+\s*x\s*/, "")}</span>
+          <span style="color: var(--muted);">${activeWeightDefault > 0 ? activeWeightDefault + " kg" : (defaultWt > 0 ? defaultWt + " kg" : "-")}</span>
+          <div>${targetLabel}</div>
           <span style="color: var(--muted); font-size: 0.78rem;">${lastSummary}</span>
           <span style="color: var(--muted);">-</span>
         </div>
@@ -1429,6 +1490,15 @@ function setsTableMarkup(ex, last) {
         <span>${colHeader}</span>
       </div>
       ${rows}
+      <div class="progressive-overload-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <span style="font-size:0.8rem; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em;">📈 Progressive Loading</span>
+          <span style="font-size:0.75rem; color:var(--muted); font-weight:700;">Fatigue Taper Active</span>
+        </div>
+        <p style="margin:4px 0 0; font-size:0.78rem; color:var(--muted); line-height:1.4;">
+          Set 1 is your fresh baseline (aim for top reps). Target reps naturally taper as fatigue builds while maintaining working weight.
+        </p>
+      </div>
     </div>
   `;
 }
@@ -1472,32 +1542,57 @@ function renderExercise(ex, supersetLabel) {
   const phaseClass = isResting ? "phase-rest" : "phase-work";
   const displaySeconds = isResting ? (state.remaining || restTime) : (state.remaining || ex.workSeconds || 45);
 
-  els.sessionPanel.innerHTML = `
-    ${statusMarkup(supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px;">
-      <h2 class="exercise-name" style="margin-bottom:0;">${ex.name}</h2>
-      <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(ex.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>
-    </div>
-    <p class="equipment">🔧 ${ex.equipment} · ⏱ ${restTime}s rest</p>
-    
-    ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
-    
-    ${setsTableMarkup(ex, last)}
-    ${upNextMarkup()}
-    ${cueMarkup(ex.cues)}
-    
-    <div class="session-actions" style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px;">
+  const actionButtonsHtml = `
+    <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
       ${!isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)</button>` : ""}
       ${isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">${state.restingBetweenSteps ? "Ready for Next Exercise ➔" : `Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔`}</button>` : ""}
       <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
       <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
   `;
+
+  let flashHtml = "";
+  if (state.lastTransitionNotice) {
+    flashHtml = `<div class="session-flash-banner"><span>${state.lastTransitionNotice}</span></div>`;
+  }
+
+  els.sessionPanel.innerHTML = `
+    ${statusMarkup(supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
+    ${flashHtml}
+    <div class="session-layout-grid">
+      <div class="session-left-col">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px; width: 100%;">
+          <h2 class="exercise-name" style="margin-bottom:0;">${ex.name}</h2>
+          <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(ex.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>
+        </div>
+        <p class="equipment" style="width: 100%;">🔧 ${ex.equipment} · ⏱ ${restTime}s rest</p>
+        
+        ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
+        
+        <div class="desktop-actions">
+          ${actionButtonsHtml}
+        </div>
+      </div>
+
+      <div class="session-right-col">
+        ${setsTableMarkup(ex, last)}
+        
+        <div class="mobile-actions">
+          ${actionButtonsHtml}
+        </div>
+
+        ${upNextMarkup()}
+        ${cueMarkup(ex.cues)}
+      </div>
+    </div>
+  `;
   bindSessionButtons(ex);
 }
 
 function renderSuperset(step) {
+  state.setIndex = state.roundIndex || 1;
   const part = currentPlayable();
+  if (!part) return;
   if (part.type === "transition") {
     renderTransition(step, part);
     return;
@@ -1507,16 +1602,35 @@ function renderSuperset(step) {
 
 function renderTransition(step, part) {
   const sec = part.seconds || 10;
-  els.sessionPanel.innerHTML = `
-    ${statusMarkup(`<span class="badge badge-easy">${step.name} · Round ${state.roundIndex}/${step.rounds}</span>`)}
-    <h2 class="exercise-name">Transition</h2>
-    <p class="equipment">Move quickly to the next movement.</p>
-    ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
-    ${upNextMarkup()}
-    <div class="session-actions" style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
-      <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Ready Now ➔</button>
+  const nextPart = step.parts[state.supersetPartIndex + 1];
+  const nextName = nextPart ? nextPart.name : "Next Movement";
+
+  const actionButtonsHtml = `
+    <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
+      <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Ready Now (${nextName}) ➔</button>
       <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
       <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
+    </div>
+  `;
+
+  els.sessionPanel.innerHTML = `
+    ${statusMarkup(`<span class="badge badge-easy">${step.name} · Round ${state.roundIndex}/${step.rounds}</span>`)}
+    <div class="session-layout-grid">
+      <div class="session-left-col">
+        <h2 class="exercise-name">Transition</h2>
+        <p class="equipment">Switch weights & get ready for <strong>${nextName}</strong></p>
+        ${activeTimerMarkup("TRANSITION", sec, "phase-easy")}
+        <div class="desktop-actions">
+          ${actionButtonsHtml}
+        </div>
+      </div>
+
+      <div class="session-right-col">
+        <div class="mobile-actions">
+          ${actionButtonsHtml}
+        </div>
+        ${upNextMarkup()}
+      </div>
     </div>
   `;
   bindSessionButtons(part);
@@ -1704,13 +1818,38 @@ function startWork(ex) {
   });
 }
 
+function setFlashNotice(msg) {
+  state.lastTransitionNotice = msg;
+  const existing = document.getElementById("sessionTransitionFlash");
+  if (existing) existing.remove();
+
+  const flash = document.createElement("div");
+  flash.id = "sessionTransitionFlash";
+  flash.className = "session-flash-banner";
+  flash.innerHTML = `<span>${msg}</span>`;
+
+  if (els.sessionPanel) {
+    els.sessionPanel.prepend(flash);
+  }
+
+  if (state.flashTimeout) clearTimeout(state.flashTimeout);
+  state.flashTimeout = setTimeout(() => {
+    state.lastTransitionNotice = null;
+    const el = document.getElementById("sessionTransitionFlash");
+    if (el) el.remove();
+  }, 4500);
+}
+
 function completeSet(ex) {
   stopTimer();
   recordReps(ex);
   const step = currentStep();
   if (step.type === "superset") {
+    state.setIndex = state.roundIndex || 1;
+    setFlashNotice(`✓ Round ${state.roundIndex} of ${ex.name} logged!`);
     advanceSuperset();
   } else if (state.setIndex < ex.sets) {
+    setFlashNotice(`✓ Set ${state.setIndex} of ${ex.name} logged! Rest ${ex.restSeconds || store.settings.defaultRest || 45}s`);
     state.setIndex += 1;
     const restTime = ex.restSeconds || store.settings.defaultRest || 45;
     startRest(restTime);
@@ -1718,34 +1857,42 @@ function completeSet(ex) {
     // Final set of this exercise: provide rest before advancing to the next exercise/step!
     if (state.stepIndex < currentWorkout().steps.length - 1) {
       const restTime = ex.restSeconds || store.settings.defaultRest || 60;
+      setFlashNotice(`🏆 ${ex.name} Complete! Rest before next exercise.`);
       startRestBetweenSteps(restTime);
     } else {
       nextStep();
     }
   }
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function recordReps(ex) {
   const defaultWt = getExerciseDefaultWeight(ex.equipment);
   const enteredWt = numberValue("setWeight");
-  const record = {
-    date: new Date().toISOString(),
-    day: currentWorkout().label,
-    exerciseId: ex.id,
-    exerciseName: ex.name,
-    equipment: ex.equipment,
-    weight: enteredWt !== null ? enteredWt : defaultWt,
-    set: state.setIndex,
-    target: ex.target,
-    durationSeconds: elapsedSeconds()
-  };
+  const step = currentStep();
+  const currentSetNum = (step && step.type === "superset") ? (state.roundIndex || 1) : state.setIndex;
+
+  let record = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === currentSetNum);
+  if (!record) {
+    record = {
+      date: new Date().toISOString(),
+      day: currentWorkout().label,
+      exerciseId: ex.id,
+      exerciseName: ex.name,
+      equipment: ex.equipment,
+      set: currentSetNum,
+      target: ex.target,
+      durationSeconds: elapsedSeconds()
+    };
+    state.sessionRecords.push(record);
+  }
+  record.weight = enteredWt !== null ? enteredWt : defaultWt;
   if (ex.unilateral) {
     record.left = numberValue("left");
     record.right = numberValue("right");
   } else {
     record.reps = numberValue("reps");
   }
-  state.sessionRecords.push(record);
   saveActiveSession();
 }
 
@@ -1783,27 +1930,35 @@ function advanceSuperset() {
     state.supersetPartIndex += 1;
   }
   if (state.supersetPartIndex < step.parts.length) {
+    state.setIndex = state.roundIndex || 1;
     const part = currentPlayable();
     if (part.type === "transition") {
       state.phase = "transition";
       renderSession();
       startCountdown(part.seconds || 10, nextStepUnit);
     } else {
+      setFlashNotice(`🔄 Next: ${part.name} · Round ${state.roundIndex}/${step.rounds}`);
       startWork(part);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
   if (state.roundIndex < step.rounds) {
     state.roundIndex += 1;
+    state.setIndex = state.roundIndex; // CRITICAL: move setIndex to 2, 3!
     state.supersetPartIndex = 0;
     const restTime = step.restSeconds || store.settings.supersetRest || 60;
+    setFlashNotice(`⚡ Round ${state.roundIndex - 1} Complete! Rest ${restTime}s before Round ${state.roundIndex}`);
     startRest(restTime);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
   // Final round of superset completed: rest between activities!
   if (state.stepIndex < currentWorkout().steps.length - 1) {
     const restTime = step.restSeconds || store.settings.supersetRest || 60;
+    setFlashNotice(`🏆 ${step.name} Complete! Rest before next exercise.`);
     startRestBetweenSteps(restTime);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
   nextStep();
@@ -2158,22 +2313,28 @@ function prevStepUnit() {
   } else if (step.type === "superset") {
     if (state.phase === "rest") {
       state.phase = "work";
+      state.setIndex = state.roundIndex || 1;
       state.supersetPartIndex = step.parts.length - 1;
       renderSession();
       startWork(currentPlayable() || currentStep());
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     } else if (state.supersetPartIndex > 0) {
       state.supersetPartIndex -= 1;
       state.phase = "work";
+      state.setIndex = state.roundIndex || 1;
       renderSession();
       startWork(currentPlayable() || currentStep());
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     } else if (state.roundIndex > 1) {
       state.roundIndex -= 1;
+      state.setIndex = state.roundIndex;
       state.supersetPartIndex = step.parts.length - 1;
       state.phase = "work";
       renderSession();
       startWork(currentPlayable() || currentStep());
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
   } else if (step.type === "intervals") {
@@ -2220,6 +2381,7 @@ function prevStepUnit() {
     state.supersetPartIndex = (prevStepObj.parts ? prevStepObj.parts.length - 1 : 0);
     state.phase = "work";
     state.remaining = 0;
+    window.scrollTo({ top: 0, behavior: "smooth" });
     startCurrentStepAuto();
   }
 }
@@ -2242,28 +2404,36 @@ function nextStepUnit() {
     if (state.supersetPartIndex >= step.parts.length) {
       if (state.roundIndex < step.rounds) {
         state.roundIndex += 1;
+        state.setIndex = state.roundIndex;
         state.supersetPartIndex = 0;
         const restTime = step.restSeconds || store.settings.supersetRest || 60;
+        setFlashNotice(`⚡ Round ${state.roundIndex - 1} Complete! Rest ${restTime}s before Round ${state.roundIndex}`);
         startRest(restTime);
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       } else {
         if (state.stepIndex < currentWorkout().steps.length - 1) {
           const restTime = step.restSeconds || store.settings.supersetRest || 60;
+          setFlashNotice(`🏆 ${step.name} Complete! Rest before next exercise.`);
           startRestBetweenSteps(restTime);
         } else {
           nextStep();
         }
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
     }
+    state.setIndex = state.roundIndex || 1;
     const part = currentPlayable();
     if (part.type === "transition") {
       state.phase = "transition";
       renderSession();
       startCountdown(part.seconds || 10, nextStepUnit);
     } else {
+      setFlashNotice(`🔄 Next: ${part.name} · Round ${state.roundIndex}/${step.rounds}`);
       startWork(part);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
   nextStep();
@@ -2277,6 +2447,7 @@ function nextStep() {
   state.roundIndex = 1;
   state.supersetPartIndex = 0;
   state.remaining = 0;
+  window.scrollTo({ top: 0, behavior: "smooth" });
   if (state.stepIndex >= currentWorkout().steps.length) {
     finishSession();
   } else {
