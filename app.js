@@ -126,12 +126,20 @@ const state = {
   padSelectedSeconds: 60,
   focusedDay: "monday",
   lastTransitionNotice: null,
-  flashTimeout: null
+  flashTimeout: null,
+  layoutMode: localStorage.getItem("hybrid_layout_mode") || (window.innerWidth >= 860 ? "split" : "stacked"),
+  setsMinimized: false
 };
 
 const els = {};
 
 const store = {
+  get layoutMode() {
+    return localStorage.getItem("hybrid_layout_mode") || (window.innerWidth >= 860 ? "split" : "stacked");
+  },
+  set layoutMode(v) {
+    localStorage.setItem("hybrid_layout_mode", v);
+  },
   get history() {
     try {
       return JSON.parse(localStorage.getItem("hybrid_history") || "[]");
@@ -1306,7 +1314,22 @@ function statusMarkup(extra = "") {
         <button class="roadmap-toggle-btn" data-action="open-roadmap" type="button">📋 Plan</button>
       </div>
     </div>
-    <div class="progress-bar" style="margin: 4px 0 10px; height: 6px;"><div class="progress-fill" style="width:${progressInfo.pct}%"></div></div>
+    <div class="progress-bar" style="margin: 4px 0 6px; height: 6px;"><div class="progress-fill" style="width:${progressInfo.pct}%"></div></div>
+    
+    <div class="layout-controls-row">
+      <div class="layout-segmented-pill">
+        <button type="button" class="layout-seg-btn ${state.layoutMode === 'split' && !state.setsMinimized ? 'active' : ''}" onclick="setLayoutMode('split')" title="Side-by-side grid view">
+          🔲 Split
+        </button>
+        <button type="button" class="layout-seg-btn ${state.layoutMode === 'stacked' && !state.setsMinimized ? 'active' : ''}" onclick="setLayoutMode('stacked')" title="Classic single column view">
+          📑 Stacked
+        </button>
+        <button type="button" class="layout-seg-btn ${state.layoutMode === 'focus' || state.setsMinimized ? 'active' : ''}" onclick="setLayoutMode('focus')" title="Focus timer-only view">
+          ⏱️ Timer Only
+        </button>
+      </div>
+    </div>
+
     ${stepCarouselMarkup()}
     ${extra}
   `;
@@ -1532,6 +1555,23 @@ window.syncActiveSetInputs = function (field, val) {
   }
 };
 
+window.setLayoutMode = function (mode) {
+  store.layoutMode = mode;
+  state.layoutMode = mode;
+  state.setsMinimized = (mode === "focus");
+  renderSession();
+};
+
+window.toggleSetsVisibility = function () {
+  state.setsMinimized = !state.setsMinimized;
+  if (state.setsMinimized) {
+    state.layoutMode = "focus";
+  } else {
+    state.layoutMode = store.layoutMode === "focus" ? (window.innerWidth >= 860 ? "split" : "stacked") : store.layoutMode;
+  }
+  renderSession();
+};
+
 function activeSetHeroMarkup(ex, last) {
   const s = state.setIndex;
   const isTimeTracking = ex.id === "suitcase-carry";
@@ -1730,10 +1770,30 @@ function renderExercise(ex, supersetLabel) {
     flashHtml = `<div class="session-flash-banner"><span>${state.lastTransitionNotice}</span></div>`;
   }
 
+  const currentLayout = state.layoutMode || (window.innerWidth >= 860 ? "split" : "stacked");
+  const isFocus = currentLayout === "focus" || state.setsMinimized;
+  const gridClass = isFocus ? "layout-focus" : (currentLayout === "split" ? "layout-split" : "layout-stacked");
+
+  const progressiveTarget = getProgressiveTarget(ex.target, state.setIndex, ex.sets);
+  const defaultWt = getExerciseDefaultWeight(ex.equipment);
+
+  const focusSummaryHtml = isFocus ? `
+    <div class="focus-set-summary-bar">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <span class="focus-set-badge">⚡ ACTIVE SET ${state.setIndex} OF ${ex.sets}</span>
+        <button type="button" class="focus-expand-btn" onclick="toggleSetsVisibility()">📋 Show Sets & Cues ▾</button>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 6px; font-size: 0.84rem;">
+        <span style="color: var(--muted);">Target: <strong style="color: var(--ink);">${progressiveTarget}</strong></span>
+        <span style="color: var(--muted);">${defaultWt > 0 ? defaultWt + " kg" : "Bodyweight"}</span>
+      </div>
+    </div>
+  ` : "";
+
   els.sessionPanel.innerHTML = `
     ${statusMarkup(supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
     ${flashHtml}
-    <div class="session-layout-grid">
+    <div class="session-layout-grid ${gridClass}">
       <div class="session-left-col">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px; width: 100%;">
           <h2 class="exercise-name" style="margin-bottom:0;">${ex.name}</h2>
@@ -1741,6 +1801,7 @@ function renderExercise(ex, supersetLabel) {
         </div>
         <p class="equipment" style="width: 100%;">🔧 ${ex.equipment} · ⏱ ${restTime}s rest</p>
         
+        ${focusSummaryHtml}
         ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
         
         <div class="desktop-actions">
@@ -1749,6 +1810,12 @@ function renderExercise(ex, supersetLabel) {
       </div>
 
       <div class="session-right-col">
+        <div class="minimize-bar-wrap">
+          <button type="button" class="minimize-bar-btn" onclick="toggleSetsVisibility()" title="Hide sets and expand timer">
+            ⏱️ Hide Sets (Focus Timer)
+          </button>
+        </div>
+
         ${activeSetHeroMarkup(ex, last)}
         
         <div class="mobile-actions">
@@ -1781,6 +1848,10 @@ function renderTransition(step, part) {
   const nextPart = step.parts[state.supersetPartIndex + 1];
   const nextName = nextPart ? nextPart.name : "Next Movement";
 
+  const currentLayout = state.layoutMode || (window.innerWidth >= 860 ? "split" : "stacked");
+  const isFocus = currentLayout === "focus" || state.setsMinimized;
+  const gridClass = isFocus ? "layout-focus" : (currentLayout === "split" ? "layout-split" : "layout-stacked");
+
   const actionButtonsHtml = `
     <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
       <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Ready Now (${nextName}) ➔</button>
@@ -1791,7 +1862,7 @@ function renderTransition(step, part) {
 
   els.sessionPanel.innerHTML = `
     ${statusMarkup(`<span class="badge badge-easy">${step.name} · Round ${state.roundIndex}/${step.rounds}</span>`)}
-    <div class="session-layout-grid">
+    <div class="session-layout-grid ${gridClass}">
       <div class="session-left-col">
         <h2 class="exercise-name">Transition</h2>
         <p class="equipment">Switch weights & get ready for <strong>${nextName}</strong></p>
