@@ -12,7 +12,7 @@ const WORKOUTS = {
       exercise("floor-press", "Barbell Floor Press", "20 kg barbell", "4 x 8-15", 4, 45, 85, ["Controlled descent.", "Upper arms gently contact floor.", "Drive upward."]),
       equipment("20 kg barbell", "2 x 10 kg dumbbells", 90),
       superset("Superset A", 3, 60, [
-        exercise("bulgarian-split-squat", "Bulgarian Split Squat", "DBs", "3 x 8-12 each leg", 3, 70, 0, ["Rear foot supported.", "Controlled descent.", "Drive through front leg."], "leg"),
+        exercise("bulgarian-split-squat", "Bulgarian Split Squat", "DBs", "3 x 8-12 each leg (Left first, then Right)", 3, 70, 0, ["Left leg first (~35s), then switch to Right leg (~35s).", "Rear foot supported.", "Controlled descent.", "Drive through front leg."], "leg"),
         transition(10),
         exercise("arnold-press", "Arnold Press", "2 x 10 kg DB", "3 x 8-12", 3, 40, 0, [])
       ]),
@@ -24,7 +24,7 @@ const WORKOUTS = {
       superset("Abs Superset", 3, 40, [
         exercise("weighted-crunch", "Weighted Crunch", "DB", "3 x 10-15", 3, 35, 0, ["Bring ribs toward pelvis.", "Don't simply move head forward."]),
         transition(8),
-        exercise("dead-bug", "Dead Bug", "Bodyweight", "2 x 8-12 each side", 2, 45, 0, ["Slow movement.", "Maintain trunk control.", "Avoid excessive lower-back arch."], "side")
+        exercise("dead-bug", "Dead Bug", "Bodyweight", "2 x 8-12 each side (Left first, then Right)", 2, 45, 0, ["Left side first, then switch to Right side.", "Slow movement.", "Maintain trunk control.", "Avoid excessive lower-back arch."], "side")
       ])
     ]
   },
@@ -50,11 +50,11 @@ const WORKOUTS = {
       exercise("romanian-deadlift", "Romanian Deadlift", "20 kg barbell", "4 x 8-15", 4, 50, 90, ["Push hips backward.", "Keep bar close.", "Controlled spine.", "Stop if it reproduces lower-back pain."]),
       equipment("20 kg barbell", "2 x 10 kg dumbbells", 90),
       superset("Superset A", 3, 60, [
-        exercise("lateral-lunge", "Lateral Lunge", "DB", "3 x 8-12 each side", 3, 65, 0, ["Step wide.", "Sit into working hip.", "Controlled return."], "side"),
+        exercise("lateral-lunge", "Lateral Lunge", "DB", "3 x 8-12 each side (Left first, then Right)", 3, 65, 0, ["Left side first, then switch to Right side.", "Step wide.", "Sit into working hip.", "Controlled return."], "side"),
         transition(10),
-        exercise("single-leg-calf-raise", "Single-Leg Calf Raise", "DB + step", "3 x 12-20 each side", 3, 50, 0, ["Full comfortable stretch.", "Strong contraction at top."], "side")
+        exercise("single-leg-calf-raise", "Single-Leg Calf Raise", "DB + step", "3 x 12-20 each side (Left first, then Right)", 3, 50, 0, ["Left leg first (~25s), then switch to Right leg (~25s).", "Full comfortable stretch.", "Strong contraction at top."], "side")
       ]),
-      exercise("suitcase-carry", "Suitcase Carry", "10 kg DB", "3 x 30-60 sec each side", 3, 90, 60, ["Carry one-sided.", "Stay tall.", "Resist leaning and twisting.", "Switch sides."], "side")
+      exercise("suitcase-carry", "Suitcase Carry", "10 kg DB", "3 x 30-60 sec each side (Left first, then Right)", 3, 90, 60, ["Left side carry first (45s), then switch to Right side (45s).", "Stay tall.", "Resist leaning and twisting."], "side")
     ]
   },
   friday: {
@@ -64,7 +64,7 @@ const WORKOUTS = {
     equipmentNeeded: ["10 kg DB / Dumbbells", "Incline Bench / Mat", "Light Resistance / DBs"],
     steps: [
       superset("Superset A", 3, 60, [
-        exercise("single-arm-db-row", "Single-Arm DB Row", "10 kg DB", "3 x 10-15 each arm", 3, 60, 0, ["Support hand/knee on bench.", "Pull elbow toward hip.", "Control eccentric."], "arm"),
+        exercise("single-arm-db-row", "Single-Arm DB Row", "10 kg DB", "3 x 10-15 each arm (Left first, then Right)", 3, 60, 0, ["Left arm first (~30s), then switch to Right arm (~30s).", "Support hand/knee on bench.", "Pull elbow toward hip.", "Control eccentric."], "arm"),
         transition(10),
         exercise("push-ups", "Push-Ups", "Bodyweight", "3 x 10-20", 3, 40, 0, ["Plank body line.", "Chest touches mat.", "Full lockout."])
       ]),
@@ -79,7 +79,7 @@ const WORKOUTS = {
         exercise("reverse-crunch", "Reverse Crunch", "Bodyweight", "3 x 10-15", 3, 35, 0, ["Curl pelvis off floor.", "Controlled descent.", "No swinging."])
       ]),
       superset("Superset D", 3, 45, [
-        exercise("db-woodchopper", "DB Woodchopper", "10 kg DB", "3 x 8-12 each side", 3, 55, 0, ["Pivot through back foot.", "Drive rotation through torso.", "Control descent."], "side"),
+        exercise("db-woodchopper", "DB Woodchopper", "10 kg DB", "3 x 8-12 each side (Left first, then Right)", 3, 55, 0, ["Left side rotation first, then switch to Right side.", "Pivot through back foot.", "Drive rotation through torso.", "Control descent."], "side"),
         transition(10),
         exercise("front-plank", "Front Plank", "Bodyweight", "2 x 30-60 sec", 2, 45, 0, ["Elbows directly under shoulders.", "Brace glutes and abs.", "Neutral neck."])
       ])
@@ -1513,8 +1513,8 @@ function setsTableMarkup(ex, last) {
   }
 
   let colHeader = "Reps";
-  if (isTimeTracking) colHeader = "L / R (sec)";
-  else if (ex.unilateral) colHeader = "L / R Reps";
+  if (isTimeTracking) colHeader = "L(1st) / R(2nd) (sec)";
+  else if (ex.unilateral) colHeader = "Left(1st) / Right(2nd)";
 
   return `
     <div class="sets-table-card">
@@ -1606,7 +1606,7 @@ function activeSetHeroMarkup(ex, last) {
     repsInputsHtml = `
       <div class="unilateral-inputs-wrap" style="gap: 8px;">
         <div style="flex: 1;">
-          <span style="font-size: 0.68rem; color: var(--muted); font-weight: 800;">LEFT</span>
+          <span style="font-size: 0.68rem; color: var(--accent); font-weight: 800;">LEFT (1ST)</span>
           <div class="input-with-stepper">
             <button type="button" class="mini-stepper-btn" onclick="stepInputValue('left', -1)">-1</button>
             <input id="left" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
@@ -1615,7 +1615,7 @@ function activeSetHeroMarkup(ex, last) {
           </div>
         </div>
         <div style="flex: 1;">
-          <span style="font-size: 0.68rem; color: var(--muted); font-weight: 800;">RIGHT</span>
+          <span style="font-size: 0.68rem; color: var(--muted); font-weight: 800;">RIGHT (2ND)</span>
           <div class="input-with-stepper">
             <button type="button" class="mini-stepper-btn" onclick="stepInputValue('right', -1)">-1</button>
             <input id="right" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
@@ -1624,6 +1624,9 @@ function activeSetHeroMarkup(ex, last) {
           </div>
         </div>
       </div>
+      <p style="margin: 6px 0 0; font-size: 0.74rem; color: var(--accent); font-weight: 700; text-align: center;">
+        🔄 Start Left side first (~${Math.round((ex.workSeconds || 60) / 2)}s), then switch to Right side (~${Math.round((ex.workSeconds || 60) / 2)}s)
+      </p>
     `;
   } else {
     repsInputsHtml = `

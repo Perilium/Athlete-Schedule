@@ -43,7 +43,7 @@
    - *Cues*: Controlled descent, upper arms gently touch floor, drive upward.
 3. **Equipment Change**: Barbell ➔ 2 × 10 kg Dumbbells (90s, Ready Early allowed).
 4. **Superset A** (3 rounds, 60s rest after each round):
-   - **Bulgarian Split Squat**: 3 × 8–12 each leg (DBs, ~70s work total, unilateral leg)
+   - **Bulgarian Split Squat**: 3 × 8–12 each leg (DBs, ~70s work total — Left leg first ~35s, then Right leg ~35s)
    - *Transition*: 10s
    - **Arnold Press**: 3 × 8–12 (2 × 10 kg DB, ~40s work)
 5. **Superset B** (3 rounds, 50s rest after each round):
@@ -53,7 +53,7 @@
 6. **Abs Superset** (3 rounds, 40s rest after each round):
    - **Weighted Crunch**: 3 × 10–15 (DB, ~35s work)
    - *Transition*: 8s–10s
-   - **Dead Bug**: 2 × 8–12 each side (Bodyweight, ~45s work, unilateral side)
+   - **Dead Bug**: 2 × 8–12 each side (Bodyweight, ~45s work — Left side first, then Right side)
 
 ---
 
@@ -85,19 +85,19 @@
    - *Cues*: Push hips backward, keep bar close, neutral spine, stop if lower back pain.
 4. **Equipment Change**: Barbell ➔ 2 × 10 kg Dumbbells (90s, Ready Early allowed).
 5. **Superset A** (3 rounds, 60s rest after each round):
-   - **Lateral Lunge**: 3 × 8–12 each side (DB, ~65s work, unilateral side)
+   - **Lateral Lunge**: 3 × 8–12 each side (DB, ~65s work — Left side first, then Right side)
    - *Transition*: 10s
-   - **Single-Leg Calf Raise**: 3 × 12–20 each side (DB + step, ~50s work, unilateral side)
+   - **Single-Leg Calf Raise**: 3 × 12–20 each side (DB + step, ~50s work — Left leg first ~25s, then Right leg ~25s)
 6. **Suitcase Carry** (10 kg DB)
-   - 3 × 30–60 sec each side | Default: 45s Left / 45s Right (90s total work) | Rest: 60s
-   - *Cues*: Carry one-sided, stay tall, resist leaning and twisting, switch sides.
+   - 3 × 30–60 sec each side | Default: 45s Left (1st) / 45s Right (2nd) (90s total work) | Rest: 60s
+   - *Cues*: Carry one-sided, stay tall, resist leaning and twisting, switch sides at halfway beep.
 
 ---
 
 ### FRIDAY: Upper Hypertrophy + Abs + Rotation (~35–40 min)
 *(No barbell conversion required — Dumbbells & Bodyweight only)*
 1. **Superset A** (3 rounds, 60s rest):
-   - **Single-Arm DB Row**: 3 × 10–15 each arm (10 kg DB, 60s work total, unilateral arm)
+   - **Single-Arm DB Row**: 3 × 10–15 each arm (10 kg DB, 60s work total — Left arm first ~30s, then Right arm ~30s)
    - *Transition*: 10s
    - **Push-Ups**: 3 × 10–20 (Bodyweight, ~40s work)
 2. **Superset B** (3 rounds, 50s rest):
@@ -109,7 +109,7 @@
    - *Transition*: 10s
    - **Reverse Crunch**: 3 × 10–15 (Bodyweight, ~35s work)
 4. **Superset D** (3 rounds, 45s rest):
-   - **DB Woodchopper**: 3 × 8–12 each side (10 kg DB, ~55s work, unilateral side)
+   - **DB Woodchopper**: 3 × 8–12 each side (10 kg DB, ~55s work — Left side first, then Right side)
    - *Transition*: 10s
    - **Front Plank**: 2 × 30–60 sec (Bodyweight, 45s default work)
    - *(Zero side planks)*
