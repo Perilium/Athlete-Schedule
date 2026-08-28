@@ -1582,6 +1582,8 @@ function activeSetHeroMarkup(ex, last) {
   const isTimeTracking = ex.id === "suitcase-carry";
   const defaultWt = getExerciseDefaultWeight(ex.equipment);
   const isUnilateral = !!ex.unilateral;
+  const step = currentStep();
+  const isSuperset = step && step.type === "superset";
 
   const todayRecord = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === s);
   const prevCompletedSet = state.sessionRecords.filter((r) => r.exerciseId === ex.id && r.set < s).pop();
@@ -1604,6 +1606,18 @@ function activeSetHeroMarkup(ex, last) {
     } else if (lastRecord.reps !== undefined) {
       lastSummary = isTimeTracking ? `${wtPrefix}${lastRecord.reps}s` : `${wtPrefix}${lastRecord.reps} reps`;
     }
+  }
+
+  let supersetBannerHtml = "";
+  if (isSuperset) {
+    const exParts = (step.parts || []).filter((p) => p.type === "exercise");
+    const currentExNum = exParts.findIndex((p) => p.id === ex.id) + 1;
+    supersetBannerHtml = `
+      <div class="superset-hero-target-banner">
+        <div class="superset-banner-badge">⚡ ${step.name.toUpperCase()} · MOVEMENT ${currentExNum} OF ${exParts.length}</div>
+        <div class="superset-banner-title">👉 LOGGING REPS FOR: <span style="color: var(--accent);">${ex.name.toUpperCase()}</span></div>
+      </div>
+    `;
   }
 
   let repsInputsHtml = "";
@@ -1644,10 +1658,13 @@ function activeSetHeroMarkup(ex, last) {
     `;
   }
 
+  const setBadgeLabel = isSuperset ? `ROUND ${state.roundIndex || 1} OF ${step.rounds || 3}` : `SET ${s} OF ${ex.sets}`;
+
   return `
     <div class="active-set-hero-card">
+      ${supersetBannerHtml}
       <div class="active-set-header">
-        <span class="active-set-badge">SET ${s} OF ${ex.sets}</span>
+        <span class="active-set-badge">${setBadgeLabel}</span>
         <span class="active-set-target">Target: <strong>${progressiveTarget} reps</strong></span>
       </div>
       
@@ -1674,6 +1691,45 @@ function activeSetHeroMarkup(ex, last) {
 }
 
 function expandableSetsMarkup(ex, last) {
+  const step = currentStep();
+  const isSuperset = step && step.type === "superset";
+
+  if (isSuperset) {
+    const exParts = (step.parts || []).filter((p) => p.type === "exercise");
+    const totalFinished = state.sessionRecords.filter((r) => exParts.some((p) => p.id === r.exerciseId)).length;
+    const totalRequired = (step.rounds || 3) * exParts.length;
+
+    const tablesHtml = exParts.map((part, idx) => {
+      const partLast = getLastExercise(part.id);
+      const isCurrentActivePart = part.id === ex.id;
+      return `
+        <div class="superset-drawer-part ${isCurrentActivePart ? "active-part-group" : ""}">
+          <div class="superset-part-title-bar">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="part-idx-badge">Movement ${idx + 1}/${exParts.length}</span>
+              <strong style="color:${isCurrentActivePart ? 'var(--accent)' : 'var(--ink)'}; font-size:0.9rem;">${part.name}</strong>
+              ${isCurrentActivePart ? '<span class="active-pulse-dot" title="Currently on screen">● ACTIVE</span>' : ''}
+            </div>
+            <span style="font-size:0.75rem; color:var(--muted);">${part.equipment} · Target: ${part.target}</span>
+          </div>
+          ${setsTableMarkup(part, partLast)}
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <details class="workout-drawer" open>
+        <summary class="drawer-summary">
+          <span class="drawer-title">📊 ${step.name} All Movements Log (${totalFinished}/${totalRequired} finished)</span>
+          <span class="drawer-arrow">▾</span>
+        </summary>
+        <div class="drawer-content" style="display: flex; flex-direction: column; gap: 12px;">
+          ${tablesHtml}
+        </div>
+      </details>
+    `;
+  }
+
   const completedCount = state.sessionRecords.filter((r) => r.exerciseId === ex.id).length;
   const summaryText = completedCount > 0
     ? `📊 All Sets & Retroactive Log (${completedCount}/${ex.sets} finished)`
