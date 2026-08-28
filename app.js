@@ -1123,11 +1123,12 @@ function startCurrentStepAuto() {
 }
 
 function currentWorkout() {
-  return WORKOUTS[state.selectedDay];
+  return getWorkout(state.selectedDay || state.focusedDay || "monday");
 }
 
 function currentStep() {
-  return currentWorkout().steps[state.stepIndex];
+  const w = currentWorkout();
+  return w && w.steps ? w.steps[state.stepIndex] : null;
 }
 
 function currentPlayable() {
@@ -1298,7 +1299,11 @@ function statusMarkup(extra = "") {
   if (step.type === "exercise") {
     setDetail = `Ex ${state.stepIndex + 1}/${totalSteps} · Set ${state.setIndex} of ${step.sets}`;
   } else if (step.type === "superset") {
-    setDetail = `Superset ${state.stepIndex + 1}/${totalSteps} · Round ${state.roundIndex} of ${step.rounds}`;
+    const part = currentPlayable();
+    const exParts = (step.parts || []).filter((p) => p.type === "exercise");
+    const currentExNum = exParts.findIndex((p) => p.id === part?.id) + 1;
+    const movementLabel = currentExNum > 0 ? ` · Movement ${currentExNum}/${exParts.length}` : "";
+    setDetail = `${step.name} · Round ${state.roundIndex} of ${step.rounds}${movementLabel}`;
   } else if (step.type === "intervals") {
     setDetail = `VO2 Intervals · Round ${state.roundIndex} of ${step.rounds}`;
   }
@@ -1742,7 +1747,9 @@ function renderSession() {
 
 function renderExercise(ex, supersetLabel) {
   const last = getLastExercise(ex.id);
-  const restTime = ex.restSeconds || store.settings.defaultRest;
+  const step = currentStep();
+  const isSuperset = step && step.type === "superset";
+  const restTime = isSuperset ? (step.restSeconds || store.settings.supersetRest || 60) : (ex.restSeconds || store.settings.defaultRest || 45);
   const isResting = state.phase === "rest";
 
   let timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets}`;
@@ -1751,7 +1758,14 @@ function renderExercise(ex, supersetLabel) {
     const nextName = nextStepObj ? nextStepObj.name : "Next Exercise";
     timerLabel = `REST BETWEEN EXERCISES · NEXT: ${nextName.toUpperCase()}`;
   } else if (isResting) {
-    timerLabel = `REST · AFTER SET ${Math.max(1, state.setIndex - 1)} OF ${ex.sets}`;
+    if (isSuperset) {
+      timerLabel = `REST · AFTER ROUND ${Math.max(1, state.roundIndex - 1)} OF ${step.rounds}`;
+    } else {
+      timerLabel = `REST · AFTER SET ${Math.max(1, state.setIndex - 1)} OF ${ex.sets}`;
+    }
+  } else if (isSuperset) {
+    const isFinalRound = state.roundIndex === step.rounds;
+    timerLabel = `WORK · ROUND ${state.roundIndex} OF ${step.rounds}${isFinalRound ? " (FINAL ROUND 🔥)" : ""}`;
   } else if (state.setIndex === ex.sets) {
     timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets} (FINAL 🔥)`;
   }
@@ -1759,10 +1773,32 @@ function renderExercise(ex, supersetLabel) {
   const phaseClass = isResting ? "phase-rest" : "phase-work";
   const displaySeconds = isResting ? (state.remaining || restTime) : (state.remaining || ex.workSeconds || 45);
 
+  let completeBtnText = `✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)`;
+  if (isSuperset) {
+    const nextPart = step.parts[state.supersetPartIndex + 1];
+    if (nextPart) {
+      const nextTargetName = nextPart.type === "transition" ? (step.parts[state.supersetPartIndex + 2]?.name || "Next Movement") : nextPart.name;
+      completeBtnText = `✓ Log ${ex.name} (Round ${state.roundIndex}) ➔ ${nextTargetName}`;
+    } else {
+      const isFinalRound = state.roundIndex >= step.rounds;
+      if (isFinalRound) {
+        completeBtnText = `✓ Complete ${ex.name} (Final Round ${state.roundIndex}) ➔ Finish ${step.name} 🏆`;
+      } else {
+        completeBtnText = `✓ Complete ${ex.name} (Round ${state.roundIndex}) & Rest (${restTime}s)`;
+      }
+    }
+  }
+
+  let skipBtnText = state.restingBetweenSteps
+    ? "Ready for Next Exercise ➔"
+    : (isSuperset
+      ? `Skip Rest & Start Round ${state.roundIndex} (${ex.name}) ➔`
+      : `Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔`);
+
   const actionButtonsHtml = `
     <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
-      ${!isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="complete-set" type="button">✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)</button>` : ""}
-      ${isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">${state.restingBetweenSteps ? "Ready for Next Exercise ➔" : `Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔`}</button>` : ""}
+      ${!isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="complete-set" type="button">${completeBtnText}</button>` : ""}
+      ${isResting ? `<button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">${skipBtnText}</button>` : ""}
       <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
       <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
     </div>
@@ -1836,14 +1872,57 @@ function renderExercise(ex, supersetLabel) {
 }
 
 function renderSuperset(step) {
+  if (state.restingBetweenSteps) {
+    const nextStepObj = currentWorkout().steps[state.stepIndex + 1];
+    const nextName = nextStepObj ? nextStepObj.name : "Next Exercise";
+    const restTime = step.restSeconds || store.settings.supersetRest || 60;
+    const actionButtonsHtml = `
+      <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
+        <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Ready for Next Exercise (${nextName}) ➔</button>
+        <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
+        <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
+      </div>
+    `;
+
+    const currentLayout = state.layoutMode || (window.innerWidth >= 860 ? "split" : "stacked");
+    const isFocus = currentLayout === "focus" || state.setsMinimized;
+    const gridClass = isFocus ? "layout-focus" : (currentLayout === "split" ? "layout-split" : "layout-stacked");
+
+    els.sessionPanel.innerHTML = `
+      ${statusMarkup(`<span class="badge badge-easy">${step.name} Complete 🏆</span>`)}
+      <div class="session-layout-grid ${gridClass}">
+        <div class="session-left-col">
+          <h2 class="exercise-name">${step.name} Complete!</h2>
+          <p class="equipment">Take a breath before <strong>${nextName}</strong></p>
+          ${activeTimerMarkup(`REST BEFORE ${nextName.toUpperCase()}`, state.remaining || restTime, "phase-rest")}
+          <div class="desktop-actions">${actionButtonsHtml}</div>
+        </div>
+        <div class="session-right-col">
+          <div class="mobile-actions">${actionButtonsHtml}</div>
+          ${upNextMarkup()}
+        </div>
+      </div>
+    `;
+    bindSessionButtons(step);
+    return;
+  }
+
   state.setIndex = state.roundIndex || 1;
   const part = currentPlayable();
-  if (!part) return;
+  if (!part) {
+    state.supersetPartIndex = 0;
+    renderSuperset(step);
+    return;
+  }
   if (part.type === "transition") {
     renderTransition(step, part);
     return;
   }
-  renderExercise(part, `${step.name} · Round ${state.roundIndex}/${step.rounds}`);
+
+  const exParts = (step.parts || []).filter((p) => p.type === "exercise");
+  const currentExNum = exParts.findIndex((p) => p.id === part.id) + 1;
+  const badgeLabel = `${step.name} · Round ${state.roundIndex}/${step.rounds} (Movement ${currentExNum}/${exParts.length})`;
+  renderExercise(part, badgeLabel);
 }
 
 function renderTransition(step, part) {
