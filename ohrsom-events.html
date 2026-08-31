@@ -1143,7 +1143,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-install" onclick="showDownloadModal()">
+        <button class="btn btn-install" onclick="handleDownloadAppClick()">
           📲 Download App
         </button>
         <button class="btn btn-notify" onclick="openRemindersCenterModal()" title="View reminder schedule & notification logs">
@@ -2223,12 +2223,38 @@
       }
     }
 
-    function showDownloadModal() { document.getElementById("downloadModal").classList.add("active"); }
+    function handleDownloadAppClick() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            showInAppNotification("App Installed! 📲", "Ohrsom Hub is now added to your home screen with its dedicated icon.");
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        showDownloadModal();
+      }
+    }
+
+    function showDownloadModal() { 
+      const nativeSec = document.getElementById("nativeInstallPromptSection");
+      if (nativeSec) nativeSec.style.display = deferredPrompt ? "block" : "none";
+      document.getElementById("downloadModal").classList.add("active"); 
+    }
     function closeDownloadModal() { document.getElementById("downloadModal").classList.remove("active"); }
     function triggerNativeInstall() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => { deferredPrompt = null; closeDownloadModal(); });
+        deferredPrompt.userChoice.then((choiceResult) => { 
+          if (choiceResult.outcome === 'accepted') {
+            showInAppNotification("App Installed! 📲", "Ohrsom Hub added to your home screen.");
+          }
+          deferredPrompt = null; 
+          closeDownloadModal(); 
+        });
+      } else {
+        alert("To install on iPhone / iPad:\n1. Tap the Share button (⎋) at the bottom.\n2. Tap 'Add to Home Screen' (➕).");
       }
     }
 
