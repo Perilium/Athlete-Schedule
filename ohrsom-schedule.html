@@ -57,6 +57,68 @@
       width: 100%;
     }
 
+    /* ── Floating In-App Push Notification Banner (Custom Pop-up, No browser alert) ── */
+    .inapp-notification-banner {
+      position: fixed;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 460px;
+      background: rgba(15, 25, 35, 0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 15px rgba(245, 158, 11, 0.2);
+      padding: 12px 14px;
+      z-index: 9999;
+      transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .inapp-notification-banner.active {
+      top: 14px;
+    }
+
+    .notif-banner-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .notif-banner-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .notif-banner-title {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .notif-banner-body {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .notif-banner-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      justify-content: flex-end;
+    }
+
     /* ── Header ── */
     .header {
       background: rgba(15, 25, 35, 0.95);
@@ -236,7 +298,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* ── Two-Row Filter System (Never blocks horizontal scrolling) ── */
+    /* ── Two-Row Filter System ── */
     .filter-system-wrap {
       display: flex;
       flex-direction: column;
@@ -360,11 +422,10 @@
       cursor: pointer;
       transition: all 0.15s ease;
       position: relative;
-      min-width: 0; /* CRITICAL: prevents grid blowouts */
+      min-width: 0;
       overflow: hidden;
     }
 
-    /* Expanded Big View Mode */
     .calendar-grid-card.is-expanded .cal-day-cell {
       min-height: 140px;
       padding: 6px 5px;
@@ -998,7 +1059,6 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-    /* ── Snooze Menu ── */
     .snooze-quick-btn {
       background: rgba(245, 158, 11, 0.12);
       border: 1px solid rgba(245, 158, 11, 0.4);
@@ -1031,7 +1091,6 @@
       .view-seg-btn { flex: 1; text-align: center; padding: 6px 3px; font-size: 0.72rem; }
       .form-row { grid-template-columns: 1fr; }
 
-      /* Mobile 7-Column Grid Perfect Fit */
       .cal-weekdays { font-size: 0.65rem; padding: 6px 0; }
       .cal-day-cell { min-height: 66px; padding: 2px 2px; gap: 2px; }
       .day-number-row { font-size: 0.7rem; }
@@ -1055,6 +1114,21 @@
   </style>
 </head>
 <body>
+
+  <!-- ══ FLOATING IN-APP PUSH NOTIFICATION POP-UP BANNER ══ -->
+  <div class="inapp-notification-banner" id="inAppNotificationBanner">
+    <div class="notif-banner-top">
+      <span class="notif-banner-badge" id="notifBannerBadge">🌿 Ohrsom Yom Tov Alert</span>
+      <button class="modal-close-btn" style="width:24px;height:24px;font-size:0.75rem;" onclick="dismissInAppNotification()">✕</button>
+    </div>
+    <div class="notif-banner-title" id="notifBannerTitle">Event Title Here</div>
+    <div class="notif-banner-body" id="notifBannerBody">Details and reminder information here...</div>
+    <div class="notif-banner-actions">
+      <button class="btn btn-secondary" style="padding:4px 8px;font-size:0.72rem;" id="notifBannerViewBtn">👁️ View</button>
+      <button class="snooze-quick-btn" id="notifBannerSnoozeBtn">⏰ +1h</button>
+      <button class="btn btn-secondary" style="padding:4px 8px;font-size:0.72rem;" onclick="dismissInAppNotification()">Dismiss</button>
+    </div>
+  </div>
 
   <!-- ══ HEADER ══ -->
   <header class="header">
@@ -1108,9 +1182,8 @@
       </div>
     </div>
 
-    <!-- ── Two-Row Filter System (Never blocks horizontal category scrolling) ── -->
+    <!-- ── Two-Row Filter System ── -->
     <div class="filter-system-wrap">
-      <!-- Row 1: People / Family filter + My Items -->
       <div class="filter-row-top">
         <select class="person-filter-select" id="personFilterSelect" onchange="handlePersonFilterChange(this.value)">
           <option value="all">👥 All People & Families</option>
@@ -1125,7 +1198,6 @@
         </div>
       </div>
 
-      <!-- Row 2: Categories Horizontal Scroll Ribbon -->
       <div class="filter-row-categories" id="dynamicCategoryFilterChips">
         <!-- Rendered dynamically -->
       </div>
@@ -1203,10 +1275,26 @@
           <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🔔</div>
           <div>
             <h2 style="font-size: 1.15rem; font-weight: 800;">Reminders & Activity Log</h2>
-            <p style="font-size: 0.75rem; color: var(--gold);">Push notifications, snooze & history log</p>
+            <p style="font-size: 0.75rem; color: var(--gold);">Push notifications, test alerts & history log</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeRemindersCenterModal()">✕</button>
+      </div>
+
+      <!-- Interactive Test Specific Reminder Section -->
+      <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
+        <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase; margin-bottom: 6px;">
+          🔔 Test a Specific Reminder Alert:
+        </h4>
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label for="testReminderEventSelect" style="font-size: 0.72rem;">Choose Event to Preview:</label>
+          <select id="testReminderEventSelect" class="form-control" style="font-size: 0.82rem; padding: 7px 10px;">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="triggerSelectedEventNotification()" style="width: 100%; justify-content: center; padding: 9px; font-size: 0.85rem;">
+          🔔 Trigger Pop-up Reminder Alert Now
+        </button>
       </div>
 
       <div style="margin-bottom: 14px;">
@@ -1238,7 +1326,7 @@
         <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 6px;" id="upcomingRemindersListHeader">
           📋 Upcoming Scheduled Reminders:
         </h4>
-        <div id="upcomingRemindersList" style="max-height: 140px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 8px;">
+        <div id="upcomingRemindersList" style="max-height: 130px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 8px;">
           <!-- Rendered dynamically -->
         </div>
       </div>
@@ -1258,11 +1346,8 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="btn btn-primary" onclick="triggerTestPushNotification()" style="flex: 1; justify-content: center; padding: 9px;">
-          🔔 Send Test Push Notification Now
-        </button>
-        <button class="btn btn-secondary" onclick="closeRemindersCenterModal()">
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary" onclick="closeRemindersCenterModal()" style="width: 100%; justify-content: center;">
           Close
         </button>
       </div>
@@ -1374,7 +1459,7 @@
     </div>
   </div>
 
-  <!-- ══ DOWNLOAD APP MODAL (Dedicated Ohrsom PWA) ══ -->
+  <!-- ══ DOWNLOAD APP MODAL ══ -->
   <div class="modal-overlay" id="downloadModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -1797,6 +1882,7 @@
     let currentModalAssignees = [];
     let currentModalAudiences = [];
     let deferredPrompt = null;
+    let notifDismissTimer = null;
     const ADMIN_PASSCODE = "ohrsom613";
 
     // ══ INIT ══
@@ -1870,6 +1956,52 @@
       saveReminderLogs();
     }
 
+    // ══ IN-APP FLOATING PUSH NOTIFICATION POP-UP ══
+    function showInAppNotification(title, body, eventId = null, badge = "🌿 Ohrsom Yom Tov Alert") {
+      const banner = document.getElementById("inAppNotificationBanner");
+      const badgeEl = document.getElementById("notifBannerBadge");
+      const titleEl = document.getElementById("notifBannerTitle");
+      const bodyEl = document.getElementById("notifBannerBody");
+      const viewBtn = document.getElementById("notifBannerViewBtn");
+      const snoozeBtn = document.getElementById("notifBannerSnoozeBtn");
+
+      if (!banner) return;
+      if (notifDismissTimer) clearTimeout(notifDismissTimer);
+
+      badgeEl.textContent = badge;
+      titleEl.textContent = title;
+      bodyEl.textContent = body;
+
+      if (eventId) {
+        viewBtn.style.display = "inline-flex";
+        viewBtn.onclick = () => {
+          dismissInAppNotification();
+          const e = events.find(ev => ev.id === eventId);
+          if (e) openDayOverviewModal(e.date, e.id);
+        };
+        snoozeBtn.style.display = "inline-flex";
+        snoozeBtn.onclick = () => {
+          snoozeReminderForEvent(eventId, 1);
+          dismissInAppNotification();
+        };
+      } else {
+        viewBtn.style.display = "none";
+        snoozeBtn.style.display = "none";
+      }
+
+      banner.classList.add("active");
+
+      // Auto dismiss after 7 seconds
+      notifDismissTimer = setTimeout(() => {
+        dismissInAppNotification();
+      }, 7000);
+    }
+
+    function dismissInAppNotification() {
+      const banner = document.getElementById("inAppNotificationBanner");
+      if (banner) banner.classList.remove("active");
+    }
+
     function getCategory(typeId) {
       return categories.find(c => c.id === typeId) || { id: typeId, name: typeId, icon: "📌", color: "#94a3b8" };
     }
@@ -1928,7 +2060,7 @@
         }
       }
 
-      // Row 2: Categories Scroll Ribbon (Full width, smooth scrolling)
+      // Row 2: Categories Scroll Ribbon
       let html = `<button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">✨ All</button>`;
       categories.forEach(cat => {
         if (!isAdmin && cat.isInternal) return;
@@ -1976,6 +2108,7 @@
           renderFilterChips();
           renderCategorySelectOptions();
           render();
+          showInAppNotification("Logged Out", "You are now viewing the public schedule.");
         }
       } else {
         openAdminLoginModal();
@@ -2014,6 +2147,7 @@
         renderFilterChips();
         renderCategorySelectOptions();
         render();
+        showInAppNotification(`Welcome, ${adminFirstName}!`, "Admin tools unlocked. You can now edit events and mark items complete.");
       } else {
         err.style.display = "block";
         document.getElementById("adminPasscodeInput").select();
@@ -2053,15 +2187,29 @@
       }
     }
 
-    // ══ REMINDERS & NOTIFICATION CENTER + LOGS ══
+    // ══ REMINDERS & NOTIFICATION CENTER + INTERACTIVE TESTER ══
     function openRemindersCenterModal() {
       const listContainer = document.getElementById("upcomingRemindersList");
       const headerEl = document.getElementById("upcomingRemindersListHeader");
+      const testSelect = document.getElementById("testReminderEventSelect");
       const fullName = `${adminFirstName} ${adminSurname}`.trim();
 
       headerEl.textContent = fullName 
         ? `📋 Scheduled Reminders for ${fullName}:` 
         : `📋 Scheduled Yom Tov Reminders:`;
+
+      // Populate interactive Test Dropdown with specific events
+      if (testSelect) {
+        testSelect.innerHTML = events.map(e => {
+          const cat = getCategory(e.type);
+          const d = new Date(e.date + "T00:00:00");
+          const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          let rule = "1h before";
+          if (e.type === "meal") rule = "2h before";
+          if (e.type === "action") rule = "8:30 AM Morning-Of";
+          return `<option value="${e.id}">${cat.icon || '•'} ${e.title} (${rule} · ${dateStr})</option>`;
+        }).join("");
+      }
 
       const myEvents = events.filter(e => {
         if (fullName) return isEventAssignedToUser(e) || e.type === "shul" || e.type === "event";
@@ -2135,6 +2283,7 @@
         reminderLogs = [];
         saveReminderLogs();
         renderReminderLogsUI();
+        showInAppNotification("Logs Cleared", "Reminder activity history has been reset.");
       }
     }
 
@@ -2143,39 +2292,39 @@
       if (!e) return;
       const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Team Member";
       logReminderActivity(fullName, e.title, `Snoozed +${hours}h`);
-      alert(`⏰ Reminder for "${e.title}" snoozed by ${hours} hour(s)! Logged in Reminders Center.`);
+      showInAppNotification(`⏰ Snoozed for +${hours}h`, `Reminder for "${e.title}" will fire in ${hours} hour.`, e.id, "⏱️ Reminder Snooze");
       renderReminderLogsUI();
     }
 
-    function triggerTestPushNotification() {
-      if (!("Notification" in window)) {
-        alert("Notifications are not supported in this browser.");
-        return;
-      }
-      const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Team Member";
+    // ── Interactive Test Alert for Selected Event ──
+    function triggerSelectedEventNotification() {
+      const select = document.getElementById("testReminderEventSelect");
+      const eventId = select ? select.value : null;
+      const e = events.find(ev => ev.id === eventId) || events[0];
 
-      if (Notification.permission === "granted") {
-        new Notification(`🌿 Ohrsom Yom Tov Reminder`, {
-          body: `Reminder for ${fullName}: Next service is Rosh Hashanah Mincha (6:00 PM) at Ohrsom Shul!`,
-          icon: "icons/icon.svg"
-        });
-        logReminderActivity(fullName, "Test Push Notification Triggered", "Sent (Success)");
-        alert(`🔔 Push Notification fired! Look for the popup banner.`);
-        renderReminderLogsUI();
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(p => {
-          if (p === "granted") {
-            new Notification(`🌿 Ohrsom Reminders Enabled`, {
-              body: `Push alerts are now active for ${fullName}!`,
-              icon: "icons/icon.svg"
-            });
-            logReminderActivity(fullName, "Push Permission Granted", "Activated");
-            alert(`🔔 Notifications enabled and test sent!`);
-            renderReminderLogsUI();
-          }
-        });
-      } else {
-        alert("Notifications are currently blocked in browser settings. Please allow notifications for this site.");
+      if (!e) return;
+
+      const cat = getCategory(e.type);
+      const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Team Member";
+      const assignees = (e.assignees && e.assignees.length) ? e.assignees.join(", ") : fullName;
+      
+      const title = `${cat.icon || '🔔'} ${e.title}`;
+      const body = `⏱️ ${e.time || 'Upcoming'} · 🏡 ${e.host || 'Ohrsom'} · Assigned: ${assignees}`;
+
+      // 1. Fire Custom Floating In-App Pop-up
+      showInAppNotification(title, body, e.id, "🔔 Push Alert Preview");
+
+      // 2. Log in activity history
+      logReminderActivity(fullName, e.title, "🔔 Sent (Test Alert)");
+      renderReminderLogsUI();
+
+      // 3. Optional native Web Notification if permission granted
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification(`🌿 Ohrsom: ${e.title}`, { body, icon: "icons/icon.svg" });
+        } catch (err) {}
+      } else if ("Notification" in window && Notification.permission !== "denied") {
+        Notification.requestPermission();
       }
     }
 
@@ -2184,7 +2333,6 @@
       if (!isAdmin) return;
       const e = events.find(ev => ev.id === id);
       if (!e) return;
-      // Restrict complete to admin action items only
       if (e.type !== "action" && !e.isInternal) return;
 
       e.isCompleted = !e.isCompleted;
@@ -2193,6 +2341,7 @@
       saveEvents();
       render();
       openDayOverviewModal(selectedDateKey);
+      showInAppNotification(e.isCompleted ? "Task Marked Complete! ✅" : "Task Reopened ↩️", e.title, e.id);
     }
 
     // ══ DAY / EVENT OVERVIEW POP-UP MODAL ══
@@ -2304,6 +2453,7 @@
         saveEvents();
         render();
         openDayOverviewModal(selectedDateKey);
+        showInAppNotification("Event Deleted", "The event was removed from the schedule.");
       }
     }
 
@@ -2316,6 +2466,7 @@
       saveEvents();
       render();
       openDayOverviewModal(selectedDateKey);
+      showInAppNotification("Event Duplicated 📋", `"${orig.title}" has been copied.`);
     }
 
     function openMoveEventModalForId(id) {
@@ -2807,6 +2958,7 @@
       closeModal();
       selectedDateKey = ev.date;
       render();
+      showInAppNotification("Event Saved 💾", `"${ev.title}" has been saved.`);
     }
 
     function deleteCurrentEvent() {
@@ -2816,6 +2968,7 @@
         saveEvents();
         closeModal();
         render();
+        showInAppNotification("Event Deleted", "The event has been removed.");
       }
     }
 
@@ -2827,8 +2980,8 @@
       events.push(copy);
       saveEvents();
       closeModal();
-      alert(`📋 "${orig.title}" has been copied!`);
       render();
+      showInAppNotification("Event Duplicated 📋", `"${orig.title}" has been copied.`);
     }
 
     function openMoveEventModal() {
@@ -2853,6 +3006,7 @@
       closeModal();
       selectedDateKey = newDate;
       render();
+      showInAppNotification("Event Moved 📅", `"${e.title}" moved to ${newDate}.`);
     }
 
     function shareWhatsApp() {
