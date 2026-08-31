@@ -27,13 +27,13 @@
       --muted: #94a3b8;
       --accent: #2dd4bf;
       --gold: #f59e0b;
-      --gold-bg: rgba(245, 158, 11, 0.12);
+      --gold-bg: rgba(245, 158, 11, 0.14);
       --purple: #a855f7;
-      --purple-bg: rgba(168, 85, 247, 0.12);
+      --purple-bg: rgba(168, 85, 247, 0.14);
       --blue: #38bdf8;
-      --blue-bg: rgba(56, 189, 248, 0.12);
+      --blue-bg: rgba(56, 189, 248, 0.14);
       --green: #22c55e;
-      --green-bg: rgba(34, 197, 94, 0.12);
+      --green-bg: rgba(34, 197, 94, 0.14);
       --rose: #f43f5e;
       --radius: 14px;
       --radius-sm: 8px;
@@ -53,23 +53,23 @@
       color: var(--ink);
       min-height: 100vh;
       line-height: 1.5;
-      padding-bottom: 60px;
+      padding-bottom: 80px;
     }
 
     /* Top App Bar */
     .header {
-      background: rgba(15, 25, 35, 0.85);
+      background: rgba(15, 25, 35, 0.9);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--surface-border);
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 12px 18px;
+      padding: 12px 20px;
     }
 
     .header-inner {
-      max-width: 1080px;
+      max-width: 1280px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
@@ -79,29 +79,29 @@
     .brand-wrap {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .brand-logo {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       background: linear-gradient(135deg, var(--gold), #d97706);
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
     }
 
     .brand-title {
-      font-size: 1.15rem;
+      font-size: 1.2rem;
       font-weight: 800;
       letter-spacing: -0.02em;
     }
 
     .brand-subtitle {
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       color: var(--gold);
       font-weight: 700;
       text-transform: uppercase;
@@ -118,7 +118,7 @@
       font-family: inherit;
       font-size: 0.82rem;
       font-weight: 700;
-      padding: 8px 13px;
+      padding: 8px 14px;
       border-radius: var(--radius-sm);
       border: none;
       cursor: pointer;
@@ -176,9 +176,9 @@
 
     /* Main Container */
     .container {
-      max-width: 1080px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 16px 18px;
+      padding: 20px;
     }
 
     /* Yom Tov Banner */
@@ -264,7 +264,7 @@
       font-family: inherit;
       font-size: 0.8rem;
       font-weight: 700;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -281,7 +281,7 @@
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding-bottom: 6px;
+      padding-bottom: 8px;
       margin-bottom: 18px;
       scrollbar-width: none;
     }
@@ -292,9 +292,9 @@
       border: 1px solid var(--surface-border);
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      padding: 6px 14px;
+      padding: 7px 16px;
       border-radius: 999px;
       cursor: pointer;
       white-space: nowrap;
@@ -317,18 +317,23 @@
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
-      overflow: hidden;
+      overflow-x: auto;
       box-shadow: var(--shadow);
+      margin-bottom: 30px;
+    }
+
+    .calendar-table-wrapper {
+      min-width: 900px;
     }
 
     .cal-weekdays {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
       background: var(--surface-elevated);
       border-bottom: 1px solid var(--surface-border);
       text-align: center;
-      padding: 10px 0;
-      font-size: 0.75rem;
+      padding: 12px 0;
+      font-size: 0.78rem;
       font-weight: 800;
       color: var(--muted);
       letter-spacing: 0.05em;
@@ -336,20 +341,21 @@
 
     .cal-days-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
       gap: 1px;
       background: var(--surface-border);
     }
 
     .cal-day-cell {
       background: var(--surface);
-      min-height: 105px;
-      padding: 8px;
+      min-height: 120px;
+      padding: 10px 8px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       cursor: pointer;
       transition: background 0.15s ease;
+      overflow: visible;
     }
 
     .cal-day-cell:hover {
@@ -370,34 +376,36 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 800;
+      gap: 4px;
     }
 
     .jewish-holiday-pill {
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       font-weight: 800;
       color: var(--gold);
       background: var(--gold-bg);
-      padding: 1px 5px;
+      padding: 2px 6px;
       border-radius: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      line-height: 1.2;
+      text-align: right;
     }
 
     .cal-event-pill {
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       font-weight: 700;
-      padding: 3px 6px;
-      border-radius: 5px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      padding: 4px 6px;
+      border-radius: 6px;
+      white-space: normal;
+      line-height: 1.25;
+      word-break: break-word;
       display: flex;
-      align-items: center;
-      gap: 4px;
+      align-items: flex-start;
+      gap: 5px;
       border-left: 3px solid;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     }
 
     .type-meal {
@@ -429,6 +437,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      margin-bottom: 30px;
     }
 
     .event-card {
@@ -684,11 +693,7 @@
       gap: 10px;
     }
 
-    @media (max-width: 640px) {
-      .cal-weekdays span { font-size: 0.65rem; }
-      .cal-day-cell { min-height: 85px; padding: 4px; }
-      .day-number-row { font-size: 0.75rem; }
-      .cal-event-pill { font-size: 0.65rem; padding: 2px 4px; }
+    @media (max-width: 768px) {
       .header-inner { flex-wrap: wrap; gap: 10px; }
       .month-title { font-size: 1.1rem; min-width: auto; }
       .form-row { grid-template-columns: 1fr; }
@@ -712,7 +717,7 @@
           📲 Download App
         </button>
         <button id="adminToggleBtn" class="btn btn-admin-locked" onclick="handleAdminToggle()">
-          🔒 Staff Login
+          🔒 Admin Login
         </button>
         <button id="addEventHeaderBtn" class="btn btn-primary" onclick="openAddEventModal()" style="display: none;">
           ➕ Add Event
@@ -760,23 +765,25 @@
       <button class="filter-chip" onclick="setFilter('meal')">🍽️ Meals & Hosting</button>
       <button class="filter-chip" onclick="setFilter('event')">🎉 Events & Parties</button>
       <button class="filter-chip" onclick="setFilter('learning')">🎓 Accelerator & Classes</button>
-      <button class="filter-chip" id="actionChipBtn" onclick="setFilter('action')" style="display: none;">📋 Staff Action Items</button>
+      <button class="filter-chip" id="actionChipBtn" onclick="setFilter('action')" style="display: none;">📋 Admin Action Items</button>
     </div>
 
     <!-- Calendar View Container -->
     <div id="calendarViewContainer">
       <div class="calendar-grid-card">
-        <div class="cal-weekdays">
-          <span>SUN</span>
-          <span>MON</span>
-          <span>TUE</span>
-          <span>WED</span>
-          <span>THU</span>
-          <span>FRI</span>
-          <span>SAT</span>
-        </div>
-        <div class="cal-days-grid" id="calendarDaysGrid">
-          <!-- Rendered dynamically -->
+        <div class="calendar-table-wrapper">
+          <div class="cal-weekdays">
+            <span>SUN</span>
+            <span>MON</span>
+            <span>TUE</span>
+            <span>WED</span>
+            <span>THU</span>
+            <span>FRI</span>
+            <span>SAT</span>
+          </div>
+          <div class="cal-days-grid" id="calendarDaysGrid">
+            <!-- Rendered dynamically -->
+          </div>
         </div>
       </div>
     </div>
@@ -885,7 +892,7 @@
               <option value="meal">🍽️ Meal / Hosting</option>
               <option value="event">🎉 Event & Social</option>
               <option value="learning">🎓 Accelerator / Learning</option>
-              <option value="action">📋 Staff Action Item / Poster</option>
+              <option value="action">📋 Admin Action Item / Poster</option>
             </select>
           </div>
           <div class="form-group">
@@ -905,14 +912,14 @@
         </div>
 
         <div class="form-group" id="internalNotesFieldWrap">
-          <label for="eventInternalNotesInput" style="color: #fda4af;">🔒 Internal Team Notes (Private)</label>
+          <label for="eventInternalNotesInput" style="color: #fda4af;">🔒 Admin Notes (Private)</label>
           <textarea id="eventInternalNotesInput" class="form-control" rows="2" placeholder="Private internal checklist, prep assignments, reminders..." style="border-color: rgba(244, 63, 94, 0.4);"></textarea>
         </div>
 
         <div class="form-group" id="internalToggleWrap">
           <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--ink);">
             <input type="checkbox" id="eventIsInternalInput" style="width: 16px; height: 16px;">
-            <span>Mark as <strong>Internal Team Only</strong> (Hidden from public calendar)</span>
+            <span>Mark as <strong>Admin Team Only</strong> (Hidden from public calendar)</span>
           </label>
         </div>
 
@@ -983,7 +990,7 @@
         time: "Morning",
         type: "action",
         host: "Ohrsom Comms",
-        audience: "Internal Admin",
+        audience: "Admin Team",
         notes: "Post Fridays promo & send WhatsApp coordination message to Ryan.",
         internalNotes: "Ryan handling campus graphic release and RSVP tracking spreadsheet.",
         isInternal: true
@@ -1085,10 +1092,10 @@
       "2026-09-25": "Erev Sukkot 🌿",
       "2026-09-26": "Sukkot Day 1",
       "2026-09-27": "Sukkot Day 2",
-      "2026-09-28": "Chol Hamoed Sukkot",
-      "2026-09-29": "Chol Hamoed Sukkot",
-      "2026-09-30": "Chol Hamoed Sukkot",
-      "2026-10-01": "Chol Hamoed Sukkot",
+      "2026-09-28": "Chol Hamoed",
+      "2026-09-29": "Chol Hamoed",
+      "2026-09-30": "Chol Hamoed",
+      "2026-10-01": "Chol Hamoed",
       "2026-10-02": "Hoshana Rabbah",
       "2026-10-03": "Shemini Atzeret 🕯️",
       "2026-10-04": "Simchat Torah 📜"
@@ -1104,8 +1111,8 @@
     let isAdmin = false;
     let deferredPrompt = null;
 
-    // Simple Admin Passcode
-    const ADMIN_PASSCODE = "ohrsom";
+    // Admin Passcode Updated to ohrsom613
+    const ADMIN_PASSCODE = "ohrsom613";
 
     function init() {
       // Check admin status from local storage
@@ -1168,18 +1175,18 @@
     // Admin Toggle & Authentication
     function handleAdminToggle() {
       if (isAdmin) {
-        if (confirm("Log out of Staff Admin Mode?")) {
+        if (confirm("Log out of Admin Mode?")) {
           isAdmin = false;
           localStorage.removeItem("ohrsom_is_admin");
           updateAdminUI();
           render();
         }
       } else {
-        const pin = prompt("Enter Staff Passcode to unlock admin controls & internal notes:\n(Default passcode: ohrsom)");
+        const pin = prompt("Enter Admin Passcode to unlock admin controls & internal notes:\n(Passcode: ohrsom613)");
         if (pin && pin.toLowerCase().trim() === ADMIN_PASSCODE) {
           isAdmin = true;
           localStorage.setItem("ohrsom_is_admin", "true");
-          alert("🔓 Staff Admin Mode Unlocked! Your browser will remember this login.");
+          alert("🔓 Admin Mode Unlocked! Your browser will remember this login.");
           updateAdminUI();
           render();
         } else if (pin !== null) {
@@ -1196,13 +1203,13 @@
 
       if (isAdmin) {
         toggleBtn.className = "btn btn-admin-unlocked";
-        toggleBtn.innerHTML = "🔓 Staff Admin (Log Out)";
+        toggleBtn.innerHTML = "🔓 Admin (Log Out)";
         addBtn.style.display = "inline-flex";
         exportBtn.style.display = "inline-flex";
         actionChip.style.display = "inline-flex";
       } else {
         toggleBtn.className = "btn btn-admin-locked";
-        toggleBtn.innerHTML = "🔒 Staff Login";
+        toggleBtn.innerHTML = "🔒 Admin Login";
         addBtn.style.display = "none";
         exportBtn.style.display = "none";
         actionChip.style.display = "none";
@@ -1309,7 +1316,7 @@
           <div class="cal-event-pill type-${e.type}" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})">
             <span>${getTypeIcon(e.type)}</span>
             <span style="font-weight:700;">${e.title}</span>
-            ${e.isInternal ? '<span style="font-size:0.6rem; color:var(--rose);">🔒</span>' : ''}
+            ${e.isInternal ? '<span style="font-size:0.65rem; color:var(--rose);">🔒</span>' : ''}
           </div>
         `).join("");
 
@@ -1362,7 +1369,7 @@
           : `<button class="btn btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openViewEventModal('${e.id}')">ℹ️ Info</button>`;
 
         const internalNoteHtml = (isAdmin && e.internalNotes)
-          ? `<div class="internal-note-box">🔒 <strong>Staff Note:</strong> ${e.internalNotes}</div>`
+          ? `<div class="internal-note-box">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>`
           : "";
 
         return `
@@ -1377,7 +1384,7 @@
                 <h3>
                   ${e.title}
                   ${holText ? `<span class="jewish-holiday-pill">✡️ ${holText}</span>` : ""}
-                  ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Internal Only</span>` : ""}
+                  ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin Only</span>` : ""}
                 </h3>
                 <div class="event-tags-row">
                   <span class="event-tag type-${e.type}">${getTypeLabel(e.type)}</span>
@@ -1411,7 +1418,7 @@
       if (type === "meal") return "🍽️ Meal / Hosting";
       if (type === "event") return "🎉 Event";
       if (type === "learning") return "🎓 Accelerator / Class";
-      if (type === "action") return "📋 Staff Action Item";
+      if (type === "action") return "📋 Admin Action Item";
       return "Event";
     }
 
