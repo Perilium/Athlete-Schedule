@@ -276,14 +276,34 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* Dynamic Filter Chips */
+    /* Dynamic Filter Bar */
+    .filter-bar-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .person-filter-select {
+      background: var(--surface-elevated);
+      color: var(--accent);
+      border: 1px solid var(--surface-border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+
     .filter-scroll {
       display: flex;
       gap: 6px;
       overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 16px;
       scrollbar-width: none;
+      flex: 1;
     }
     .filter-scroll::-webkit-scrollbar { display: none; }
 
@@ -294,7 +314,7 @@
       font-family: inherit;
       font-size: 0.78rem;
       font-weight: 700;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 999px;
       cursor: pointer;
       white-space: nowrap;
@@ -316,13 +336,25 @@
       color: var(--accent);
     }
 
+    .filter-chip-myitems {
+      border-color: var(--gold);
+      color: #fde047;
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .filter-chip-myitems.active {
+      background: var(--gold);
+      color: #070d14;
+      font-weight: 800;
+    }
+
     /* Desktop Calendar Grid View */
     .calendar-grid-card {
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       overflow: hidden;
       width: 100%;
     }
@@ -353,13 +385,13 @@
 
     .cal-day-cell {
       background: var(--surface);
-      min-height: 110px;
-      padding: 8px 6px;
+      min-height: 105px;
+      padding: 6px 5px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
       cursor: pointer;
-      transition: background 0.15s ease;
+      transition: all 0.15s ease;
       position: relative;
     }
 
@@ -368,7 +400,7 @@
     }
 
     .cal-day-cell.other-month {
-      opacity: 0.3;
+      opacity: 0.25;
       background: #081017;
     }
 
@@ -404,20 +436,20 @@
     }
 
     .cal-event-pill {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      padding: 4px 6px;
-      border-radius: 6px;
-      white-space: normal;
-      line-height: 1.2;
-      word-break: break-word;
+      padding: 3px 5px;
+      border-radius: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 4px;
       border-left: 3px solid;
     }
 
-    /* Mobile Selected Day Events Drawer / Panel */
+    /* Mobile Selected Day Agenda Section (appears below grid) */
     .mobile-day-agenda-section {
       margin-top: 14px;
       background: var(--surface);
@@ -742,7 +774,7 @@
       gap: 10px;
     }
 
-    /* Mobile-Specific Responsive Calendar Styles (Clean 100% Fit, Zero Horizontal Scroll) */
+    /* Mobile-Specific Responsive Calendar Styles (Google Calendar Style Fit) */
     @media (max-width: 768px) {
       .header-inner { flex-wrap: wrap; gap: 8px; }
       .brand-title { font-size: 1rem; }
@@ -756,59 +788,33 @@
 
       .form-row { grid-template-columns: 1fr; }
 
-      /* Mobile Month Grid: Fits 100% Width */
+      /* Mobile Month Grid: Legible Height and Clean Event Badges */
       .cal-weekdays {
-        font-size: 0.68rem;
-        padding: 6px 0;
+        font-size: 0.7rem;
+        padding: 8px 0;
       }
 
       .cal-day-cell {
-        min-height: 54px;
-        padding: 4px 2px;
-        gap: 2px;
-        align-items: center;
-        justify-content: flex-start;
+        min-height: 80px; /* Room for day number and event pills */
+        padding: 4px 3px;
+        gap: 3px;
       }
 
       .day-number-row {
-        width: 100%;
-        justify-content: center;
-        position: relative;
-      }
-
-      .day-num-text {
-        font-size: 0.78rem;
-        font-weight: 800;
+        font-size: 0.76rem;
       }
 
       .jewish-holiday-pill {
-        display: none; /* Hide long text on tiny mobile month cell, show icon or dot */
+        font-size: 0.6rem;
+        padding: 1px 3px;
+        line-height: 1.1;
       }
 
-      .jewish-holiday-mobile-dot {
-        position: absolute;
-        top: -2px;
-        right: 2px;
-        font-size: 0.65rem;
-      }
-
-      /* On mobile, events in the grid cell render as colorful dots / counts */
       .cal-event-pill {
-        display: none; /* Pill hidden in compact mobile grid */
-      }
-
-      .mobile-event-dots-wrap {
-        display: flex;
-        gap: 3px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 2px;
-      }
-
-      .mobile-event-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
+        font-size: 0.65rem;
+        padding: 2px 3px;
+        border-radius: 4px;
+        line-height: 1.15;
       }
     }
   </style>
@@ -874,9 +880,21 @@
       </div>
     </div>
 
-    <!-- Dynamic Category Filter Chips -->
-    <div class="filter-scroll" id="dynamicFilterChips">
-      <!-- Rendered dynamically -->
+    <!-- Filter Bar: My Items + Person Dropdown + Category Chips -->
+    <div class="filter-bar-container">
+      <select class="person-filter-select" id="personFilterSelect" onchange="handlePersonFilterChange(this.value)">
+        <option value="all">👥 All People</option>
+        <option value="Bini Bati">👤 Bini Bati</option>
+        <option value="Rabbi Cannon">👤 Rabbi Cannon</option>
+        <option value="Ryan">👤 Ryan</option>
+        <option value="Salmons">👤 Salmons</option>
+        <option value="Cannons">👤 Cannons</option>
+        <option value="Perelmans">👤 Perelmans</option>
+      </select>
+
+      <div class="filter-scroll" id="dynamicFilterChips">
+        <!-- Rendered dynamically -->
+      </div>
     </div>
 
     <!-- Calendar View Container -->
@@ -884,13 +902,13 @@
       <div class="calendar-grid-card">
         <div class="calendar-table-wrapper">
           <div class="cal-weekdays">
-            <span>S</span>
-            <span>M</span>
-            <span>T</span>
-            <span>W</span>
-            <span>T</span>
-            <span>F</span>
-            <span>S</span>
+            <span>SUN</span>
+            <span>MON</span>
+            <span>TUE</span>
+            <span>WED</span>
+            <span>THU</span>
+            <span>FRI</span>
+            <span>SAT</span>
           </div>
           <div class="cal-days-grid" id="calendarDaysGrid">
             <!-- Rendered dynamically -->
@@ -898,12 +916,12 @@
         </div>
       </div>
 
-      <!-- Mobile Selected Day Agenda Section (appears below compact grid) -->
+      <!-- Mobile/Desktop Selected Day Agenda Section -->
       <div class="mobile-day-agenda-section" id="mobileDayAgendaSection">
         <div class="mobile-agenda-header">
           <div class="mobile-agenda-title" id="mobileAgendaDateTitle">Events for Selected Date</div>
           <button class="btn btn-primary" id="mobileAddDayEventBtn" onclick="openAddEventModal(selectedDateKey)" style="display: none; padding: 4px 8px; font-size: 0.75rem;">
-            ➕ Add
+            ➕ Add Event
           </button>
         </div>
         <div id="mobileDayEventsList">
@@ -985,24 +1003,38 @@
     </div>
   </div>
 
-  <!-- Admin Login Modal -->
+  <!-- Admin Login Modal with Name + Passcode -->
   <div class="modal-overlay" id="adminLoginModal">
-    <div class="modal-card" style="max-width: 380px;">
+    <div class="modal-card" style="max-width: 400px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">🔒</div>
           <div>
             <h2 style="font-size: 1.1rem; font-weight: 800;">Admin Login</h2>
-            <p style="font-size: 0.75rem; color: var(--muted);">Enter passcode to unlock admin controls</p>
+            <p style="font-size: 0.75rem; color: var(--muted);">Log in to assign tasks & get personalized reminders</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeAdminLoginModal()">✕</button>
       </div>
 
       <form onsubmit="submitAdminLogin(event)">
-        <div class="form-group" style="margin-top: 8px;">
+        <div class="form-group" style="margin-top: 6px;">
+          <label for="adminUserNameInput">Your Name</label>
+          <input type="text" id="adminUserNameInput" class="form-control" placeholder="e.g. Bini Bati, Rabbi Cannon, Ryan" required list="teamMembersDatalist" style="font-size: 0.95rem;">
+          <datalist id="teamMembersDatalist">
+            <option value="Bini Bati">
+            <option value="Rabbi Cannon">
+            <option value="Ryan">
+            <option value="Avi Perelman">
+            <option value="Salmons">
+            <option value="Cannons">
+            <option value="Perelmans">
+          </datalist>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
           <label for="adminPasscodeInput">Passcode</label>
-          <input type="password" id="adminPasscodeInput" class="form-control" placeholder="••••••••" required autocomplete="current-password" autofocus style="font-size: 1.1rem; letter-spacing: 0.1em;">
+          <input type="password" id="adminPasscodeInput" class="form-control" placeholder="••••••••" required autocomplete="current-password" style="font-size: 1.1rem; letter-spacing: 0.1em;">
           <p id="adminLoginError" style="color: var(--rose); font-size: 0.78rem; margin-top: 6px; display: none; font-weight: 700;">❌ Incorrect passcode. Please try again.</p>
         </div>
 
@@ -1115,7 +1147,7 @@
           </div>
           <div class="form-group">
             <label for="eventAssigneeInput">Assignee / Lead</label>
-            <input type="text" id="eventAssigneeInput" class="form-control" placeholder="e.g. Bini, Rabbi Cannon, Ryan">
+            <input type="text" id="eventAssigneeInput" class="form-control" placeholder="e.g. Bini Bati, Rabbi Cannon, Ryan" list="teamMembersDatalist">
           </div>
         </div>
 
@@ -1187,7 +1219,7 @@
         date: "2026-09-05",
         time: "12:30 PM",
         type: "meal",
-        assignee: "Bini Bati",
+        assignee: "Salmons",
         host: "Salmons",
         audience: "Students & Community",
         notes: "Shabbat Lunch hosting at Salmons.",
@@ -1198,7 +1230,7 @@
         id: "evt-2",
         title: "Rosh Hashanah Night 1 Dinner",
         date: "2026-09-11",
-        time: "7:15 PM Dinner",
+        time: "7:15 PM",
         type: "meal",
         assignee: "Salamons",
         host: "Salamons (Friday Night)",
@@ -1341,12 +1373,12 @@
 
     // Jewish Holidays Map (Hebrew Calendar 5787 / 2026)
     const JEWISH_HOLIDAYS_2026 = {
-      "2026-09-11": "Erev Rosh Hashanah 🕯️",
-      "2026-09-12": "Rosh Hashanah I 📯",
-      "2026-09-13": "Rosh Hashanah II 📯",
-      "2026-09-14": "Fast of Gedaliah",
-      "2026-09-20": "Erev Yom Kippur 🕯️",
-      "2026-09-21": "Yom Kippur (Fast) ✡️",
+      "2026-09-11": "Erev RH 🕯️",
+      "2026-09-12": "RH I 📯",
+      "2026-09-13": "RH II 📯",
+      "2026-09-14": "Fast Gedaliah",
+      "2026-09-20": "Erev YK 🕯️",
+      "2026-09-21": "Yom Kippur ✡️",
       "2026-09-25": "Erev Sukkot 🌿",
       "2026-09-26": "Sukkot Day 1",
       "2026-09-27": "Sukkot Day 2",
@@ -1365,10 +1397,12 @@
     let currentYear = 2026;
     let currentMonth = 8; // 8 = September (0-indexed)
     let currentFilter = "all";
+    let currentPersonFilter = "all";
     let currentView = "calendar";
-    let selectedDateKey = "2026-09-11"; // Default active date on mobile
+    let selectedDateKey = "2026-09-11";
     let activeEditingId = null;
     let isAdmin = false;
+    let adminUserName = "";
     let deferredPrompt = null;
     let selectedCategoryColor = "#f59e0b";
 
@@ -1377,6 +1411,7 @@
 
     function init() {
       isAdmin = localStorage.getItem("ohrsom_is_admin") === "true";
+      adminUserName = localStorage.getItem("ohrsom_admin_user") || "";
 
       // Load Categories
       const storedCategories = localStorage.getItem("ohrsom_categories_data");
@@ -1464,32 +1499,48 @@
         return;
       }
 
+      const userName = adminUserName || "Team Member";
+
       if (Notification.permission === "granted") {
-        new Notification("🌿 Ohrsom Reminders Active!", {
-          body: "You will receive reminders for upcoming Yom Tov services, meals, and tasks.",
+        const myAssigned = events.filter(e => e.assignee && e.assignee.toLowerCase() === adminUserName.toLowerCase());
+        const msg = myAssigned.length > 0 
+          ? `You have ${myAssigned.length} assigned Yom Tov events/tasks upcoming!`
+          : "You will receive reminders for upcoming Yom Tov services, meals, and tasks.";
+
+        new Notification(`🌿 Ohrsom Reminders Active for ${userName}`, {
+          body: msg,
           icon: "icons/icon.svg"
         });
-        alert("🔔 Reminders are enabled on this device!");
+        alert(`🔔 Reminders are enabled for ${userName}!`);
       } else if (Notification.permission !== "denied") {
         Notification.requestPermission().then((permission) => {
           if (permission === "granted") {
-            new Notification("🌿 Ohrsom Reminders Activated!", {
-              body: "You will receive upcoming Yom Tov schedule reminders.",
+            new Notification(`🌿 Ohrsom Reminders Activated for ${userName}`, {
+              body: "You will receive reminders for your assigned events and Yom Tov schedule.",
               icon: "icons/icon.svg"
             });
           }
         });
       } else {
-        alert("Notifications are currently blocked in your browser settings. Please allow notifications in your site settings to receive reminders.");
+        alert("Notifications are currently blocked in browser settings. Please allow notifications to receive reminders.");
       }
     }
 
-    // Dynamic Filter Chips Render
+    // Dynamic Filter Chips Render (Includes 'My Items')
     function renderFilterChips() {
       const container = document.getElementById("dynamicFilterChips");
       if (!container) return;
 
       let html = `<button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">✨ All Items</button>`;
+
+      if (adminUserName) {
+        const isMyActive = currentFilter === 'my_items';
+        html += `
+          <button class="filter-chip filter-chip-myitems ${isMyActive ? 'active' : ''}" onclick="setFilter('my_items')">
+            ⭐ My Items (${adminUserName})
+          </button>
+        `;
+      }
 
       categories.forEach(cat => {
         if (!isAdmin && cat.isInternal) return;
@@ -1504,6 +1555,11 @@
       });
 
       container.innerHTML = html;
+    }
+
+    function handlePersonFilterChange(person) {
+      currentPersonFilter = person;
+      render();
     }
 
     // Dynamic Category Select Options in Modal
@@ -1639,12 +1695,14 @@
       };
     }
 
-    // Admin Toggle & Custom Modal Authentication
+    // Admin Toggle & Custom Modal Authentication with Name
     function handleAdminToggle() {
       if (isAdmin) {
-        if (confirm("Log out of Admin Mode?")) {
+        if (confirm(`Log out ${adminUserName ? `(${adminUserName})` : ''} from Admin Mode?`)) {
           isAdmin = false;
+          adminUserName = "";
           localStorage.removeItem("ohrsom_is_admin");
+          localStorage.removeItem("ohrsom_admin_user");
           updateAdminUI();
           renderFilterChips();
           renderCategorySelectOptions();
@@ -1656,12 +1714,14 @@
     }
 
     function openAdminLoginModal() {
-      const input = document.getElementById("adminPasscodeInput");
+      const nameInput = document.getElementById("adminUserNameInput");
+      const passInput = document.getElementById("adminPasscodeInput");
       const err = document.getElementById("adminLoginError");
-      if (input) input.value = "";
+      if (nameInput) nameInput.value = adminUserName || "";
+      if (passInput) passInput.value = "";
       if (err) err.style.display = "none";
       document.getElementById("adminLoginModal").classList.add("active");
-      setTimeout(() => { if (input) input.focus(); }, 150);
+      setTimeout(() => { if (nameInput && !nameInput.value) nameInput.focus(); else if (passInput) passInput.focus(); }, 150);
     }
 
     function closeAdminLoginModal() {
@@ -1670,23 +1730,36 @@
 
     function submitAdminLogin(e) {
       e.preventDefault();
-      const input = document.getElementById("adminPasscodeInput");
+      const nameInput = document.getElementById("adminUserNameInput");
+      const passInput = document.getElementById("adminPasscodeInput");
       const err = document.getElementById("adminLoginError");
-      const pin = input ? input.value.trim() : "";
+
+      const name = nameInput ? nameInput.value.trim() : "";
+      const pin = passInput ? passInput.value.trim() : "";
 
       if (pin === ADMIN_PASSCODE) {
         isAdmin = true;
+        adminUserName = name || "Admin";
         localStorage.setItem("ohrsom_is_admin", "true");
+        localStorage.setItem("ohrsom_admin_user", adminUserName);
         closeAdminLoginModal();
         updateAdminUI();
         renderFilterChips();
         renderCategorySelectOptions();
         render();
+
+        // Welcome notification
+        if (Notification.permission === "granted") {
+          new Notification(`👋 Welcome ${adminUserName}!`, {
+            body: "Admin mode active. Tap 'Reminders' to manage your Yom Tov alerts.",
+            icon: "icons/icon.svg"
+          });
+        }
       } else {
         if (err) err.style.display = "block";
-        if (input) {
-          input.select();
-          input.focus();
+        if (passInput) {
+          passInput.select();
+          passInput.focus();
         }
       }
     }
@@ -1699,7 +1772,7 @@
 
       if (isAdmin) {
         toggleBtn.className = "btn btn-admin-unlocked";
-        toggleBtn.innerHTML = "🔓 Admin (Log Out)";
+        toggleBtn.innerHTML = `🔓 ${adminUserName || 'Admin'} (Log Out)`;
         addBtn.style.display = "inline-flex";
         settingsBtn.style.display = "inline-flex";
         if (mobileAddBtn) mobileAddBtn.style.display = "inline-flex";
@@ -1709,7 +1782,7 @@
         addBtn.style.display = "none";
         settingsBtn.style.display = "none";
         if (mobileAddBtn) mobileAddBtn.style.display = "none";
-        if (currentFilter === "action") currentFilter = "all";
+        if (currentFilter === "action" || currentFilter === "my_items") currentFilter = "all";
       }
     }
 
@@ -1767,7 +1840,19 @@
     function getFilteredEvents() {
       return events.filter((ev) => {
         if (!isAdmin && ev.isInternal) return false;
+
+        // Person filter check
+        if (currentPersonFilter !== "all") {
+          if (!ev.assignee || !ev.assignee.toLowerCase().includes(currentPersonFilter.toLowerCase())) {
+            return false;
+          }
+        }
+
+        // Category / My items filter check
         if (currentFilter === "all") return true;
+        if (currentFilter === "my_items") {
+          return ev.assignee && adminUserName && ev.assignee.toLowerCase().includes(adminUserName.toLowerCase());
+        }
         return ev.type === currentFilter;
       });
     }
@@ -1781,7 +1866,7 @@
       renderMobileDayAgenda(dateKey);
     }
 
-    // Render Mobile Day Agenda below compact month grid
+    // Render Mobile Day Agenda below month grid
     function renderMobileDayAgenda(dateKey) {
       const container = document.getElementById("mobileDayEventsList");
       const titleEl = document.getElementById("mobileAgendaDateTitle");
@@ -1808,7 +1893,7 @@
       container.innerHTML = dayEvents.map(e => renderEventCardHtml(e)).join("");
     }
 
-    // Render Calendar Grid (100% Mobile Clean & Responsive)
+    // Render Calendar Grid (Legible, Responsive Google Calendar Style)
     function renderCalendarGrid() {
       const grid = document.getElementById("calendarDaysGrid");
       grid.innerHTML = "";
@@ -1825,7 +1910,7 @@
         const d = daysInPrevMonth - i;
         const cell = document.createElement("div");
         cell.className = "cal-day-cell other-month";
-        cell.innerHTML = `<div class="day-number-row"><span class="day-num-text" style="color: var(--muted);">${d}</span></div>`;
+        cell.innerHTML = `<div class="day-number-row"><span style="color: var(--muted);">${d}</span></div>`;
         grid.appendChild(cell);
       }
 
@@ -1843,42 +1928,31 @@
 
         const jewishHol = JEWISH_HOLIDAYS_2026[dateKey];
         const holBadge = jewishHol ? `<span class="jewish-holiday-pill" title="${jewishHol}">${jewishHol}</span>` : "";
-        const holDot = jewishHol ? `<span class="jewish-holiday-mobile-dot" title="${jewishHol}">✡️</span>` : "";
 
         const dayEvents = filtered.filter((e) => e.date === dateKey);
 
-        // Desktop Event Pills
-        const desktopEventsHtml = dayEvents.map((e) => {
+        // Render clean, legible event snippets inside the cell
+        const eventsHtml = dayEvents.slice(0, 3).map((e) => {
           const cat = getCategory(e.type);
-          const iconSpan = cat.icon ? `<span>${cat.icon}</span>` : '';
+          const shortTitle = e.title.length > 18 ? e.title.slice(0, 16) + "…" : e.title;
           return `
             <div class="cal-event-pill" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})" style="background: ${cat.color}22; color: ${cat.color}; border-left-color: ${cat.color};">
-              ${iconSpan}
-              <span style="font-weight:700;">${e.title}</span>
-              ${e.assignee ? `<span style="font-size:0.65rem; color:var(--blue); font-weight:800;">[${e.assignee}]</span>` : ''}
-              ${e.isInternal ? '<span style="font-size:0.65rem; color:var(--rose);">🔒</span>' : ''}
+              <span>${cat.icon || '•'}</span>
+              <span>${shortTitle}</span>
             </div>
           `;
         }).join("");
 
-        // Mobile Event Dots
-        const mobileDotsHtml = `
-          <div class="mobile-event-dots-wrap">
-            ${dayEvents.slice(0, 4).map(e => {
-              const cat = getCategory(e.type);
-              return `<span class="mobile-event-dot" style="background: ${cat.color};"></span>`;
-            }).join("")}
-          </div>
-        `;
+        const moreCount = dayEvents.length - 3;
+        const moreHtml = moreCount > 0 ? `<div style="font-size:0.6rem; color:var(--muted); font-weight:700; text-align:center;">+${moreCount} more</div>` : '';
 
         cell.innerHTML = `
           <div class="day-number-row">
-            <span class="day-num-text">${day}</span>
+            <span>${day}</span>
             ${holBadge}
-            ${holDot}
           </div>
-          ${desktopEventsHtml}
-          ${mobileDotsHtml}
+          ${eventsHtml}
+          ${moreHtml}
         `;
 
         cell.addEventListener("click", () => selectCalendarDay(dateKey));
@@ -1891,7 +1965,7 @@
       for (let i = 1; i <= nextDays; i++) {
         const cell = document.createElement("div");
         cell.className = "cal-day-cell other-month";
-        cell.innerHTML = `<div class="day-number-row"><span class="day-num-text" style="color: var(--muted);">${i}</span></div>`;
+        cell.innerHTML = `<div class="day-number-row"><span style="color: var(--muted);">${i}</span></div>`;
         grid.appendChild(cell);
       }
     }
@@ -1972,7 +2046,7 @@
       document.getElementById("eventDateInput").value = presetDate || selectedDateKey || new Date().toISOString().slice(0, 10);
       document.getElementById("eventTimeInput").value = "";
       document.getElementById("eventTypeInput").value = categories[0].id;
-      document.getElementById("eventAssigneeInput").value = "";
+      document.getElementById("eventAssigneeInput").value = adminUserName || "";
       document.getElementById("eventHostInput").value = "";
       document.getElementById("eventAudienceInput").value = "Students & Community";
       document.getElementById("eventNotesInput").value = "";
