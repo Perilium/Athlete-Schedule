@@ -112,6 +112,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -276,7 +277,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* Filter Chips */
+    /* Dynamic Filter Chips */
     .filter-scroll {
       display: flex;
       gap: 8px;
@@ -299,6 +300,9 @@
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .filter-chip:hover {
@@ -408,30 +412,6 @@
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     }
 
-    .type-meal {
-      background: rgba(34, 197, 94, 0.15);
-      color: #86efac;
-      border-color: #22c55e;
-    }
-
-    .type-event {
-      background: rgba(168, 85, 247, 0.15);
-      color: #d8b4fe;
-      border-color: #a855f7;
-    }
-
-    .type-learning {
-      background: rgba(56, 189, 248, 0.15);
-      color: #7dd3fc;
-      border-color: #38bdf8;
-    }
-
-    .type-action {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fde047;
-      border-color: #f59e0b;
-    }
-
     /* Timeline List View */
     .timeline-view {
       display: flex;
@@ -463,11 +443,6 @@
       bottom: 0;
       width: 4px;
     }
-
-    .event-card.card-meal::before { background: var(--green); }
-    .event-card.card-event::before { background: var(--purple); }
-    .event-card.card-learning::before { background: var(--blue); }
-    .event-card.card-action::before { background: var(--gold); }
 
     .event-card:hover {
       transform: translateY(-2px);
@@ -596,7 +571,7 @@
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 520px;
+      max-width: 540px;
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
@@ -628,6 +603,47 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    /* Category Settings List Items */
+    .category-manage-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+
+    .category-item-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .color-swatch-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s ease;
+    }
+
+    .color-swatch.active {
+      border-color: #fff;
+      transform: scale(1.15);
     }
 
     /* Install Instruction Steps */
@@ -716,6 +732,9 @@
         <button id="downloadAppBtn" class="btn btn-install" onclick="showDownloadModal()">
           📲 Download App
         </button>
+        <button id="settingsBtn" class="btn btn-secondary" onclick="openSettingsModal()" style="display: none;">
+          ⚙️ Settings & Categories
+        </button>
         <button id="adminToggleBtn" class="btn btn-admin-locked" onclick="handleAdminToggle()">
           🔒 Admin Login
         </button>
@@ -759,13 +778,9 @@
       </div>
     </div>
 
-    <!-- Filter Scroll Chips -->
-    <div class="filter-scroll">
-      <button class="filter-chip active" onclick="setFilter('all')">✨ All Items</button>
-      <button class="filter-chip" onclick="setFilter('meal')">🍽️ Meals & Hosting</button>
-      <button class="filter-chip" onclick="setFilter('event')">🎉 Events & Parties</button>
-      <button class="filter-chip" onclick="setFilter('learning')">🎓 Accelerator & Classes</button>
-      <button class="filter-chip" id="actionChipBtn" onclick="setFilter('action')" style="display: none;">📋 Admin Action Items</button>
+    <!-- Dynamic Category Filter Chips -->
+    <div class="filter-scroll" id="dynamicFilterChips">
+      <!-- Rendered dynamically -->
     </div>
 
     <!-- Calendar View Container -->
@@ -796,6 +811,70 @@
     </div>
 
   </main>
+
+  <!-- Category Management & Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">⚙️</div>
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Settings & Categories</h2>
+            <p style="font-size: 0.78rem; color: var(--muted);">Manage categories, add your own custom labels & colors</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 0.85rem; color: var(--accent); text-transform: uppercase; margin-bottom: 10px;">Current Categories:</h4>
+        <div id="settingsCategoryList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Add New Custom Category Form -->
+      <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 14px;">
+        <h4 style="font-size: 0.85rem; color: var(--gold); text-transform: uppercase; margin-bottom: 12px;">➕ Add Custom Category</h4>
+        <form onsubmit="saveNewCustomCategory(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newCategoryName">Category Name</label>
+              <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Youth / Teens, Volunteering" required>
+            </div>
+            <div class="form-group">
+              <label for="newCategoryIcon">Emoji Icon</label>
+              <input type="text" id="newCategoryIcon" class="form-control" placeholder="e.g. 🕍, 🎈, 🤝, 🏕️" required maxlength="4">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Color Theme</label>
+            <div class="color-swatch-picker" id="colorSwatchPicker">
+              <div class="color-swatch active" data-color="#f59e0b" style="background:#f59e0b;" onclick="selectCategoryColor('#f59e0b', this)"></div>
+              <div class="color-swatch" data-color="#22c55e" style="background:#22c55e;" onclick="selectCategoryColor('#22c55e', this)"></div>
+              <div class="color-swatch" data-color="#38bdf8" style="background:#38bdf8;" onclick="selectCategoryColor('#38bdf8', this)"></div>
+              <div class="color-swatch" data-color="#a855f7" style="background:#a855f7;" onclick="selectCategoryColor('#a855f7', this)"></div>
+              <div class="color-swatch" data-color="#f43f5e" style="background:#f43f5e;" onclick="selectCategoryColor('#f43f5e', this)"></div>
+              <div class="color-swatch" data-color="#2dd4bf" style="background:#2dd4bf;" onclick="selectCategoryColor('#2dd4bf', this)"></div>
+              <div class="color-swatch" data-color="#fb923c" style="background:#fb923c;" onclick="selectCategoryColor('#fb923c', this)"></div>
+              <div class="color-swatch" data-color="#ec4899" style="background:#ec4899;" onclick="selectCategoryColor('#ec4899', this)"></div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 6px;">
+            ➕ Add Category
+          </button>
+        </form>
+      </div>
+
+      <div style="margin-top: 18px; text-align: center;">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()" style="width: 100%; justify-content: center;">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Admin Login Modal -->
   <div class="modal-overlay" id="adminLoginModal">
@@ -921,16 +1000,13 @@
         <div class="form-row">
           <div class="form-group">
             <label for="eventTypeInput">Category</label>
-            <select id="eventTypeInput" class="form-control">
-              <option value="meal">🍽️ Meal / Hosting</option>
-              <option value="event">🎉 Event & Social</option>
-              <option value="learning">🎓 Accelerator / Learning</option>
-              <option value="action">📋 Admin Action Item / Poster</option>
+            <select id="eventTypeInput" class="form-control" onchange="handleCategorySelectChange(this)">
+              <!-- Dynamic Categories Options -->
             </select>
           </div>
           <div class="form-group">
             <label for="eventHostInput">Host / Venue</label>
-            <input type="text" id="eventHostInput" class="form-control" placeholder="e.g. Perelmans / Ohrsom Sukkah">
+            <input type="text" id="eventHostInput" class="form-control" placeholder="e.g. Perelmans / Ohrsom Sukkah / Shul">
           </div>
         </div>
 
@@ -966,8 +1042,29 @@
   </div>
 
   <script>
-    // Initial Pre-Populated Events from User's Schedule Specification
+    // Default Categories (including Shul / Davening)
+    const DEFAULT_CATEGORIES = [
+      { id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b", isSystem: true },
+      { id: "meal", name: "Meal / Hosting", icon: "🍽️", color: "#22c55e", isSystem: true },
+      { id: "event", name: "Event & Social", icon: "🎉", color: "#a855f7", isSystem: true },
+      { id: "learning", name: "Accelerator & Classes", icon: "🎓", color: "#38bdf8", isSystem: true },
+      { id: "action", name: "Admin Action Item", icon: "📋", color: "#f43f5e", isSystem: true, isInternal: true }
+    ];
+
+    // Initial Pre-Populated Events
     const DEFAULT_EVENTS = [
+      {
+        id: "evt-shul-rh",
+        title: "Rosh Hashanah Mincha & Mitzvahs",
+        date: "2026-09-11",
+        time: "6:00 PM",
+        type: "shul",
+        host: "Ohrsom Shul",
+        audience: "All Students & Community",
+        notes: "6:00 PM Mincha and Mitzvahs service kicking off Rosh Hashanah.",
+        internalNotes: "Prayer books and shofar ready.",
+        isInternal: false
+      },
       {
         id: "evt-1",
         title: "Salmons — Shabbat Lunch",
@@ -984,12 +1081,12 @@
         id: "evt-2",
         title: "Rosh Hashanah Night 1 Dinner",
         date: "2026-09-11",
-        time: "6:00 PM Mincha & Mitzvahs ➔ Dinner",
+        time: "7:15 PM Dinner",
         type: "meal",
         host: "Salamons (Friday Night)",
         audience: "Open to Students & Community",
-        notes: "6:00 PM Mincha and Mitzvahs. Rosh Hashanah 1st Night dinner at Salamons.",
-        internalNotes: "Ensure prayer books (Machzorim) and seating setup ready by 4 PM.",
+        notes: "Rosh Hashanah 1st Night dinner at Salamons following Shul services.",
+        internalNotes: "Ensure seating setup ready by 4 PM.",
         isInternal: false
       },
       {
@@ -1136,6 +1233,7 @@
 
     // State Management
     let events = [];
+    let categories = [];
     let currentYear = 2026;
     let currentMonth = 8; // 8 = September (0-indexed)
     let currentFilter = "all";
@@ -1143,14 +1241,33 @@
     let activeEditingId = null;
     let isAdmin = false;
     let deferredPrompt = null;
+    let selectedCategoryColor = "#f59e0b";
 
     // Admin Passcode
     const ADMIN_PASSCODE = "ohrsom613";
 
     function init() {
-      // Check admin status from local storage
       isAdmin = localStorage.getItem("ohrsom_is_admin") === "true";
 
+      // Load Categories
+      const storedCategories = localStorage.getItem("ohrsom_categories_data");
+      if (storedCategories) {
+        try {
+          categories = JSON.parse(storedCategories);
+          // Ensure shul category exists
+          if (!categories.some(c => c.id === "shul")) {
+            categories.unshift({ id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b", isSystem: true });
+            saveCategories();
+          }
+        } catch {
+          categories = [...DEFAULT_CATEGORIES];
+        }
+      } else {
+        categories = [...DEFAULT_CATEGORIES];
+        saveCategories();
+      }
+
+      // Load Events
       const stored = localStorage.getItem("ohrsom_events_data");
       if (stored) {
         try {
@@ -1162,9 +1279,20 @@
         events = [...DEFAULT_EVENTS];
         saveEvents();
       }
+
       setupPWA();
       updateAdminUI();
+      renderFilterChips();
+      renderCategorySelectOptions();
       render();
+    }
+
+    function saveCategories() {
+      localStorage.setItem("ohrsom_categories_data", JSON.stringify(categories));
+    }
+
+    function saveEvents() {
+      localStorage.setItem("ohrsom_events_data", JSON.stringify(events));
     }
 
     function setupPWA() {
@@ -1201,8 +1329,136 @@
       }
     }
 
-    function saveEvents() {
-      localStorage.setItem("ohrsom_events_data", JSON.stringify(events));
+    // Dynamic Filter Chips Render
+    function renderFilterChips() {
+      const container = document.getElementById("dynamicFilterChips");
+      if (!container) return;
+
+      let html = `<button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">✨ All Items</button>`;
+
+      categories.forEach(cat => {
+        if (!isAdmin && cat.isInternal) return;
+        const isActive = currentFilter === cat.id;
+        html += `
+          <button class="filter-chip ${isActive ? 'active' : ''}" onclick="setFilter('${cat.id}')">
+            <span>${cat.icon}</span>
+            <span>${cat.name}</span>
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Dynamic Category Select Options in Modal
+    function renderCategorySelectOptions() {
+      const select = document.getElementById("eventTypeInput");
+      if (!select) return;
+
+      let html = "";
+      categories.forEach(cat => {
+        html += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+      });
+      if (isAdmin) {
+        html += `<option value="__manage__">⚙️ + Manage / Add Categories...</option>`;
+      }
+      select.innerHTML = html;
+    }
+
+    function handleCategorySelectChange(select) {
+      if (select.value === "__manage__") {
+        select.value = categories[0].id;
+        openSettingsModal();
+      }
+    }
+
+    // Settings & Category Management Modal
+    function openSettingsModal() {
+      if (!isAdmin) return;
+      renderSettingsCategoryList();
+      document.getElementById("newCategoryName").value = "";
+      document.getElementById("newCategoryIcon").value = "";
+      document.getElementById("settingsModal").classList.add("active");
+    }
+
+    function closeSettingsModal() {
+      document.getElementById("settingsModal").classList.remove("active");
+    }
+
+    function renderSettingsCategoryList() {
+      const list = document.getElementById("settingsCategoryList");
+      if (!list) return;
+
+      list.innerHTML = categories.map(cat => `
+        <div class="category-manage-item">
+          <div class="category-item-badge" style="color: ${cat.color};">
+            <span style="font-size: 1.2rem;">${cat.icon}</span>
+            <span>${cat.name}</span>
+            ${cat.isInternal ? '<span style="font-size:0.7rem; color:var(--rose); background:rgba(244,63,94,0.15); padding:2px 6px; border-radius:4px;">Admin Only</span>' : ''}
+          </div>
+          <div>
+            ${!cat.isSystem ? `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:var(--rose);" onclick="deleteCustomCategory('${cat.id}')">🗑️ Remove</button>` : '<span style="font-size:0.75rem; color:var(--muted);">Default</span>'}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function selectCategoryColor(color, el) {
+      selectedCategoryColor = color;
+      document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
+      if (el) el.classList.add("active");
+    }
+
+    function saveNewCustomCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById("newCategoryName").value.trim();
+      const icon = document.getElementById("newCategoryIcon").value.trim() || "📌";
+
+      if (!name) return;
+
+      const id = "cat_" + name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      if (categories.some(c => c.id === id)) {
+        alert("A category with this name already exists.");
+        return;
+      }
+
+      categories.push({
+        id,
+        name,
+        icon,
+        color: selectedCategoryColor,
+        isSystem: false
+      });
+
+      saveCategories();
+      renderSettingsCategoryList();
+      renderFilterChips();
+      renderCategorySelectOptions();
+      render();
+
+      document.getElementById("newCategoryName").value = "";
+      document.getElementById("newCategoryIcon").value = "";
+    }
+
+    function deleteCustomCategory(id) {
+      if (confirm("Delete this category? Events using it will remain.")) {
+        categories = categories.filter(c => c.id !== id);
+        saveCategories();
+        renderSettingsCategoryList();
+        renderFilterChips();
+        renderCategorySelectOptions();
+        render();
+      }
+    }
+
+    // Category Lookup Helpers
+    function getCategory(typeId) {
+      return categories.find(c => c.id === typeId) || {
+        id: typeId,
+        name: typeId,
+        icon: "📌",
+        color: "#94a3b8"
+      };
     }
 
     // Admin Toggle & Custom Modal Authentication
@@ -1212,6 +1468,8 @@
           isAdmin = false;
           localStorage.removeItem("ohrsom_is_admin");
           updateAdminUI();
+          renderFilterChips();
+          renderCategorySelectOptions();
           render();
         }
       } else {
@@ -1243,6 +1501,8 @@
         localStorage.setItem("ohrsom_is_admin", "true");
         closeAdminLoginModal();
         updateAdminUI();
+        renderFilterChips();
+        renderCategorySelectOptions();
         render();
       } else {
         if (err) err.style.display = "block";
@@ -1257,20 +1517,20 @@
       const toggleBtn = document.getElementById("adminToggleBtn");
       const addBtn = document.getElementById("addEventHeaderBtn");
       const exportBtn = document.getElementById("exportHeaderBtn");
-      const actionChip = document.getElementById("actionChipBtn");
+      const settingsBtn = document.getElementById("settingsBtn");
 
       if (isAdmin) {
         toggleBtn.className = "btn btn-admin-unlocked";
         toggleBtn.innerHTML = "🔓 Admin (Log Out)";
         addBtn.style.display = "inline-flex";
         exportBtn.style.display = "inline-flex";
-        actionChip.style.display = "inline-flex";
+        settingsBtn.style.display = "inline-flex";
       } else {
         toggleBtn.className = "btn btn-admin-locked";
         toggleBtn.innerHTML = "🔒 Admin Login";
         addBtn.style.display = "none";
         exportBtn.style.display = "none";
-        actionChip.style.display = "none";
+        settingsBtn.style.display = "none";
         if (currentFilter === "action") currentFilter = "all";
       }
     }
@@ -1314,16 +1574,14 @@
 
       if (view === "hosting") {
         currentFilter = "meal";
-        document.querySelectorAll(".filter-chip").forEach((c, idx) => c.classList.toggle("active", idx === 1));
+        renderFilterChips();
       }
       render();
     }
 
     function setFilter(filter) {
       currentFilter = filter;
-      document.querySelectorAll(".filter-chip").forEach((btn) => {
-        btn.classList.toggle("active", btn.textContent.toLowerCase().includes(filter) || (filter === "all" && btn.textContent.includes("All")));
-      });
+      renderFilterChips();
       render();
     }
 
@@ -1370,13 +1628,16 @@
         const holBadge = jewishHol ? `<span class="jewish-holiday-pill" title="${jewishHol}">${jewishHol}</span>` : "";
 
         const dayEvents = filtered.filter((e) => e.date === dateKey);
-        const eventsHtml = dayEvents.map((e) => `
-          <div class="cal-event-pill type-${e.type}" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})">
-            <span>${getTypeIcon(e.type)}</span>
-            <span style="font-weight:700;">${e.title}</span>
-            ${e.isInternal ? '<span style="font-size:0.65rem; color:var(--rose);">🔒</span>' : ''}
-          </div>
-        `).join("");
+        const eventsHtml = dayEvents.map((e) => {
+          const cat = getCategory(e.type);
+          return `
+            <div class="cal-event-pill" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})" style="background: ${cat.color}22; color: ${cat.color}; border-left-color: ${cat.color};">
+              <span>${cat.icon}</span>
+              <span style="font-weight:700;">${e.title}</span>
+              ${e.isInternal ? '<span style="font-size:0.65rem; color:var(--rose);">🔒</span>' : ''}
+            </div>
+          `;
+        }).join("");
 
         cell.innerHTML = `
           <div class="day-number-row">
@@ -1416,6 +1677,7 @@
       }
 
       container.innerHTML = filtered.map((e) => {
+        const cat = getCategory(e.type);
         const d = new Date(e.date + "T00:00:00");
         const monthName = d.toLocaleDateString("en-US", { month: "short" });
         const dayNum = d.getDate();
@@ -1431,7 +1693,7 @@
           : "";
 
         return `
-          <div class="event-card card-${e.type}" onclick="${isAdmin ? `openEditEventModal('${e.id}')` : `openViewEventModal('${e.id}')`}">
+          <div class="event-card" style="border-left: 4px solid ${cat.color};" onclick="${isAdmin ? `openEditEventModal('${e.id}')` : `openViewEventModal('${e.id}')`}">
             <div class="event-card-left">
               <div class="event-date-block">
                 <div class="date-month">${monthName}</div>
@@ -1445,7 +1707,7 @@
                   ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin Only</span>` : ""}
                 </h3>
                 <div class="event-tags-row">
-                  <span class="event-tag type-${e.type}">${getTypeLabel(e.type)}</span>
+                  <span class="event-tag" style="background: ${cat.color}22; color: ${cat.color};">${cat.icon} ${cat.name}</span>
                   ${e.audience ? `<span class="event-tag" style="background: rgba(255,255,255,0.08); color: var(--ink);">👥 ${e.audience}</span>` : ""}
                 </div>
                 <div class="event-meta-info">
@@ -1464,22 +1726,6 @@
       }).join("");
     }
 
-    function getTypeIcon(type) {
-      if (type === "meal") return "🍽️";
-      if (type === "event") return "🎉";
-      if (type === "learning") return "🎓";
-      if (type === "action") return "📋";
-      return "📌";
-    }
-
-    function getTypeLabel(type) {
-      if (type === "meal") return "🍽️ Meal / Hosting";
-      if (type === "event") return "🎉 Event";
-      if (type === "learning") return "🎓 Accelerator / Class";
-      if (type === "action") return "📋 Admin Action Item";
-      return "Event";
-    }
-
     // Modal Operations
     function openAddEventModal(presetDate = null) {
       if (!isAdmin) return;
@@ -1489,7 +1735,7 @@
       document.getElementById("eventTitleInput").value = "";
       document.getElementById("eventDateInput").value = presetDate || new Date().toISOString().slice(0, 10);
       document.getElementById("eventTimeInput").value = "";
-      document.getElementById("eventTypeInput").value = "meal";
+      document.getElementById("eventTypeInput").value = categories[0].id;
       document.getElementById("eventHostInput").value = "";
       document.getElementById("eventAudienceInput").value = "Students & Community";
       document.getElementById("eventNotesInput").value = "";
@@ -1518,7 +1764,7 @@
       document.getElementById("eventTitleInput").value = e.title;
       document.getElementById("eventDateInput").value = e.date;
       document.getElementById("eventTimeInput").value = e.time || "";
-      document.getElementById("eventTypeInput").value = e.type || "meal";
+      document.getElementById("eventTypeInput").value = e.type || categories[0].id;
       document.getElementById("eventHostInput").value = e.host || "";
       document.getElementById("eventAudienceInput").value = e.audience || "";
       document.getElementById("eventNotesInput").value = e.notes || "";
@@ -1542,7 +1788,7 @@
       document.getElementById("eventTitleInput").value = e.title;
       document.getElementById("eventDateInput").value = e.date;
       document.getElementById("eventTimeInput").value = e.time || "";
-      document.getElementById("eventTypeInput").value = e.type || "meal";
+      document.getElementById("eventTypeInput").value = e.type || categories[0].id;
       document.getElementById("eventHostInput").value = e.host || "";
       document.getElementById("eventAudienceInput").value = e.audience || "";
       document.getElementById("eventNotesInput").value = e.notes || "";
@@ -1624,12 +1870,16 @@
 
     function exportData() {
       if (!isAdmin) return;
-      const jsonStr = JSON.stringify(events, null, 2);
+      const dataToExport = {
+        categories: categories,
+        events: events
+      };
+      const jsonStr = JSON.stringify(dataToExport, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `ohrsom-events-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `ohrsom-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
     }
 
