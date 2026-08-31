@@ -53,6 +53,8 @@
       min-height: 100vh;
       line-height: 1.5;
       padding-bottom: 80px;
+      overflow-x: hidden;
+      width: 100%;
     }
 
     /* ── Header ── */
@@ -64,7 +66,8 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 10px 16px;
+      padding: 10px 14px;
+      width: 100%;
     }
 
     .header-inner {
@@ -178,7 +181,8 @@
     .container {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 16px;
+      padding: 14px;
+      width: 100%;
     }
 
     /* ── Banner ── */
@@ -186,27 +190,26 @@
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(168, 85, 247, 0.12));
       border: 1px solid rgba(245, 158, 11, 0.35);
       border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 16px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      gap: 8px;
     }
 
     .yomtov-hero-info h2 {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 800;
       color: #fbbf24;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .yomtov-hero-info p {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
       margin-top: 2px;
     }
@@ -233,7 +236,7 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .month-nav {
@@ -282,7 +285,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
 
@@ -349,47 +352,52 @@
       font-weight: 800;
     }
 
-    /* ── Calendar Grid ── */
+    /* ── PIXEL-PERFECT CALENDAR GRID (Zero cut-out on phone) ── */
     .calendar-grid-card {
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       overflow: hidden;
       width: 100%;
+      max-width: 100%;
     }
 
     .cal-weekdays {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       background: var(--surface-elevated);
       border-bottom: 1px solid var(--surface-border);
       text-align: center;
-      padding: 10px 0;
-      font-size: 0.75rem;
+      padding: 8px 0;
+      font-size: 0.72rem;
       font-weight: 800;
       color: var(--muted);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
+      width: 100%;
     }
 
     .cal-days-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 1px;
       background: var(--surface-border);
+      width: 100%;
     }
 
     .cal-day-cell {
       background: var(--surface);
-      min-height: 110px;
-      padding: 6px 5px;
+      min-height: 90px;
+      padding: 4px 4px;
       display: flex;
       flex-direction: column;
       gap: 3px;
       cursor: pointer;
       transition: all 0.15s ease;
       position: relative;
+      min-width: 0; /* CRITICAL: prevents grid blowouts on mobile */
+      overflow: hidden;
     }
 
     .cal-day-cell:hover {
@@ -415,15 +423,15 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 800;
       gap: 2px;
-      margin-bottom: 2px;
+      min-width: 0;
     }
 
     .day-num-circle {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -437,54 +445,67 @@
     }
 
     .jewish-holiday-pill {
-      font-size: 0.6rem;
+      font-size: 0.58rem;
       font-weight: 800;
       color: var(--gold);
       background: var(--gold-bg);
-      padding: 1px 5px;
+      padding: 1px 4px;
       border-radius: 4px;
-      line-height: 1.2;
+      line-height: 1.15;
       text-align: right;
       flex: 1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      min-width: 0;
     }
 
-    /* Event pills inside cells (Wrapped text, readable) */
+    /* Event pills inside cells (Compact, elegant, never overflows) */
     .cal-event-pill {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: 700;
-      padding: 3px 5px;
-      border-radius: 5px;
+      padding: 2px 4px;
+      border-radius: 4px;
       display: flex;
-      align-items: flex-start;
-      gap: 4px;
-      border-left: 3px solid;
-      word-break: break-word;
-      white-space: normal;
-      line-height: 1.25;
+      align-items: center;
+      gap: 3px;
+      border-left: 2px solid;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       cursor: pointer;
-      transition: all 0.1s ease;
+      line-height: 1.2;
+      min-width: 0;
+      max-width: 100%;
     }
 
-    .cal-event-pill:hover {
-      opacity: 0.85;
-      transform: translateX(1px);
+    .cal-event-pill.is-completed {
+      opacity: 0.55;
+      text-decoration: line-through;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-left-color: var(--muted) !important;
+      color: var(--muted) !important;
     }
 
     .cal-event-pill-icon {
       flex-shrink: 0;
-      margin-top: 1px;
+      font-size: 0.7rem;
+    }
+
+    .cal-event-pill-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
 
     /* ── Agenda / Timeline below calendar ── */
     .day-agenda-section {
-      margin-top: 14px;
+      margin-top: 12px;
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
-      padding: 16px;
+      padding: 14px;
       box-shadow: var(--shadow);
     }
 
@@ -492,7 +513,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--surface-border);
       flex-wrap: wrap;
@@ -500,7 +521,7 @@
     }
 
     .day-agenda-title {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 800;
       color: var(--accent);
     }
@@ -517,15 +538,25 @@
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
-      padding: 14px 16px;
+      padding: 12px 14px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
+      gap: 10px;
       cursor: pointer;
       transition: all 0.15s ease;
       position: relative;
       overflow: hidden;
+    }
+
+    .event-card.is-completed {
+      opacity: 0.65;
+      background: #0b141d;
+    }
+
+    .event-card.is-completed .event-main-details h3 {
+      text-decoration: line-through;
+      color: var(--muted);
     }
 
     .event-card:hover {
@@ -536,17 +567,18 @@
 
     .event-card-left {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: flex-start;
       flex: 1;
+      min-width: 0;
     }
 
     .event-date-block {
       background: var(--surface-elevated);
       border: 1px solid var(--surface-border);
       border-radius: 8px;
-      min-width: 52px;
-      padding: 6px 2px;
+      min-width: 48px;
+      padding: 5px 2px;
       text-align: center;
       flex-shrink: 0;
     }
@@ -559,7 +591,7 @@
     }
 
     .date-num {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 900;
       line-height: 1.1;
       color: var(--ink);
@@ -573,10 +605,11 @@
 
     .event-main-details {
       flex: 1;
+      min-width: 0;
     }
 
     .event-main-details h3 {
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       font-weight: 800;
       color: var(--ink);
       display: flex;
@@ -593,9 +626,9 @@
     }
 
     .event-tag {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 700;
-      padding: 2px 7px;
+      padding: 2px 6px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
@@ -609,6 +642,13 @@
       font-weight: 800;
     }
 
+    .completed-badge {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--green);
+      color: #86efac;
+      font-weight: 800;
+    }
+
     .internal-badge {
       background: rgba(244, 63, 94, 0.15);
       border: 1px solid rgba(244, 63, 94, 0.4);
@@ -616,7 +656,7 @@
     }
 
     .event-meta-info {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
       display: flex;
       flex-wrap: wrap;
@@ -642,9 +682,10 @@
 
     .event-card-actions {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       align-items: center;
       flex-wrap: wrap;
+      flex-shrink: 0;
     }
 
     /* ── Modals & Pop-ups ── */
@@ -660,7 +701,7 @@
       align-items: center;
       justify-content: center;
       z-index: 1000;
-      padding: 16px;
+      padding: 12px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
@@ -682,7 +723,7 @@
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
       transform: scale(0.95);
       transition: transform 0.2s ease;
-      padding: 20px;
+      padding: 18px;
     }
 
     .modal-overlay.active .modal-card {
@@ -693,7 +734,7 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .modal-close-btn {
@@ -901,39 +942,6 @@
       border-color: var(--purple);
     }
 
-    /* ── Category Management ── */
-    .category-manage-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--surface-elevated);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      margin-bottom: 6px;
-    }
-
-    .color-swatch-picker {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-
-    .color-swatch {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: transform 0.15s ease;
-    }
-
-    .color-swatch.active {
-      border-color: #fff;
-      transform: scale(1.15);
-    }
-
     /* ── Day Overview Modal Event Item Card ── */
     .overview-event-item {
       background: var(--surface-elevated);
@@ -944,6 +952,14 @@
       position: relative;
     }
 
+    .overview-event-item.is-completed {
+      opacity: 0.65;
+    }
+    .overview-event-item.is-completed .overview-event-item-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
     .overview-event-item-top {
       display: flex;
       justify-content: space-between;
@@ -952,7 +968,7 @@
     }
 
     .overview-event-item-title {
-      font-size: 1rem;
+      font-size: 0.98rem;
       font-weight: 800;
       color: var(--ink);
       line-height: 1.2;
@@ -960,63 +976,104 @@
 
     .overview-btn-bar {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       margin-top: 10px;
       padding-top: 8px;
       border-top: 1px solid var(--surface-border);
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    /* ── Notification Schedule Card ── */
+    /* ── Notification Schedule & Activity Log ── */
     .notif-rule-card {
       background: var(--surface-elevated);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      margin-bottom: 8px;
+      padding: 9px 11px;
+      margin-bottom: 6px;
       display: flex;
       align-items: flex-start;
-      gap: 10px;
+      gap: 8px;
     }
 
     .notif-rule-icon {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       line-height: 1;
-      margin-top: 2px;
+      margin-top: 1px;
+    }
+
+    .reminders-log-table {
+      width: 100%;
+      font-size: 0.75rem;
+      border-collapse: collapse;
+    }
+
+    .reminders-log-table th {
+      text-align: left;
+      color: var(--muted);
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--surface-border);
+      font-size: 0.7rem;
+    }
+
+    .reminders-log-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* ── Snooze Menu ── */
+    .snooze-quick-btn {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fde047;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .snooze-quick-btn:hover {
+      background: var(--gold);
+      color: #070d14;
     }
 
     /* ── Responsive Styling ── */
     @media (max-width: 768px) {
-      .header-inner { flex-wrap: wrap; gap: 8px; }
+      .header-inner { flex-wrap: wrap; gap: 6px; }
       .brand-title { font-size: 0.95rem; }
       .brand-subtitle { font-size: 0.65rem; }
-      .container { padding: 8px; }
+      .container { padding: 6px; }
       
-      .controls-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+      .controls-bar { flex-direction: column; align-items: stretch; gap: 6px; }
       .month-nav { justify-content: space-between; }
-      .month-title { min-width: auto; text-align: center; flex: 1; font-size: 1.05rem; }
+      .month-title { min-width: auto; text-align: center; flex: 1; font-size: 1rem; }
       .view-segmented { width: 100%; }
-      .view-seg-btn { flex: 1; text-align: center; padding: 6px 4px; font-size: 0.72rem; }
+      .view-seg-btn { flex: 1; text-align: center; padding: 6px 3px; font-size: 0.72rem; }
       .form-row { grid-template-columns: 1fr; }
 
-      .cal-weekdays { font-size: 0.68rem; padding: 7px 0; }
-      .cal-day-cell { min-height: 75px; padding: 3px 2px; gap: 2px; }
-      .day-number-row { font-size: 0.72rem; }
-      .day-num-circle { width: 18px; height: 18px; font-size: 0.72rem; }
-      .jewish-holiday-pill { font-size: 0.55rem; padding: 1px 3px; }
+      /* Mobile 7-Column Grid Perfect Fit */
+      .cal-weekdays { font-size: 0.65rem; padding: 6px 0; }
+      .cal-day-cell { min-height: 66px; padding: 2px 2px; gap: 2px; }
+      .day-number-row { font-size: 0.7rem; }
+      .day-num-circle { width: 17px; height: 17px; font-size: 0.68rem; }
+      .jewish-holiday-pill { font-size: 0.5rem; padding: 1px 2px; }
 
-      /* Mobile legible mini event pills */
       .cal-event-pill {
-        font-size: 0.62rem;
-        padding: 1px 3px;
-        line-height: 1.15;
-        border-radius: 3px;
+        font-size: 0.58rem;
+        padding: 1px 2px;
+        line-height: 1.1;
+        border-radius: 2px;
+        border-left-width: 2px;
         margin-top: 1px;
       }
-      .cal-event-pill-icon { font-size: 0.65rem; }
+      .cal-event-pill-icon { font-size: 0.6rem; }
 
-      .day-agenda-section { margin-top: 10px; padding: 12px; }
-      .event-card { padding: 10px 12px; gap: 8px; }
+      .day-agenda-section { margin-top: 10px; padding: 10px; }
+      .event-card { padding: 10px; gap: 8px; }
+      .event-card-actions { width: 100%; justify-content: flex-end; margin-top: 4px; }
     }
   </style>
 </head>
@@ -1036,8 +1093,8 @@
         <button class="btn btn-install" onclick="showDownloadModal()">
           📲 Download App
         </button>
-        <button class="btn btn-notify" onclick="openRemindersCenterModal()" title="View reminder schedule & notifications">
-          🔔 Reminders
+        <button class="btn btn-notify" onclick="openRemindersCenterModal()" title="View reminder schedule & notification logs">
+          🔔 Reminders & Logs
         </button>
         <button id="settingsBtn" class="btn btn-secondary" onclick="openSettingsModal()" style="display: none;">
           ⚙️ Settings
@@ -1097,7 +1154,7 @@
       </div>
     </div>
 
-    <!-- Calendar View Container -->
+    <!-- Calendar View Container (100% Width, Zero Cut-off) -->
     <div id="calendarViewContainer">
       <div class="calendar-grid-card">
         <div class="cal-weekdays">
@@ -1132,7 +1189,7 @@
 
   </main>
 
-  <!-- ══ DAY / EVENT OVERVIEW POP-UP MODAL ══ -->
+  <!-- ══ DAY / EVENT OVERVIEW POP-UP MODAL (Quick Overview + Mark Complete + Snooze) ══ -->
   <div class="modal-overlay" id="dayOverviewModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -1161,59 +1218,71 @@
     </div>
   </div>
 
-  <!-- ══ REMINDERS & NOTIFICATION CENTER MODAL ══ -->
+  <!-- ══ REMINDERS & NOTIFICATION CENTER + LOGS MODAL ══ -->
   <div class="modal-overlay" id="remindersCenterModal">
     <div class="modal-card">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🔔</div>
           <div>
-            <h2 style="font-size: 1.15rem; font-weight: 800;">Reminders & Alerts</h2>
-            <p style="font-size: 0.75rem; color: var(--gold);">Push reminders on phone and computer</p>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Reminders & Activity Log</h2>
+            <p style="font-size: 0.75rem; color: var(--gold);">Push notifications, snooze & history log</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeRemindersCenterModal()">✕</button>
       </div>
 
       <div style="margin-bottom: 14px;">
-        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
-          ⏰ How Notifications Work:
+        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">
+          ⏰ Notification Schedule Rules:
         </h4>
         <div class="notif-rule-card">
           <div class="notif-rule-icon">🕍</div>
-          <div style="font-size: 0.82rem;">
-            <strong>1 Hour Before Shul & Davening:</strong><br>
-            <span style="color: var(--muted);">Alerts for Mincha, Shacharit, and Yom Kippur services.</span>
+          <div style="font-size: 0.8rem;">
+            <strong>1 Hour Before Shul:</strong> Alerts for Mincha & Services.
           </div>
         </div>
         <div class="notif-rule-card">
           <div class="notif-rule-icon">🌅</div>
-          <div style="font-size: 0.82rem;">
-            <strong>8:30 AM Morning-Of (Action Items):</strong><br>
-            <span style="color: var(--muted);">Reminds assigned staff (e.g. Ryan, Bini) for prep and promo tasks.</span>
+          <div style="font-size: 0.8rem;">
+            <strong>8:30 AM Morning-Of:</strong> Reminds assignees for tasks & prep items.
           </div>
         </div>
         <div class="notif-rule-card">
           <div class="notif-rule-icon">🕯️</div>
-          <div style="font-size: 0.82rem;">
-            <strong>2 Hours Before Meals & Sukkah:</strong><br>
-            <span style="color: var(--muted);">Alerts host families (Cannons, Salmons, Perelmans) and students.</span>
+          <div style="font-size: 0.8rem;">
+            <strong>2 Hours Before Meals:</strong> Alerts host families and attendees.
           </div>
         </div>
       </div>
 
-      <!-- User's upcoming reminders list -->
-      <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 8px;" id="upcomingRemindersListHeader">
+      <!-- Live Scheduled Upcoming Reminders -->
+      <div style="margin-bottom: 14px;">
+        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 6px;" id="upcomingRemindersListHeader">
           📋 Upcoming Scheduled Reminders:
         </h4>
-        <div id="upcomingRemindersList" style="max-height: 180px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px;">
+        <div id="upcomingRemindersList" style="max-height: 140px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 8px;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Reminder History & Activity Log -->
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase;">
+            📜 Reminders Sent & Activity Log:
+          </h4>
+          <button class="btn btn-secondary" style="padding: 2px 7px; font-size: 0.7rem; color: var(--rose);" onclick="clearReminderLogs()">
+            🗑️ Clear Log
+          </button>
+        </div>
+        <div id="remindersLogContainer" style="max-height: 140px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 8px;">
           <!-- Rendered dynamically -->
         </div>
       </div>
 
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="btn btn-primary" onclick="triggerTestPushNotification()" style="flex: 1; justify-content: center; padding: 10px;">
+        <button class="btn btn-primary" onclick="triggerTestPushNotification()" style="flex: 1; justify-content: center; padding: 9px;">
           🔔 Send Test Push Notification Now
         </button>
         <button class="btn btn-secondary" onclick="closeRemindersCenterModal()">
@@ -1231,61 +1300,46 @@
           <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">⚙️</div>
           <div>
             <h2 style="font-size: 1.1rem; font-weight: 800;">Settings & Categories</h2>
-            <p style="font-size: 0.75rem; color: var(--muted);">Edit or delete any category & audience</p>
+            <p style="font-size: 0.75rem; color: var(--muted);">Edit categories, audiences & reminder logs</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
       </div>
 
-      <div style="margin-bottom: 16px;">
-        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">Active Categories</h4>
+      <div style="margin-bottom: 14px;">
+        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">Active Categories</h4>
         <div id="settingsCategoryList">
           <!-- Rendered dynamically -->
         </div>
       </div>
 
       <!-- Audience Presets Manager -->
-      <div style="margin-bottom: 16px; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px;">
-        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 8px;">👥 Audience Presets</h4>
+      <div style="margin-bottom: 14px; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px;">
+        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 6px;">👥 Audience Presets</h4>
         <div id="audiencePresetList" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
           <!-- Rendered dynamically -->
         </div>
         <div style="display: flex; gap: 6px;">
-          <input type="text" id="newAudiencePresetInput" class="form-control" placeholder="Add new audience type..." style="flex: 1;">
-          <button class="btn btn-secondary" onclick="addAudiencePreset()" type="button">➕ Add</button>
+          <input type="text" id="newAudiencePresetInput" class="form-control" placeholder="Add new audience type..." style="flex: 1; padding: 6px 10px; font-size: 0.82rem;">
+          <button class="btn btn-secondary" onclick="addAudiencePreset()" type="button" style="padding: 6px 12px; font-size: 0.78rem;">➕ Add</button>
         </div>
       </div>
 
       <!-- Add New Custom Category Form -->
-      <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px;">
-        <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase; margin-bottom: 10px;">➕ Add New Category</h4>
+      <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px;">
+        <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase; margin-bottom: 8px;">➕ Add New Category</h4>
         <form onsubmit="saveNewCustomCategory(event)">
           <div class="form-row">
             <div class="form-group">
               <label for="newCategoryName">Category Name</label>
-              <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Youth, Outreach" required>
+              <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Youth, Outreach" required style="padding: 6px 10px; font-size: 0.82rem;">
             </div>
             <div class="form-group">
               <label for="newCategoryIcon">Emoji (Optional)</label>
-              <input type="text" id="newCategoryIcon" class="form-control" placeholder="Optional (e.g. 🕍, 🤝)" maxlength="4">
+              <input type="text" id="newCategoryIcon" class="form-control" placeholder="Optional (e.g. 🕍, 🤝)" maxlength="4" style="padding: 6px 10px; font-size: 0.82rem;">
             </div>
           </div>
-
-          <div class="form-group">
-            <label>Color Theme</label>
-            <div class="color-swatch-picker" id="colorSwatchPicker">
-              <div class="color-swatch active" style="background:#f59e0b;" onclick="selectCategoryColor('#f59e0b', this)"></div>
-              <div class="color-swatch" style="background:#22c55e;" onclick="selectCategoryColor('#22c55e', this)"></div>
-              <div class="color-swatch" style="background:#38bdf8;" onclick="selectCategoryColor('#38bdf8', this)"></div>
-              <div class="color-swatch" style="background:#a855f7;" onclick="selectCategoryColor('#a855f7', this)"></div>
-              <div class="color-swatch" style="background:#f43f5e;" onclick="selectCategoryColor('#f43f5e', this)"></div>
-              <div class="color-swatch" style="background:#2dd4bf;" onclick="selectCategoryColor('#2dd4bf', this)"></div>
-              <div class="color-swatch" style="background:#fb923c;" onclick="selectCategoryColor('#fb923c', this)"></div>
-              <div class="color-swatch" style="background:#ec4899;" onclick="selectCategoryColor('#ec4899', this)"></div>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 8px;">
             ➕ Add Category
           </button>
         </form>
@@ -1555,7 +1609,8 @@
         audiences: ["Students & Community", "Ohrsom 1", "Accelerator"],
         notes: "6:00 PM Mincha and Mitzvahs service kicking off Rosh Hashanah.",
         internalNotes: "Prayer books and shofar ready.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-1",
@@ -1568,7 +1623,8 @@
         audiences: ["Students & Community"],
         notes: "Shabbat Lunch hosting at Salmons.",
         internalNotes: "Confirm head count by Thursday night.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-2",
@@ -1581,7 +1637,8 @@
         audiences: ["Students & Community"],
         notes: "Rosh Hashanah 1st Night dinner at Salamons following Shul services.",
         internalNotes: "Ensure seating setup ready by 4 PM.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-3",
@@ -1594,7 +1651,8 @@
         audiences: ["Students & Community"],
         notes: "Rosh Hashanah Day 1 lunch hosted by Cannons.",
         internalNotes: "Check table capacity (aiming for 18-20 students).",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-4",
@@ -1607,7 +1665,8 @@
         audiences: ["Students & Community"],
         notes: "Rosh Hashanah 2nd Night dinner hosted at Perelmans.",
         internalNotes: "Check simanim (pomegranate, dates) are prepped.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-5",
@@ -1620,7 +1679,8 @@
         audiences: ["Admin Team"],
         notes: "Post Fridays promo & send WhatsApp coordination message to Ryan.",
         internalNotes: "Ryan handling campus graphic release and RSVP tracking.",
-        isInternal: true
+        isInternal: true,
+        isCompleted: false
       },
       {
         id: "evt-6",
@@ -1633,7 +1693,8 @@
         audiences: ["Students & Community"],
         notes: "Shabbat Shuva lunch at Salmons.",
         internalNotes: "Follow up on students who attended RH dinner.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-7",
@@ -1646,7 +1707,8 @@
         audiences: ["Students & Community", "Alumni", "Young Professionals"],
         notes: "Massive Final Fridays Shabbat Dinner in the Sukkah!",
         internalNotes: "Catering booked for 80 pax. Sukkah decorations complete by Wednesday 23rd.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-8",
@@ -1659,7 +1721,8 @@
         audiences: ["Accelerator"],
         notes: "Sukkot Shabbat Lunch for Accelerator students.",
         internalNotes: "Special guest speaker: Leadership in Business.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-9",
@@ -1672,7 +1735,8 @@
         audiences: ["Students & Community", "Young Professionals"],
         notes: "Saturday night Chol Hamoed dinner at Perelmans in the Sukkah.",
         internalNotes: "Music and refreshments.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-10",
@@ -1685,7 +1749,8 @@
         audiences: ["Students & Community"],
         notes: "Sunday Chol Hamoed Sukkah lunch at Cannons.",
         internalNotes: "Confirm student roster with Cannons by Friday 25th.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-11",
@@ -1698,7 +1763,8 @@
         audiences: ["Accelerator", "Ohrsom 1"],
         notes: "Tuesday regular program: Accelerator sessions and Ohrsom 1 learning.",
         internalNotes: "Classroom 1 & 2 booked; print handouts.",
-        isInternal: false
+        isInternal: false,
+        isCompleted: false
       },
       {
         id: "evt-12",
@@ -1711,7 +1777,8 @@
         audiences: ["Admin Team", "All Campuses"],
         notes: "Prepare and release posters for: 1. Rosh Hashanah, 2. Final Fridays, 3. Simchat Torah.",
         internalNotes: "Approve designs with Rabbi before sending to print and IG.",
-        isInternal: true
+        isInternal: true,
+        isCompleted: false
       }
     ];
 
@@ -1738,6 +1805,7 @@
     let events = [];
     let categories = [];
     let audiencePresets = [];
+    let reminderLogs = [];
     let currentYear = 2026;
     let currentMonth = 8; // September
     let currentFilter = "all";
@@ -1751,7 +1819,6 @@
     let currentModalAssignees = [];
     let currentModalAudiences = [];
     let deferredPrompt = null;
-    let selectedCategoryColor = "#f59e0b";
     const ADMIN_PASSCODE = "ohrsom613";
 
     // ══ INIT ══
@@ -1774,6 +1841,19 @@
       if (!audiencePresets.length) audiencePresets = [...DEFAULT_AUDIENCE_PRESETS];
 
       try {
+        reminderLogs = JSON.parse(localStorage.getItem("ohrsom_reminder_logs") || "null") || [];
+      } catch { reminderLogs = []; }
+
+      // Seed initial sample reminder log if empty
+      if (!reminderLogs.length) {
+        reminderLogs = [
+          { time: "Aug 31, 6:00 PM", recipient: "All Team", event: "Rosh Hashanah Schedule Initialized", status: "System Ready" },
+          { time: "Aug 31, 6:15 PM", recipient: "Bini Bati", event: "Final Fridays in Sukkah", status: "Reminder Scheduled" }
+        ];
+        saveReminderLogs();
+      }
+
+      try {
         events = JSON.parse(localStorage.getItem("ohrsom_events_data") || "null") || [];
       } catch { events = []; }
       if (!events.length) {
@@ -1784,6 +1864,7 @@
       events.forEach(e => {
         if (!e.assignees) e.assignees = e.assignee ? [e.assignee] : [];
         if (!e.audiences) e.audiences = e.audience ? [e.audience] : [];
+        if (e.isCompleted === undefined) e.isCompleted = false;
       });
 
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -1802,6 +1883,15 @@
     function saveCategories() { localStorage.setItem("ohrsom_categories_data", JSON.stringify(categories)); }
     function saveEvents() { localStorage.setItem("ohrsom_events_data", JSON.stringify(events)); }
     function saveAudiencePresets() { localStorage.setItem("ohrsom_audience_presets", JSON.stringify(audiencePresets)); }
+    function saveReminderLogs() { localStorage.setItem("ohrsom_reminder_logs", JSON.stringify(reminderLogs)); }
+
+    function logReminderActivity(recipient, eventTitle, status) {
+      const now = new Date();
+      const timeStr = now.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      reminderLogs.unshift({ time: timeStr, recipient: recipient || "Team Member", event: eventTitle, status });
+      if (reminderLogs.length > 50) reminderLogs.pop();
+      saveReminderLogs();
+    }
 
     function getCategory(typeId) {
       return categories.find(c => c.id === typeId) || { id: typeId, name: typeId, icon: "📌", color: "#94a3b8" };
@@ -1963,7 +2053,7 @@
       }
     }
 
-    // ══ REMINDERS & NOTIFICATION CENTER ══
+    // ══ REMINDERS & NOTIFICATION CENTER + LOGS ══
     function openRemindersCenterModal() {
       const listContainer = document.getElementById("upcomingRemindersList");
       const headerEl = document.getElementById("upcomingRemindersListHeader");
@@ -1979,29 +2069,82 @@
       }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
       if (myEvents.length === 0) {
-        listContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.8rem;">No upcoming reminders found.</div>`;
+        listContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:10px;">No upcoming reminders found.</div>`;
       } else {
         listContainer.innerHTML = myEvents.slice(0, 8).map(e => {
           const d = new Date(e.date + "T00:00:00");
           const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" });
           const cat = getCategory(e.type);
           return `
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--surface-border); padding:6px 0; font-size:0.8rem;">
-              <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--surface-border); padding:6px 0; font-size:0.78rem;">
+              <div style="min-width:0; flex:1; padding-right:6px;">
                 <strong style="color:${cat.color};">${cat.icon || '•'} ${e.title}</strong><br>
-                <span style="color:var(--muted); font-size:0.75rem;">📅 ${dateStr} ${e.time ? `· ⏱️ ${e.time}` : ''}</span>
+                <span style="color:var(--muted); font-size:0.72rem;">📅 ${dateStr} ${e.time ? `· ⏱️ ${e.time}` : ''}</span>
               </div>
-              <span class="yom-badge" style="font-size:0.68rem; color:var(--gold);">🔔 Active</span>
+              <button class="snooze-quick-btn" onclick="snoozeReminderForEvent('${e.id}', 1)">
+                ⏱️ +1h
+              </button>
             </div>
           `;
         }).join("");
       }
 
+      renderReminderLogsUI();
       document.getElementById("remindersCenterModal").classList.add("active");
     }
 
     function closeRemindersCenterModal() {
       document.getElementById("remindersCenterModal").classList.remove("active");
+    }
+
+    function renderReminderLogsUI() {
+      const container = document.getElementById("remindersLogContainer");
+      if (!container) return;
+
+      if (!reminderLogs.length) {
+        container.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.75rem; padding:10px;">No reminder activity logged yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <table class="reminders-log-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Recipient</th>
+              <th>Event / Task</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reminderLogs.map(l => `
+              <tr>
+                <td style="color:var(--muted); font-size:0.7rem; white-space:nowrap;">${l.time}</td>
+                <td style="font-weight:700; color:var(--accent);">${l.recipient}</td>
+                <td style="color:var(--ink);">${l.event}</td>
+                <td><span style="background:rgba(34,197,94,0.15); color:#86efac; padding:1px 5px; border-radius:4px; font-size:0.68rem; font-weight:700;">${l.status}</span></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function clearReminderLogs() {
+      if (confirm("Clear all reminder activity logs?")) {
+        reminderLogs = [];
+        saveReminderLogs();
+        renderReminderLogsUI();
+      }
+    }
+
+    function snoozeReminderForEvent(id, hours = 1) {
+      const e = events.find(ev => ev.id === id);
+      if (!e) return;
+      const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Team Member";
+      logReminderActivity(fullName, e.title, `Snoozed +${hours}h`);
+      alert(`⏰ Reminder for "${e.title}" snoozed by ${hours} hour(s)! Logged in Reminders Center.`);
+      renderReminderLogsUI();
     }
 
     function triggerTestPushNotification() {
@@ -2016,7 +2159,9 @@
           body: `Reminder for ${fullName}: Next service is Rosh Hashanah Mincha (6:00 PM) at Ohrsom Shul!`,
           icon: "icons/icon.svg"
         });
+        logReminderActivity(fullName, "Test Push Notification Triggered", "Sent (Success)");
         alert(`🔔 Push Notification fired! Look for the popup banner.`);
+        renderReminderLogsUI();
       } else if (Notification.permission !== "denied") {
         Notification.requestPermission().then(p => {
           if (p === "granted") {
@@ -2024,12 +2169,27 @@
               body: `Push alerts are now active for ${fullName}!`,
               icon: "icons/icon.svg"
             });
+            logReminderActivity(fullName, "Push Permission Granted", "Activated");
             alert(`🔔 Notifications enabled and test sent!`);
+            renderReminderLogsUI();
           }
         });
       } else {
         alert("Notifications are currently blocked in browser settings. Please allow notifications for this site.");
       }
+    }
+
+    // ══ MARK AS COMPLETE / PENDING TOGGLE ══
+    function toggleEventComplete(id) {
+      if (!isAdmin) return;
+      const e = events.find(ev => ev.id === id);
+      if (!e) return;
+      e.isCompleted = !e.isCompleted;
+      const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Admin";
+      logReminderActivity(fullName, e.title, e.isCompleted ? "✅ Marked Complete" : "↩️ Marked Pending");
+      saveEvents();
+      render();
+      openDayOverviewModal(selectedDateKey);
     }
 
     // ══ DAY / EVENT OVERVIEW POP-UP MODAL (Clean, readable overview before edit) ══
@@ -2047,9 +2207,9 @@
 
       if (dayEvts.length === 0) {
         listContainer.innerHTML = `
-          <div style="text-align: center; padding: 30px 10px; color: var(--muted); font-size: 0.9rem;">
+          <div style="text-align: center; padding: 25px 10px; color: var(--muted); font-size: 0.88rem;">
             🌿 No events scheduled on ${formattedDate}.
-            ${isAdmin ? `<br><button class="btn btn-primary" style="margin-top: 14px;" onclick="openAddEventFromOverview()">➕ Add Event</button>` : ''}
+            ${isAdmin ? `<br><button class="btn btn-primary" style="margin-top: 12px;" onclick="openAddEventFromOverview()">➕ Add Event</button>` : ''}
           </div>
         `;
       } else {
@@ -2060,41 +2220,56 @@
           const assigneesHtml = assignees.map(a => `<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
           const audiencesHtml = audiences.map(a => `<span class="event-tag" style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35); color:#d8b4fe;">👥 ${a}</span>`).join(" ");
 
-          const internalHtml = (isAdmin && e.internalNotes) 
-            ? `<div class="internal-note-box" style="margin-top:8px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
+          const completeTag = e.isCompleted 
+            ? `<span class="event-tag completed-badge">✅ Complete</span>` 
             : "";
 
-          const adminButtons = isAdmin ? `
-            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="openEditFromOverview('${e.id}')">✏️ Edit</button>
-            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="copyEventDirectly('${e.id}')">📋 Copy</button>
-            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="openMoveEventModalForId('${e.id}')">📅 Move</button>
-            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem; color:var(--rose);" onclick="deleteEventDirectly('${e.id}')">🗑️</button>
+          const internalHtml = (isAdmin && e.internalNotes) 
+            ? `<div class="internal-note-box" style="margin-top:6px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
+            : "";
+
+          const completeBtnHtml = isAdmin ? `
+            <button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="toggleEventComplete('${e.id}')">
+              ${e.isCompleted ? '↩️ Mark Pending' : '✅ Mark Complete'}
+            </button>
           ` : '';
+
+          const adminButtons = isAdmin ? `
+            ${completeBtnHtml}
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="openEditFromOverview('${e.id}')">✏️ Edit</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="copyEventDirectly('${e.id}')">📋 Copy</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="openMoveEventModalForId('${e.id}')">📅 Move</button>
+            <button class="snooze-quick-btn" onclick="snoozeReminderForEvent('${e.id}', 1)">⏰ +1h</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem; color:var(--rose);" onclick="deleteEventDirectly('${e.id}')">🗑️</button>
+          ` : `
+            <button class="snooze-quick-btn" onclick="snoozeReminderForEvent('${e.id}', 1)">⏰ Remind in 1h</button>
+          `;
 
           const isHighlighted = (highlightEventId === e.id);
 
           return `
-            <div class="overview-event-item" style="border-left: 4px solid ${cat.color}; ${isHighlighted ? 'box-shadow: 0 0 0 2px var(--accent); background:#162433;' : ''}">
+            <div class="overview-event-item ${e.isCompleted ? 'is-completed' : ''}" style="border-left: 4px solid ${e.isCompleted ? 'var(--muted)' : cat.color}; ${isHighlighted ? 'box-shadow: 0 0 0 2px var(--accent); background:#162433;' : ''}">
               <div class="overview-event-item-top">
-                <div>
+                <div style="min-width:0; flex:1;">
                   <div class="overview-event-item-title">${e.title}</div>
-                  <div class="event-tags-row" style="margin-top:6px;">
+                  <div class="event-tags-row" style="margin-top:4px;">
                     <span class="event-tag" style="background:${cat.color}22; color:${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
+                    ${completeTag}
                     ${assigneesHtml}
                     ${audiencesHtml}
                     ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin Only</span>` : ''}
                   </div>
                 </div>
-                ${e.time ? `<span class="yom-badge" style="font-size:0.75rem; font-weight:800; color:var(--accent);">⏱️ ${e.time}</span>` : ''}
+                ${e.time ? `<span class="yom-badge" style="font-size:0.72rem; font-weight:800; color:var(--accent); flex-shrink:0;">⏱️ ${e.time}</span>` : ''}
               </div>
 
-              ${e.host ? `<div style="font-size:0.82rem; color:var(--ink); margin-top:6px;">🏡 Host/Venue: <strong>${e.host}</strong></div>` : ''}
-              ${e.notes ? `<div style="font-size:0.82rem; color:var(--muted); margin-top:4px;">📝 ${e.notes}</div>` : ''}
+              ${e.host ? `<div style="font-size:0.8rem; color:var(--ink); margin-top:4px;">🏡 Host/Venue: <strong>${e.host}</strong></div>` : ''}
+              ${e.notes ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:3px;">📝 ${e.notes}</div>` : ''}
               ${internalHtml}
 
               <div class="overview-btn-bar">
                 ${adminButtons}
-                <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="shareWhatsAppDirect('${e.id}')">💬 WhatsApp</button>
+                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="shareWhatsAppDirect('${e.id}')">💬 WhatsApp</button>
               </div>
             </div>
           `;
@@ -2132,7 +2307,7 @@
       if (!isAdmin) return;
       const orig = events.find(e => e.id === id);
       if (!orig) return;
-      const copy = { ...orig, id: "evt-" + Date.now(), title: "Copy — " + orig.title, assignees: [...orig.assignees], audiences: [...(orig.audiences || [])] };
+      const copy = { ...orig, id: "evt-" + Date.now(), title: "Copy — " + orig.title, isCompleted: false, assignees: [...orig.assignees], audiences: [...(orig.audiences || [])] };
       events.push(copy);
       saveEvents();
       render();
@@ -2206,18 +2381,12 @@
       }
     }
 
-    function selectCategoryColor(color, el) {
-      selectedCategoryColor = color;
-      document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
-      if (el) el.classList.add("active");
-    }
-
     function saveNewCustomCategory(e) {
       e.preventDefault();
       const name = document.getElementById("newCategoryName").value.trim();
       const icon = document.getElementById("newCategoryIcon").value.trim();
       if (!name) return;
-      categories.push({ id: "cat_" + Date.now(), name, icon: icon || "", color: selectedCategoryColor });
+      categories.push({ id: "cat_" + Date.now(), name, icon: icon || "", color: "#f59e0b" });
       saveCategories();
       renderSettingsCategoryList();
       renderFilterChips();
@@ -2306,7 +2475,7 @@
       render();
     }
 
-    // ══ CALENDAR GRID ══
+    // ══ CALENDAR GRID (Zero cut-off on mobile) ══
     function renderCalendarGrid() {
       const grid = document.getElementById("calendarDaysGrid");
       grid.innerHTML = "";
@@ -2343,20 +2512,21 @@
         // Render clean, legible event snippets inside the cell
         dayEvts.slice(0, 3).forEach(e => {
           const cat = getCategory(e.type);
-          const shortTitle = e.title.length > 20 ? e.title.slice(0, 18) + "…" : e.title;
+          const shortTitle = e.title.length > 18 ? e.title.slice(0, 16) + "…" : e.title;
+          const completedClass = e.isCompleted ? 'is-completed' : '';
           cellHtml += `
-            <div class="cal-event-pill" 
+            <div class="cal-event-pill ${completedClass}" 
                  onclick="event.stopPropagation(); openDayOverviewModal('${dateKey}', '${e.id}')" 
-                 title="${e.title}${e.time ? ' · ' + e.time : ''}"
+                 title="${e.title}${e.time ? ' · ' + e.time : ''}${e.isCompleted ? ' (Completed)' : ''}"
                  style="background:${cat.color}22; color:${cat.color}; border-left-color:${cat.color};">
-              <span class="cal-event-pill-icon">${cat.icon || '•'}</span>
+              <span class="cal-event-pill-icon">${e.isCompleted ? '✅' : (cat.icon || '•')}</span>
               <span class="cal-event-pill-text">${shortTitle}</span>
             </div>`;
         });
 
         const moreCount = dayEvts.length - 3;
         if (moreCount > 0) {
-          cellHtml += `<div style="font-size:0.6rem; color:var(--muted); font-weight:700; text-align:center;">+${moreCount} more</div>`;
+          cellHtml += `<div style="font-size:0.58rem; color:var(--muted); font-weight:700; text-align:center;">+${moreCount} more</div>`;
         }
 
         cell.innerHTML = cellHtml;
@@ -2392,7 +2562,7 @@
       const d = new Date(dateKey + "T00:00:00");
       const formattedDate = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
       const hol = JEWISH_HOLIDAYS[dateKey];
-      titleEl.innerHTML = `📅 ${formattedDate}${hol ? ` <span class="jewish-holiday-pill" style="font-size:0.78rem; margin-left:6px;">✡️ ${hol}</span>` : ''}`;
+      titleEl.innerHTML = `📅 ${formattedDate}${hol ? ` <span class="jewish-holiday-pill" style="font-size:0.75rem; margin-left:6px;">✡️ ${hol}</span>` : ''}`;
 
       const dayEvts = getFilteredEvents().filter(e => e.date === dateKey);
       if (!dayEvts.length) {
@@ -2414,17 +2584,21 @@
       const audiences = e.audiences || (e.audience ? [e.audience] : []);
       const assigneesHtml = assigneesList.map(a => `<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
       const audiencesHtml = audiences.map(a => `<span class="event-tag" style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35); color:#d8b4fe;">👥 ${a}</span>`).join(" ");
+      const completeTag = e.isCompleted ? `<span class="event-tag completed-badge">✅ Done</span>` : '';
 
       const editBtnHtml = isAdmin
-        ? `<button class="btn btn-secondary" style="padding:5px 9px; font-size:0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>`
-        : `<button class="btn btn-secondary" style="padding:5px 9px; font-size:0.75rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Overview</button>`;
+        ? `
+          <button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️' : '✅'}</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
+        `
+        : `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Overview</button>`;
 
       const internalHtml = (isAdmin && e.internalNotes) 
         ? `<div class="internal-note-box">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
         : "";
 
       return `
-        <div class="event-card" style="border-left:4px solid ${cat.color};" onclick="openDayOverviewModal('${e.date}', '${e.id}')">
+        <div class="event-card ${e.isCompleted ? 'is-completed' : ''}" style="border-left:4px solid ${e.isCompleted ? 'var(--muted)' : cat.color};" onclick="openDayOverviewModal('${e.date}', '${e.id}')">
           <div class="event-card-left">
             <div class="event-date-block">
               <div class="date-month">${mn}</div>
@@ -2432,7 +2606,7 @@
               <div class="date-weekday">${wd}</div>
             </div>
             <div class="event-main-details">
-              <h3>${e.title}${hol ? ` <span class="jewish-holiday-pill">✡️ ${hol}</span>` : ''}${e.isInternal ? ` <span class="event-tag internal-badge">🔒 Admin Only</span>` : ''}</h3>
+              <h3>${e.title}${hol ? ` <span class="jewish-holiday-pill">✡️ ${hol}</span>` : ''}${completeTag}${e.isInternal ? ` <span class="event-tag internal-badge">🔒 Admin Only</span>` : ''}</h3>
               <div class="event-tags-row">
                 <span class="event-tag" style="background:${cat.color}22; color:${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
                 ${assigneesHtml}
@@ -2442,7 +2616,7 @@
                 ${e.time ? `<span>⏱️ ${e.time}</span>` : ''}
                 ${e.host ? `<span>🏡 <strong>${e.host}</strong></span>` : ''}
               </div>
-              ${e.notes ? `<p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">📝 ${e.notes}</p>` : ''}
+              ${e.notes ? `<p style="font-size:0.78rem; color:var(--muted); margin-top:3px;">📝 ${e.notes}</p>` : ''}
               ${internalHtml}
             </div>
           </div>
@@ -2598,6 +2772,9 @@
       evt.preventDefault();
       if (!isAdmin) return;
       const id = document.getElementById("eventId").value || ("evt-" + Date.now());
+      const existing = events.find(e => e.id === id);
+      const isCompleted = existing ? !!existing.isCompleted : false;
+
       const ev = {
         id,
         title: document.getElementById("eventTitleInput").value.trim(),
@@ -2609,7 +2786,8 @@
         host: document.getElementById("eventHostInput").value.trim(),
         notes: document.getElementById("eventNotesInput").value.trim(),
         internalNotes: document.getElementById("eventInternalNotesInput").value.trim(),
-        isInternal: document.getElementById("eventIsInternalInput").checked
+        isInternal: document.getElementById("eventIsInternalInput").checked,
+        isCompleted
       };
       const idx = events.findIndex(e => e.id === id);
       if (idx >= 0) events[idx] = ev;
@@ -2635,7 +2813,7 @@
       if (!isAdmin || !activeEditingId) return;
       const orig = events.find(e => e.id === activeEditingId);
       if (!orig) return;
-      const copy = { ...orig, id: "evt-" + Date.now(), title: "Copy — " + orig.title, assignees: [...orig.assignees], audiences: [...(orig.audiences || [])] };
+      const copy = { ...orig, id: "evt-" + Date.now(), title: "Copy — " + orig.title, isCompleted: false, assignees: [...orig.assignees], audiences: [...(orig.audiences || [])] };
       events.push(copy);
       saveEvents();
       closeModal();
