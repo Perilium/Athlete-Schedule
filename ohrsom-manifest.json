@@ -3,20 +3,20 @@
   "short_name": "Ohrsom",
   "id": "ohrsom-events-hub-app",
   "start_url": "/ohrsom-schedule.html",
-  "scope": "/ohrsom",
+  "scope": "/ohrsom-schedule.html",
   "display": "standalone",
   "background_color": "#070d14",
   "theme_color": "#070d14",
   "description": "Ohrsom Yom Tov & Community Hosting Schedule 5787",
   "icons": [
     {
-      "src": "icons/icon.svg",
+      "src": "icons/ohrsom-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon.svg",
+      "src": "icons/ohrsom-icon.svg",
       "sizes": "192x192 512x512",
       "type": "image/svg+xml"
     }
