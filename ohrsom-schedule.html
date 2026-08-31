@@ -11,7 +11,7 @@
   
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon.svg">
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="ohrsom-manifest.json">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -181,68 +181,24 @@
     .container {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 14px;
+      padding: 12px 14px;
       width: 100%;
     }
 
-    /* ── Banner ── */
-    .yomtov-hero-banner {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(168, 85, 247, 0.12));
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .yomtov-hero-info h2 {
-      font-size: 1rem;
-      font-weight: 800;
-      color: #fbbf24;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .yomtov-hero-info p {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .yomtov-quick-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .yom-badge {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--ink);
-    }
-
-    /* ── Controls ── */
+    /* ── Controls Bar ── */
     .controls-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
     .month-nav {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .month-title {
@@ -280,12 +236,18 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* ── Filter Bar ── */
-    .filter-bar-container {
+    /* ── Two-Row Filter System (Never blocks horizontal scrolling) ── */
+    .filter-system-wrap {
       display: flex;
+      flex-direction: column;
       gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .filter-row-top {
+      display: flex;
       align-items: center;
-      margin-bottom: 14px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -302,14 +264,16 @@
       cursor: pointer;
     }
 
-    .filter-scroll {
+    .filter-row-categories {
       display: flex;
       gap: 6px;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
-      flex: 1;
+      width: 100%;
+      padding-bottom: 2px;
     }
-    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-row-categories::-webkit-scrollbar { display: none; }
 
     .filter-chip {
       background: var(--surface);
@@ -352,7 +316,7 @@
       font-weight: 800;
     }
 
-    /* ── PIXEL-PERFECT CALENDAR GRID (Zero cut-out on phone) ── */
+    /* ── Expandable Calendar Grid (Zero cut-out on phone) ── */
     .calendar-grid-card {
       background: var(--surface);
       border: 1px solid var(--surface-border);
@@ -388,7 +352,7 @@
 
     .cal-day-cell {
       background: var(--surface);
-      min-height: 90px;
+      min-height: 85px;
       padding: 4px 4px;
       display: flex;
       flex-direction: column;
@@ -396,8 +360,22 @@
       cursor: pointer;
       transition: all 0.15s ease;
       position: relative;
-      min-width: 0; /* CRITICAL: prevents grid blowouts on mobile */
+      min-width: 0; /* CRITICAL: prevents grid blowouts */
       overflow: hidden;
+    }
+
+    /* Expanded Big View Mode */
+    .calendar-grid-card.is-expanded .cal-day-cell {
+      min-height: 140px;
+      padding: 6px 5px;
+    }
+
+    .calendar-grid-card.is-expanded .cal-event-pill {
+      font-size: 0.72rem;
+      padding: 3px 5px;
+      line-height: 1.25;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .cal-day-cell:hover {
@@ -460,7 +438,6 @@
       min-width: 0;
     }
 
-    /* Event pills inside cells (Compact, elegant, never overflows) */
     .cal-event-pill {
       font-size: 0.65rem;
       font-weight: 700;
@@ -1111,18 +1088,6 @@
 
   <main class="container">
 
-    <!-- Yom Tov Notice Banner -->
-    <div class="yomtov-hero-banner">
-      <div class="yomtov-hero-info">
-        <h2>✡️ High Holidays & Sukkot 2026</h2>
-        <p>RH (Sept 11–13) · YK (Sept 20–21) · Sukkot (Sept 25–Oct 4) · Simchat Torah (Oct 3–4)</p>
-      </div>
-      <div class="yomtov-quick-badges">
-        <span class="yom-badge">🕯️ RH Mincha: 6:00 PM</span>
-        <span class="yom-badge">🌿 Final Fridays Sukkah: Sept 25</span>
-      </div>
-    </div>
-
     <!-- Controls Bar -->
     <div class="controls-bar">
       <div class="month-nav">
@@ -1131,32 +1096,44 @@
         <button class="btn btn-secondary" onclick="changeMonth(1)">▶</button>
       </div>
 
-      <div class="view-segmented">
-        <button class="view-seg-btn active" id="viewCalBtn" onclick="switchView('calendar')">📅 Month</button>
-        <button class="view-seg-btn" id="viewListBtn" onclick="switchView('timeline')">📋 List</button>
-        <button class="view-seg-btn" id="viewHostingBtn" onclick="switchView('hosting')">🍽️ Meals</button>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <button class="btn btn-secondary" id="expandCalBtn" onclick="toggleCalendarExpand()" style="font-size: 0.75rem; padding: 5px 9px;">
+          ↕️ Expand
+        </button>
+        <div class="view-segmented">
+          <button class="view-seg-btn active" id="viewCalBtn" onclick="switchView('calendar')">📅 Month</button>
+          <button class="view-seg-btn" id="viewListBtn" onclick="switchView('timeline')">📋 List</button>
+          <button class="view-seg-btn" id="viewHostingBtn" onclick="switchView('hosting')">🍽️ Meals</button>
+        </div>
       </div>
     </div>
 
-    <!-- Filter Bar: My Items + Person/Family Dropdown + Category Chips -->
-    <div class="filter-bar-container">
-      <select class="person-filter-select" id="personFilterSelect" onchange="handlePersonFilterChange(this.value)">
-        <option value="all">👥 All People & Families</option>
-        <option value="Cannons">🏠 Cannons</option>
-        <option value="Bati">👤 Bini Bati</option>
-        <option value="Ryan">👤 Ryan</option>
-        <option value="Perelmans">🏠 Perelmans</option>
-        <option value="Salmons">🏠 Salmons</option>
-      </select>
+    <!-- ── Two-Row Filter System (Never blocks horizontal category scrolling) ── -->
+    <div class="filter-system-wrap">
+      <!-- Row 1: People / Family filter + My Items -->
+      <div class="filter-row-top">
+        <select class="person-filter-select" id="personFilterSelect" onchange="handlePersonFilterChange(this.value)">
+          <option value="all">👥 All People & Families</option>
+          <option value="Cannons">🏠 Cannons</option>
+          <option value="Bati">👤 Bini Bati</option>
+          <option value="Ryan">👤 Ryan</option>
+          <option value="Perelmans">🏠 Perelmans</option>
+          <option value="Salmons">🏠 Salmons</option>
+        </select>
+        <div id="myItemsChipContainer">
+          <!-- Rendered dynamically if logged in -->
+        </div>
+      </div>
 
-      <div class="filter-scroll" id="dynamicFilterChips">
+      <!-- Row 2: Categories Horizontal Scroll Ribbon -->
+      <div class="filter-row-categories" id="dynamicCategoryFilterChips">
         <!-- Rendered dynamically -->
       </div>
     </div>
 
     <!-- Calendar View Container (100% Width, Zero Cut-off) -->
     <div id="calendarViewContainer">
-      <div class="calendar-grid-card">
+      <div class="calendar-grid-card" id="mainCalendarGridCard">
         <div class="cal-weekdays">
           <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span>
           <span>THU</span><span>FRI</span><span>SAT</span>
@@ -1397,7 +1374,7 @@
     </div>
   </div>
 
-  <!-- ══ DOWNLOAD APP MODAL ══ -->
+  <!-- ══ DOWNLOAD APP MODAL (Dedicated Ohrsom PWA) ══ -->
   <div class="modal-overlay" id="downloadModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -1405,7 +1382,7 @@
           <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🌿</div>
           <div>
             <h2 style="font-size: 1.15rem; font-weight: 800;">Install Ohrsom App</h2>
-            <p style="font-size: 0.75rem; color: var(--muted);">Add to Home Screen for 1-tap access</p>
+            <p style="font-size: 0.75rem; color: var(--muted);">Standalone app (independent from CRM)</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
@@ -1422,7 +1399,7 @@
         <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; font-size: 0.82rem;">
           1. Tap the <strong>Share ⎋</strong> button at the bottom of Safari.<br>
           2. Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.<br>
-          3. Tap <strong>Add</strong> in the top-right corner.
+          3. Tap <strong>Add</strong>. It will install with its own <strong>Ohrsom Hub</strong> icon!
         </div>
 
         <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin: 12px 0 6px;">🤖 Android / Chrome:</h4>
@@ -1816,6 +1793,7 @@
     let isAdmin = false;
     let adminFirstName = "";
     let adminSurname = "";
+    let isCalendarExpanded = false;
     let currentModalAssignees = [];
     let currentModalAudiences = [];
     let deferredPrompt = null;
@@ -1844,7 +1822,6 @@
         reminderLogs = JSON.parse(localStorage.getItem("ohrsom_reminder_logs") || "null") || [];
       } catch { reminderLogs = []; }
 
-      // Seed initial sample reminder log if empty
       if (!reminderLogs.length) {
         reminderLogs = [
           { time: "Aug 31, 6:00 PM", recipient: "All Team", event: "Rosh Hashanah Schedule Initialized", status: "System Ready" },
@@ -1931,24 +1908,47 @@
       select.innerHTML = html;
     }
 
+    // ── Two-Row Filter System Rendering ──
     function renderFilterChips() {
-      const container = document.getElementById("dynamicFilterChips");
-      if (!container) return;
-      let html = `<button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">✨ All</button>`;
-      if (adminSurname || adminFirstName) {
-        const dn = adminFirstName ? `${adminFirstName} ${adminSurname}`.trim() : adminSurname;
-        html += `<button class="filter-chip filter-chip-myitems ${currentFilter === 'my_items' ? 'active' : ''}" onclick="setFilter('my_items')">⭐ My Items (${dn})</button>`;
+      const myItemsContainer = document.getElementById("myItemsChipContainer");
+      const catContainer = document.getElementById("dynamicCategoryFilterChips");
+      if (!catContainer) return;
+
+      // Row 1: My Items
+      if (myItemsContainer) {
+        if (adminSurname || adminFirstName) {
+          const dn = adminFirstName ? `${adminFirstName} ${adminSurname}`.trim() : adminSurname;
+          myItemsContainer.innerHTML = `
+            <button class="filter-chip filter-chip-myitems ${currentFilter === 'my_items' ? 'active' : ''}" onclick="setFilter('my_items')">
+              ⭐ My Items (${dn})
+            </button>
+          `;
+        } else {
+          myItemsContainer.innerHTML = "";
+        }
       }
+
+      // Row 2: Categories Scroll Ribbon (Full width, smooth scrolling)
+      let html = `<button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">✨ All</button>`;
       categories.forEach(cat => {
         if (!isAdmin && cat.isInternal) return;
         const icon = cat.icon ? `<span>${cat.icon}</span>` : '';
         html += `<button class="filter-chip ${currentFilter === cat.id ? 'active' : ''}" onclick="setFilter('${cat.id}')">${icon}<span>${cat.name}</span></button>`;
       });
-      container.innerHTML = html;
+      catContainer.innerHTML = html;
     }
 
     function handlePersonFilterChange(person) { currentPersonFilter = person; render(); }
     function setFilter(filter) { currentFilter = filter; renderFilterChips(); render(); }
+
+    function toggleCalendarExpand() {
+      isCalendarExpanded = !isCalendarExpanded;
+      const card = document.getElementById("mainCalendarGridCard");
+      const btn = document.getElementById("expandCalBtn");
+      if (card) card.classList.toggle("is-expanded", isCalendarExpanded);
+      if (btn) btn.innerHTML = isCalendarExpanded ? "↕️ Compact" : "↕️ Expand";
+      renderCalendarGrid();
+    }
 
     function isEventAssignedToUser(ev) {
       if (!adminSurname && !adminFirstName) return false;
@@ -2179,20 +2179,23 @@
       }
     }
 
-    // ══ MARK AS COMPLETE / PENDING TOGGLE ══
+    // ══ MARK AS COMPLETE / PENDING TOGGLE (Admin Action Items Only) ══
     function toggleEventComplete(id) {
       if (!isAdmin) return;
       const e = events.find(ev => ev.id === id);
       if (!e) return;
+      // Restrict complete to admin action items only
+      if (e.type !== "action" && !e.isInternal) return;
+
       e.isCompleted = !e.isCompleted;
       const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Admin";
-      logReminderActivity(fullName, e.title, e.isCompleted ? "✅ Marked Complete" : "↩️ Marked Pending");
+      logReminderActivity(fullName, e.title, e.isCompleted ? "✅ Task Completed" : "↩️ Task Pending");
       saveEvents();
       render();
       openDayOverviewModal(selectedDateKey);
     }
 
-    // ══ DAY / EVENT OVERVIEW POP-UP MODAL (Clean, readable overview before edit) ══
+    // ══ DAY / EVENT OVERVIEW POP-UP MODAL ══
     function openDayOverviewModal(dateKey, highlightEventId = null) {
       selectedDateKey = dateKey;
       const d = new Date(dateKey + "T00:00:00");
@@ -2220,7 +2223,8 @@
           const assigneesHtml = assignees.map(a => `<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
           const audiencesHtml = audiences.map(a => `<span class="event-tag" style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35); color:#d8b4fe;">👥 ${a}</span>`).join(" ");
 
-          const completeTag = e.isCompleted 
+          const isActionTask = (e.type === "action" || e.isInternal);
+          const completeTag = (isActionTask && e.isCompleted) 
             ? `<span class="event-tag completed-badge">✅ Complete</span>` 
             : "";
 
@@ -2228,7 +2232,7 @@
             ? `<div class="internal-note-box" style="margin-top:6px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
             : "";
 
-          const completeBtnHtml = isAdmin ? `
+          const completeBtnHtml = (isAdmin && isActionTask) ? `
             <button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="toggleEventComplete('${e.id}')">
               ${e.isCompleted ? '↩️ Mark Pending' : '✅ Mark Complete'}
             </button>
@@ -2248,7 +2252,7 @@
           const isHighlighted = (highlightEventId === e.id);
 
           return `
-            <div class="overview-event-item ${e.isCompleted ? 'is-completed' : ''}" style="border-left: 4px solid ${e.isCompleted ? 'var(--muted)' : cat.color}; ${isHighlighted ? 'box-shadow: 0 0 0 2px var(--accent); background:#162433;' : ''}">
+            <div class="overview-event-item ${e.isCompleted ? 'is-completed' : ''}" style="border-left: 4px solid ${(isActionTask && e.isCompleted) ? 'var(--muted)' : cat.color}; ${isHighlighted ? 'box-shadow: 0 0 0 2px var(--accent); background:#162433;' : ''}">
               <div class="overview-event-item-top">
                 <div style="min-width:0; flex:1;">
                   <div class="overview-event-item-title">${e.title}</div>
@@ -2475,7 +2479,7 @@
       render();
     }
 
-    // ══ CALENDAR GRID (Zero cut-off on mobile) ══
+    // ══ CALENDAR GRID ══
     function renderCalendarGrid() {
       const grid = document.getElementById("calendarDaysGrid");
       grid.innerHTML = "";
@@ -2584,11 +2588,17 @@
       const audiences = e.audiences || (e.audience ? [e.audience] : []);
       const assigneesHtml = assigneesList.map(a => `<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
       const audiencesHtml = audiences.map(a => `<span class="event-tag" style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35); color:#d8b4fe;">👥 ${a}</span>`).join(" ");
-      const completeTag = e.isCompleted ? `<span class="event-tag completed-badge">✅ Done</span>` : '';
+      
+      const isActionTask = (e.type === "action" || e.isInternal);
+      const completeTag = (isActionTask && e.isCompleted) ? `<span class="event-tag completed-badge">✅ Done</span>` : '';
+
+      const completeBtnHtml = (isAdmin && isActionTask) 
+        ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️' : '✅'}</button>` 
+        : '';
 
       const editBtnHtml = isAdmin
         ? `
-          <button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️' : '✅'}</button>
+          ${completeBtnHtml}
           <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
         `
         : `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Overview</button>`;
@@ -2598,7 +2608,7 @@
         : "";
 
       return `
-        <div class="event-card ${e.isCompleted ? 'is-completed' : ''}" style="border-left:4px solid ${e.isCompleted ? 'var(--muted)' : cat.color};" onclick="openDayOverviewModal('${e.date}', '${e.id}')">
+        <div class="event-card ${e.isCompleted ? 'is-completed' : ''}" style="border-left:4px solid ${(isActionTask && e.isCompleted) ? 'var(--muted)' : cat.color};" onclick="openDayOverviewModal('${e.date}', '${e.id}')">
           <div class="event-card-left">
             <div class="event-date-block">
               <div class="date-month">${mn}</div>
