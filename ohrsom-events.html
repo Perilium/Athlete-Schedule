@@ -1410,6 +1410,26 @@
         </div>
       </div>
 
+      <!-- Notification Targeting Preference -->
+      <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
+        <div style="font-size: 0.82rem; font-weight: 800; color: var(--accent); margin-bottom: 3px;">
+          🎯 Notification Delivery Profile:
+        </div>
+        <div id="notifActiveUserLabel" style="font-size: 0.75rem; color: var(--muted); margin-bottom: 8px;">
+          Active Device Profile: <strong>Public Visitor</strong>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+            <input type="radio" name="notifTargetFilter" id="notifTargetAssigned" value="assigned" checked onchange="setNotifTargetPreference('assigned')">
+            <span><strong>My Assigned Events Only</strong> (Recommended)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+            <input type="radio" name="notifTargetFilter" id="notifTargetAll" value="all" onchange="setNotifTargetPreference('all')">
+            <span>All Community Events</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Live Scheduled Upcoming Reminders -->
       <div style="margin-bottom: 14px;">
         <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 6px;" id="upcomingRemindersListHeader">
@@ -1450,15 +1470,28 @@
         <div style="display: flex; align-items: center; gap: 10px;">
           <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">⚙️</div>
           <div>
-            <h2 style="font-size: 1.1rem; font-weight: 800;">Settings & Categories</h2>
-            <p style="font-size: 0.75rem; color: var(--muted);">Edit categories, audiences & reminder logs</p>
+            <h2 style="font-size: 1.1rem; font-weight: 800;">Settings & Team Control</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Manage assignees, categories & audience presets</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
       </div>
 
+      <!-- Assignees / Team Members Manager -->
+      <div style="margin-bottom: 14px; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px;">
+        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">👥 Team Members & Assignees</h4>
+        <div id="settingsTeamList" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+          <!-- Rendered dynamically -->
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="newTeamMemberInput" class="form-control" placeholder="Add new team member / family..." style="flex: 1; padding: 6px 10px; font-size: 0.82rem;">
+          <button class="btn btn-secondary" onclick="addTeamMemberPreset()" type="button" style="padding: 6px 12px; font-size: 0.78rem;">➕ Add</button>
+        </div>
+      </div>
+
+      <!-- Active Categories -->
       <div style="margin-bottom: 14px;">
-        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">Active Categories</h4>
+        <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase; margin-bottom: 6px;">Active Categories</h4>
         <div id="settingsCategoryList">
           <!-- Rendered dynamically -->
         </div>
@@ -1691,6 +1724,20 @@
           <textarea id="eventNotesInput" class="form-control" rows="2" placeholder="Visible to all attendees..."></textarea>
         </div>
 
+        <!-- Reminder Timing Selector -->
+        <div class="form-group">
+          <label for="eventReminderTimingInput">⏰ Scheduled Reminder Timing</label>
+          <select id="eventReminderTimingInput" class="form-control">
+            <option value="morning_830">🌅 Morning of Event (8:30 AM) [Default]</option>
+            <option value="morning_800">🌅 Morning of Event (8:00 AM)</option>
+            <option value="1h_before">⏱️ 1 Hour Before Event</option>
+            <option value="2h_before">⏱️ 2 Hours Before Event</option>
+            <option value="1d_before">📅 1 Day Before (9:00 AM)</option>
+            <option value="30m_before">⚡ 30 Minutes Before</option>
+            <option value="none">🔕 No Automatic Reminder</option>
+          </select>
+        </div>
+
         <div class="form-group" id="internalNotesFieldWrap">
           <label for="eventInternalNotesInput" style="color: #fda4af;">🔒 Admin Notes (Private)</label>
           <textarea id="eventInternalNotesInput" class="form-control" rows="2" placeholder="Private checklist, prep notes..." style="border-color: rgba(244, 63, 94, 0.4);"></textarea>
@@ -1703,12 +1750,25 @@
           </label>
         </div>
 
-        <div style="display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap;">
-          <button type="submit" class="btn btn-primary" id="saveEventBtn" style="flex: 1; min-width: 80px;">💾 Save</button>
-          <button type="button" class="btn btn-secondary" id="deleteEventBtn" onclick="deleteCurrentEvent()" style="color: var(--rose);">🗑️</button>
-          <button type="button" class="btn btn-secondary" onclick="copyCurrentEvent()">📋 Copy</button>
-          <button type="button" class="btn btn-secondary" id="moveEventBtn" onclick="openMoveEventModal()">📅 Move</button>
-          <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()">💬 Share</button>
+        <!-- Clean, Large, Touch-Friendly Action Buttons -->
+        <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary" id="saveEventBtn" style="flex: 2; min-width: 120px; padding: 11px 16px; font-size: 0.95rem; font-weight: 800; justify-content: center;">
+            💾 Save Event
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()" style="flex: 1; min-width: 100px; padding: 11px 14px; font-size: 0.88rem; font-weight: 700; justify-content: center;">
+            💬 WhatsApp
+          </button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary" onclick="copyCurrentEvent()" style="flex: 1; padding: 9px 12px; font-size: 0.82rem; justify-content: center;">
+            📋 Copy
+          </button>
+          <button type="button" class="btn btn-secondary" id="moveEventBtn" onclick="openMoveEventModal()" style="flex: 1; padding: 9px 12px; font-size: 0.82rem; justify-content: center;">
+            📅 Move
+          </button>
+          <button type="button" class="btn btn-secondary" id="deleteEventBtn" onclick="deleteCurrentEvent()" style="padding: 9px 14px; font-size: 0.82rem; color: var(--rose); justify-content: center;">
+            🗑️ Delete
+          </button>
         </div>
       </form>
     </div>
@@ -1746,7 +1806,7 @@
     });
 
     // ══ DATA PRESETS ══
-    const TEAM_PRESETS = [
+    const DEFAULT_TEAM_PRESETS = [
       "Cannons",
       "Rabbi Cannon",
       "Jodi Cannon",
@@ -1756,6 +1816,7 @@
       "Avi Perelman",
       "Salmons"
     ];
+    let teamPresets = [];
 
     const DEFAULT_AUDIENCE_PRESETS = [
       "Students & Community",
@@ -2021,6 +2082,11 @@
       }
 
       try {
+        teamPresets = JSON.parse(localStorage.getItem("ohrsom_team_presets") || "null") || [];
+      } catch { teamPresets = []; }
+      if (!teamPresets.length) teamPresets = [...DEFAULT_TEAM_PRESETS];
+
+      try {
         audiencePresets = JSON.parse(localStorage.getItem("ohrsom_audience_presets") || "null") || [];
       } catch { audiencePresets = []; }
       if (!audiencePresets.length) audiencePresets = [...DEFAULT_AUDIENCE_PRESETS];
@@ -2049,6 +2115,7 @@
         if (!e.assignees) e.assignees = e.assignee ? [e.assignee] : [];
         if (!e.audiences) e.audiences = e.audience ? [e.audience] : [];
         if (e.isCompleted === undefined) e.isCompleted = false;
+        if (!e.reminderTiming) e.reminderTiming = "morning_830";
       });
 
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -2065,6 +2132,7 @@
     }
 
     function saveCategories() { localStorage.setItem("ohrsom_categories_data", JSON.stringify(categories)); }
+    function saveTeamPresets() { localStorage.setItem("ohrsom_team_presets", JSON.stringify(teamPresets)); }
     function saveEvents() { localStorage.setItem("ohrsom_events_data", JSON.stringify(events)); }
     function saveAudiencePresets() { localStorage.setItem("ohrsom_audience_presets", JSON.stringify(audiencePresets)); }
     function saveReminderLogs() { localStorage.setItem("ohrsom_reminder_logs", JSON.stringify(reminderLogs)); }
@@ -2396,7 +2464,20 @@
       const testSelect = document.getElementById("testReminderEventSelect");
       const fullName = `${adminFirstName} ${adminSurname}`.trim();
 
-      headerEl.textContent = fullName 
+      const label = document.getElementById("notifActiveUserLabel");
+      if (label) {
+        label.innerHTML = fullName 
+          ? `Active Device Profile: <strong>👤 ${fullName}</strong> (Admin Logged In)` 
+          : `Active Device Profile: <strong>Public Viewer</strong> (Log in as Admin to filter alerts to your assigned items)`;
+      }
+
+      const notifPref = localStorage.getItem("ohrsom_notif_mode") || "assigned";
+      const assRadio = document.getElementById("notifTargetAssigned");
+      const allRadio = document.getElementById("notifTargetAll");
+      if (assRadio) assRadio.checked = (notifPref === "assigned");
+      if (allRadio) allRadio.checked = (notifPref === "all");
+
+      headerEl.textContent = (fullName && notifPref === 'assigned') 
         ? `📋 Scheduled Reminders for ${fullName}:` 
         : `📋 Scheduled Yom Tov Reminders:`;
 
@@ -2405,20 +2486,23 @@
           const cat = getCategory(e.type);
           const d = new Date(e.date + "T00:00:00");
           const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          let rule = "1h before";
-          if (e.type === "meal") rule = "2h before";
-          if (e.type === "action") rule = "8:30 AM Morning-Of";
+          let rule = "8:30 AM Morning-Of";
+          if (e.reminderTiming === "1h_before") rule = "1h before";
+          else if (e.reminderTiming === "2h_before") rule = "2h before";
+          else if (e.reminderTiming === "1d_before") rule = "1d before";
+          else if (e.reminderTiming === "30m_before") rule = "30m before";
+          else if (e.reminderTiming === "none") rule = "No alert";
           return `<option value="${e.id}">${cat.icon || '•'} ${e.title} (${rule} · ${dateStr})</option>`;
         }).join("");
       }
 
       const myEvents = events.filter(e => {
-        if (fullName) return isEventAssignedToUser(e) || e.type === "shul" || e.type === "event";
+        if (fullName && notifPref === 'assigned') return isEventAssignedToUser(e) || e.type === "shul" || e.type === "event";
         return !e.isInternal;
       }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
       if (myEvents.length === 0) {
-        listContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:10px;">No upcoming reminders found.</div>`;
+        listContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:10px;">No upcoming reminders found for your profile.</div>`;
       } else {
         listContainer.innerHTML = myEvents.slice(0, 8).map(e => {
           const d = new Date(e.date + "T00:00:00");
@@ -2440,6 +2524,32 @@
 
       renderReminderLogsUI();
       document.getElementById("remindersCenterModal").classList.add("active");
+    }
+
+    function setNotifTargetPreference(mode) {
+      localStorage.setItem("ohrsom_notif_mode", mode);
+      openRemindersCenterModal();
+      showInAppNotification("Notification Profile Updated", mode === "assigned" ? "Reminders targeted to your assigned items." : "Reminders active for all community items.");
+    }
+
+    // ══ INSTANT NUDGE ASSIGNEE VIA WHATSAPP ("Has this been done?") ══
+    function nudgeAssignee(id) {
+      const e = events.find(ev => ev.id === id);
+      if (!e) return;
+      const assigneesList = e.assignees || (e.assignee ? [e.assignee] : []);
+      const targetPerson = assigneesList.length ? assigneesList.join(" & ") : "Team Member";
+      const d = new Date(e.date + "T00:00:00");
+      const formattedDate = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      
+      const text = `Hi ${targetPerson}! 👋 Quick Yom Tov check-in regarding:\n*${e.title}*\n📅 ${formattedDate}${e.time ? ` at ${e.time}` : ''}\n🏡 Location: ${e.host || 'Ohrsom'}\n\nHas this been completed / confirmed yet? 🌿`;
+      
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank");
+      
+      const adminName = `${adminFirstName} ${adminSurname}`.trim() || "Admin";
+      logReminderActivity(adminName, e.title, `💬 Nudge Sent to ${targetPerson}`);
+      renderReminderLogsUI();
+      showInAppNotification("WhatsApp Nudge Prepared 💬", `Check-in reminder message generated for ${targetPerson}.`);
     }
 
     function closeRemindersCenterModal() {
@@ -2577,22 +2687,11 @@
             ? `<div class="internal-note-box" style="margin-top:6px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
             : "";
 
-          const completeBtnHtml = (isAdmin && isActionTask) ? `
-            <button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="toggleEventComplete('${e.id}')">
-              ${e.isCompleted ? '↩️ Mark Pending' : '✅ Mark Complete'}
+          const nudgeBtnHtml = (assignees.length > 0) ? `
+            <button class="btn btn-primary" style="flex: 1.5; min-height: 38px; font-size: 0.8rem; font-weight: 800; background: rgba(45, 212, 191, 0.15); border: 1px solid var(--accent); color: var(--accent); justify-content: center;" onclick="nudgeAssignee('${e.id}')">
+              💬 Nudge Assignee: "Has this been done?"
             </button>
           ` : '';
-
-          const adminButtons = isAdmin ? `
-            ${completeBtnHtml}
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="openEditFromOverview('${e.id}')">✏️ Edit</button>
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="copyEventDirectly('${e.id}')">📋 Copy</button>
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="openMoveEventModalForId('${e.id}')">📅 Move</button>
-            <button class="snooze-quick-btn" onclick="snoozeReminderForEvent('${e.id}', 1)">⏰ +1h</button>
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem; color:var(--rose);" onclick="deleteEventDirectly('${e.id}')">🗑️</button>
-          ` : `
-            <button class="snooze-quick-btn" onclick="snoozeReminderForEvent('${e.id}', 1)">⏰ Remind in 1h</button>
-          `;
 
           const isHighlighted = (highlightEventId === e.id);
 
@@ -2616,9 +2715,41 @@
               ${e.notes ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:3px;">📝 ${e.notes}</div>` : ''}
               ${internalHtml}
 
-              <div class="overview-btn-bar">
-                ${adminButtons}
-                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="shareWhatsAppDirect('${e.id}')">💬 WhatsApp</button>
+              <!-- Clean, Large, Touch-Friendly Action Buttons -->
+              <div class="overview-btn-bar" style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                <!-- Row 1: Primary Actions -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  ${(isAdmin && isActionTask) ? `
+                    <button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="flex: 1; min-height: 40px; font-size: 0.85rem; font-weight: 800; justify-content: center;" onclick="toggleEventComplete('${e.id}')">
+                      ${e.isCompleted ? '↩️ Mark Pending' : '✅ Mark Complete'}
+                    </button>
+                  ` : ''}
+                  ${isAdmin ? `
+                    <button class="btn btn-secondary" style="flex: 1; min-height: 40px; font-size: 0.85rem; font-weight: 700; justify-content: center;" onclick="openEditFromOverview('${e.id}')">
+                      ✏️ Edit Event
+                    </button>
+                  ` : ''}
+                </div>
+
+                <!-- Row 2: Communication & Check-in -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  ${nudgeBtnHtml}
+                  <button class="btn btn-secondary" style="min-height: 38px; font-size: 0.8rem; justify-content: center; padding: 0 12px;" onclick="shareWhatsAppDirect('${e.id}')">
+                    💬 Share
+                  </button>
+                  <button class="snooze-quick-btn" style="min-height: 38px; font-size: 0.8rem; padding: 0 12px;" onclick="snoozeReminderForEvent('${e.id}', 1)">
+                    ⏰ +1h
+                  </button>
+                </div>
+
+                <!-- Row 3: Admin Management Tools -->
+                ${isAdmin ? `
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+                    <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.75rem;" onclick="copyEventDirectly('${e.id}')">📋 Copy</button>
+                    <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.75rem;" onclick="openMoveEventModalForId('${e.id}')">📅 Move</button>
+                    <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.75rem; color: var(--rose); margin-left: auto;" onclick="deleteEventDirectly('${e.id}')">🗑️ Delete</button>
+                  </div>
+                ` : ''}
               </div>
             </div>
           `;
@@ -2681,11 +2812,43 @@
     // ══ SETTINGS MODAL ══
     function openSettingsModal() {
       if (!isAdmin) return;
+      renderTeamPresetManager();
       renderSettingsCategoryList();
       renderAudiencePresetManager();
       document.getElementById("settingsModal").classList.add("active");
     }
     function closeSettingsModal() { document.getElementById("settingsModal").classList.remove("active"); }
+
+    // ══ TEAM MEMBERS & ASSIGNEES MANAGER ══
+    function renderTeamPresetManager() {
+      const container = document.getElementById("settingsTeamList");
+      if (!container) return;
+      container.innerHTML = teamPresets.map((p, i) => `
+        <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(56,189,248,0.15); border:1px solid var(--blue); color:#7dd3fc; padding:4px 10px; border-radius:999px; font-size:0.78rem; font-weight:800;">
+          👤 ${p}
+          <span style="cursor:pointer; color:#cbd5e1; margin-left:3px;" onclick="deleteTeamMemberPreset(${i})" title="Remove">✕</span>
+        </span>
+      `).join("");
+    }
+
+    function addTeamMemberPreset() {
+      const input = document.getElementById("newTeamMemberInput");
+      const val = input.value.trim();
+      if (!val || teamPresets.includes(val)) return;
+      teamPresets.push(val);
+      saveTeamPresets();
+      renderTeamPresetManager();
+      renderFilterChips();
+      input.value = "";
+    }
+
+    function deleteTeamMemberPreset(i) {
+      if (teamPresets.length <= 1) { alert("Must keep at least one team member."); return; }
+      teamPresets.splice(i, 1);
+      saveTeamPresets();
+      renderTeamPresetManager();
+      renderFilterChips();
+    }
 
     function renderSettingsCategoryList() {
       const list = document.getElementById("settingsCategoryList");
@@ -2936,16 +3099,24 @@
       const completeTag = (isActionTask && e.isCompleted) ? `<span class="event-tag completed-badge">✅ Done</span>` : '';
 
       const completeBtnHtml = (isAdmin && isActionTask) 
-        ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️ Pending' : '✅ Done'}</button>` 
+        ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding: 5px 10px; font-size: 0.75rem; font-weight: 800;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️ Pending' : '✅ Done'}</button>` 
+        : '';
+
+      const nudgeBtnHtml = (assigneesList.length > 0) 
+        ? `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; color: var(--accent); font-weight: 700;" onclick="event.stopPropagation(); nudgeAssignee('${e.id}')">💬 Nudge</button>` 
         : '';
 
       const editBtnHtml = isAdmin
         ? `
           ${completeBtnHtml}
-          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
-          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); copyEventDirectly('${e.id}')">📋 Copy</button>
+          ${nudgeBtnHtml}
+          <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
+          <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); copyEventDirectly('${e.id}')">📋 Copy</button>
         `
-        : `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Details</button>`;
+        : `
+          ${nudgeBtnHtml}
+          <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Details</button>
+        `;
 
       const internalHtml = (isAdmin && e.internalNotes) 
         ? `<div class="internal-note-box" style="margin-top:6px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
@@ -3058,7 +3229,7 @@
       chips.innerHTML = currentModalAssignees.length
         ? currentModalAssignees.map((n, i) => `<span class="assignee-chip-selected">👤 ${n}<span class="assignee-chip-remove" onclick="removeAssignee(${i})">✕</span></span>`).join("")
         : `<span style="font-size:0.75rem; color:var(--muted);">No assignees selected</span>`;
-      pills.innerHTML = TEAM_PRESETS.map(p => {
+      pills.innerHTML = teamPresets.map(p => {
         const active = currentModalAssignees.includes(p);
         return `<button type="button" class="quick-assign-btn ${active ? 'is-active' : ''}" onclick="toggleAssigneePreset('${p}')">${active ? '✓ ' : '+ '}${p}</button>`;
       }).join("");
@@ -3129,6 +3300,9 @@
       document.getElementById("eventInternalNotesInput").value = "";
       document.getElementById("eventIsInternalInput").checked = false;
 
+      const timingInput = document.getElementById("eventReminderTimingInput");
+      if (timingInput) timingInput.value = "morning_830";
+
       const defaultAssignees = adminSurname ? [adminSurname] : adminFirstName ? [adminFirstName] : [];
       const defaultAudiences = ["Students & Community"];
       renderAssigneeUI(defaultAssignees);
@@ -3162,6 +3336,9 @@
       document.getElementById("eventInternalNotesInput").value = e.internalNotes || "";
       document.getElementById("eventIsInternalInput").checked = !!e.isInternal;
 
+      const timingInput = document.getElementById("eventReminderTimingInput");
+      if (timingInput) timingInput.value = e.reminderTiming || "morning_830";
+
       renderAssigneeUI(e.assignees || (e.assignee ? [e.assignee] : []));
       renderAudienceUI(e.audiences || (e.audience ? [e.audience] : []));
 
@@ -3176,7 +3353,7 @@
     }
 
     function setFormDisabled(d) {
-      ["eventTitleInput", "eventDateInput", "eventTimeInput", "eventTypeInput", "eventHostInput", "eventNotesInput", "eventInternalNotesInput", "eventIsInternalInput"].forEach(id => {
+      ["eventTitleInput", "eventDateInput", "eventTimeInput", "eventTypeInput", "eventHostInput", "eventNotesInput", "eventInternalNotesInput", "eventIsInternalInput", "eventReminderTimingInput"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.disabled = d;
       });
@@ -3190,6 +3367,7 @@
       const id = document.getElementById("eventId").value || ("evt-" + Date.now());
       const existing = events.find(e => e.id === id);
       const isCompleted = existing ? !!existing.isCompleted : false;
+      const reminderTiming = document.getElementById("eventReminderTimingInput") ? document.getElementById("eventReminderTimingInput").value : "morning_830";
 
       const ev = {
         id,
@@ -3203,7 +3381,8 @@
         notes: document.getElementById("eventNotesInput").value.trim(),
         internalNotes: document.getElementById("eventInternalNotesInput").value.trim(),
         isInternal: document.getElementById("eventIsInternalInput").checked,
-        isCompleted
+        isCompleted,
+        reminderTiming
       };
       const idx = events.findIndex(e => e.id === id);
       if (idx >= 0) events[idx] = ev;
