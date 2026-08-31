@@ -58,14 +58,14 @@
 
     /* Top App Bar */
     .header {
-      background: rgba(15, 25, 35, 0.9);
+      background: rgba(15, 25, 35, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--surface-border);
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 12px 20px;
+      padding: 10px 16px;
     }
 
     .header-inner {
@@ -79,65 +79,63 @@
     .brand-wrap {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .brand-logo {
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       background: linear-gradient(135deg, var(--gold), #d97706);
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      flex-shrink: 0;
     }
 
     .brand-title {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: 800;
       letter-spacing: -0.02em;
+      line-height: 1.2;
     }
 
     .brand-subtitle {
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       color: var(--gold);
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
     .btn {
       font-family: inherit;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
-      padding: 8px 14px;
+      padding: 7px 12px;
       border-radius: var(--radius-sm);
       border: none;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--accent), #0d9488);
       color: #022c22;
       box-shadow: 0 4px 14px rgba(45, 212, 191, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(45, 212, 191, 0.4);
     }
 
     .btn-secondary {
@@ -155,12 +153,12 @@
       color: #fff;
       font-weight: 800;
       box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
-      animation: bounceSubtle 3s infinite;
     }
 
-    @keyframes bounceSubtle {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-2px); }
+    .btn-notify {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--gold);
+      color: #fde047;
     }
 
     .btn-admin-locked {
@@ -179,7 +177,7 @@
     .container {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 16px;
     }
 
     /* Yom Tov Banner */
@@ -187,18 +185,18 @@
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(168, 85, 247, 0.12));
       border: 1px solid rgba(245, 158, 11, 0.35);
       border-radius: var(--radius);
-      padding: 16px 20px;
-      margin-bottom: 20px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
 
     .yomtov-hero-info h2 {
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 800;
       color: #fbbf24;
       display: flex;
@@ -207,7 +205,7 @@
     }
 
     .yomtov-hero-info p {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--muted);
       margin-top: 2px;
     }
@@ -220,33 +218,33 @@
 
     .yom-badge {
       background: rgba(255, 255, 255, 0.08);
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 999px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       color: var(--ink);
     }
 
-    /* Controls: Month & View Switcher */
+    /* Controls Bar */
     .controls-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .month-nav {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .month-title {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 800;
-      min-width: 170px;
+      min-width: 150px;
     }
 
     .view-segmented {
@@ -254,7 +252,7 @@
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius-sm);
-      padding: 3px;
+      padding: 2px;
       gap: 2px;
     }
 
@@ -263,12 +261,13 @@
       border: none;
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .view-seg-btn.active {
@@ -280,10 +279,10 @@
     /* Dynamic Filter Chips */
     .filter-scroll {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       overflow-x: auto;
       padding-bottom: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       scrollbar-width: none;
     }
     .filter-scroll::-webkit-scrollbar { display: none; }
@@ -293,16 +292,17 @@
       border: 1px solid var(--surface-border);
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 700;
-      padding: 7px 16px;
+      padding: 6px 14px;
       border-radius: 999px;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s ease;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      flex-shrink: 0;
     }
 
     .filter-chip:hover {
@@ -316,28 +316,29 @@
       color: var(--accent);
     }
 
-    /* Calendar Grid View */
+    /* Desktop Calendar Grid View */
     .calendar-grid-card {
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
-      overflow-x: auto;
       box-shadow: var(--shadow);
-      margin-bottom: 30px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      width: 100%;
     }
 
     .calendar-table-wrapper {
-      min-width: 900px;
+      width: 100%;
     }
 
     .cal-weekdays {
       display: grid;
-      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      grid-template-columns: repeat(7, 1fr);
       background: var(--surface-elevated);
       border-bottom: 1px solid var(--surface-border);
       text-align: center;
-      padding: 12px 0;
-      font-size: 0.78rem;
+      padding: 10px 0;
+      font-size: 0.75rem;
       font-weight: 800;
       color: var(--muted);
       letter-spacing: 0.05em;
@@ -345,21 +346,21 @@
 
     .cal-days-grid {
       display: grid;
-      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      grid-template-columns: repeat(7, 1fr);
       gap: 1px;
       background: var(--surface-border);
     }
 
     .cal-day-cell {
       background: var(--surface);
-      min-height: 120px;
-      padding: 10px 8px;
+      min-height: 110px;
+      padding: 8px 6px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       cursor: pointer;
       transition: background 0.15s ease;
-      overflow: visible;
+      position: relative;
     }
 
     .cal-day-cell:hover {
@@ -367,56 +368,85 @@
     }
 
     .cal-day-cell.other-month {
-      opacity: 0.35;
-      background: #091119;
+      opacity: 0.3;
+      background: #081017;
     }
 
     .cal-day-cell.is-today {
-      background: rgba(45, 212, 191, 0.05);
-      border: 1px solid var(--accent);
+      background: rgba(45, 212, 191, 0.06);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    .cal-day-cell.is-selected-day {
+      background: rgba(45, 212, 191, 0.12) !important;
+      box-shadow: inset 0 0 0 2px var(--accent) !important;
     }
 
     .day-number-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 800;
-      gap: 4px;
+      gap: 2px;
     }
 
     .jewish-holiday-pill {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: 800;
       color: var(--gold);
       background: var(--gold-bg);
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 4px;
       white-space: normal;
-      line-height: 1.2;
+      line-height: 1.15;
       text-align: right;
     }
 
     .cal-event-pill {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 700;
       padding: 4px 6px;
       border-radius: 6px;
       white-space: normal;
-      line-height: 1.25;
+      line-height: 1.2;
       word-break: break-word;
       display: flex;
       align-items: flex-start;
-      gap: 5px;
+      gap: 4px;
       border-left: 3px solid;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Mobile Selected Day Events Drawer / Panel */
+    .mobile-day-agenda-section {
+      margin-top: 14px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .mobile-agenda-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .mobile-agenda-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--accent);
     }
 
     /* Timeline List View */
     .timeline-view {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 30px;
     }
 
@@ -424,91 +454,96 @@
       background: var(--surface);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
-      padding: 16px 18px;
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 14px;
+      gap: 12px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
       position: relative;
       overflow: hidden;
     }
 
-    .event-card::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-    }
-
     .event-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       border-color: rgba(255, 255, 255, 0.18);
       background: var(--surface-elevated);
-      box-shadow: var(--shadow);
     }
 
     .event-card-left {
       display: flex;
-      gap: 14px;
+      gap: 12px;
       align-items: flex-start;
+      flex: 1;
     }
 
     .event-date-block {
       background: var(--surface-elevated);
       border: 1px solid var(--surface-border);
-      border-radius: 10px;
-      min-width: 58px;
-      padding: 8px 4px;
+      border-radius: 8px;
+      min-width: 52px;
+      padding: 6px 2px;
       text-align: center;
       flex-shrink: 0;
     }
 
     .date-month {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: 800;
       text-transform: uppercase;
       color: var(--muted);
     }
 
     .date-num {
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 900;
       line-height: 1.1;
       color: var(--ink);
     }
 
     .date-weekday {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: 700;
       color: var(--accent);
     }
 
+    .event-main-details {
+      flex: 1;
+    }
+
     .event-main-details h3 {
-      font-size: 1.05rem;
+      font-size: 0.98rem;
       font-weight: 800;
       color: var(--ink);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
     .event-tags-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin: 6px 0;
+      gap: 5px;
+      margin: 4px 0;
     }
 
     .event-tag {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .assignee-badge {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #7dd3fc;
+      font-weight: 800;
     }
 
     .internal-badge {
@@ -518,11 +553,11 @@
     }
 
     .event-meta-info {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--muted);
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
       margin-top: 4px;
     }
 
@@ -536,9 +571,9 @@
       background: rgba(244, 63, 94, 0.08);
       border: 1px dashed rgba(244, 63, 94, 0.35);
       border-radius: 6px;
-      padding: 6px 10px;
-      margin-top: 8px;
-      font-size: 0.78rem;
+      padding: 5px 8px;
+      margin-top: 6px;
+      font-size: 0.75rem;
       color: #fecdd3;
     }
 
@@ -571,13 +606,13 @@
       border: 1px solid var(--surface-border);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 540px;
+      max-width: 520px;
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
       transform: scale(0.95);
       transition: transform 0.2s ease;
-      padding: 24px;
+      padding: 20px;
     }
 
     .modal-overlay.active .modal-card {
@@ -588,24 +623,23 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .modal-close-btn {
       background: rgba(255, 255, 255, 0.08);
       border: none;
       color: var(--muted);
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       cursor: pointer;
-      font-size: 1.1rem;
+      font-size: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    /* Category Settings List Items */
     .category-manage-item {
       display: flex;
       justify-content: space-between;
@@ -613,16 +647,16 @@
       background: var(--surface-elevated);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      margin-bottom: 8px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
     }
 
     .category-item-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
     }
 
     .color-swatch-picker {
@@ -633,8 +667,8 @@
     }
 
     .color-swatch {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       cursor: pointer;
       border: 2px solid transparent;
@@ -646,21 +680,20 @@
       transform: scale(1.15);
     }
 
-    /* Install Instruction Steps */
     .install-step-card {
       background: var(--surface-elevated);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      margin-bottom: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .install-step-num {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       background: var(--blue-bg);
       color: var(--blue);
       border-radius: 50%;
@@ -668,22 +701,22 @@
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       flex-shrink: 0;
     }
 
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .form-group label {
       display: block;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 800;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .form-control {
@@ -691,9 +724,9 @@
       background: var(--surface-elevated);
       border: 1px solid var(--surface-border);
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      padding: 9px 11px;
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--ink);
     }
 
@@ -709,10 +742,74 @@
       gap: 10px;
     }
 
+    /* Mobile-Specific Responsive Calendar Styles (Clean 100% Fit, Zero Horizontal Scroll) */
     @media (max-width: 768px) {
-      .header-inner { flex-wrap: wrap; gap: 10px; }
-      .month-title { font-size: 1.1rem; min-width: auto; }
+      .header-inner { flex-wrap: wrap; gap: 8px; }
+      .brand-title { font-size: 1rem; }
+      .container { padding: 10px; }
+      
+      .month-title { font-size: 1.05rem; min-width: auto; }
+      .controls-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+      .month-nav { justify-content: space-between; }
+      .view-segmented { width: 100%; justify-content: space-between; }
+      .view-seg-btn { flex: 1; text-align: center; }
+
       .form-row { grid-template-columns: 1fr; }
+
+      /* Mobile Month Grid: Fits 100% Width */
+      .cal-weekdays {
+        font-size: 0.68rem;
+        padding: 6px 0;
+      }
+
+      .cal-day-cell {
+        min-height: 54px;
+        padding: 4px 2px;
+        gap: 2px;
+        align-items: center;
+        justify-content: flex-start;
+      }
+
+      .day-number-row {
+        width: 100%;
+        justify-content: center;
+        position: relative;
+      }
+
+      .day-num-text {
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .jewish-holiday-pill {
+        display: none; /* Hide long text on tiny mobile month cell, show icon or dot */
+      }
+
+      .jewish-holiday-mobile-dot {
+        position: absolute;
+        top: -2px;
+        right: 2px;
+        font-size: 0.65rem;
+      }
+
+      /* On mobile, events in the grid cell render as colorful dots / counts */
+      .cal-event-pill {
+        display: none; /* Pill hidden in compact mobile grid */
+      }
+
+      .mobile-event-dots-wrap {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 2px;
+      }
+
+      .mobile-event-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
     }
   </style>
 </head>
@@ -732,17 +829,17 @@
         <button id="downloadAppBtn" class="btn btn-install" onclick="showDownloadModal()">
           📲 Download App
         </button>
+        <button id="notifyBtn" class="btn btn-notify" onclick="toggleNotifications()" title="Enable event & task reminders">
+          🔔 Reminders
+        </button>
         <button id="settingsBtn" class="btn btn-secondary" onclick="openSettingsModal()" style="display: none;">
-          ⚙️ Settings & Categories
+          ⚙️ Settings
         </button>
         <button id="adminToggleBtn" class="btn btn-admin-locked" onclick="handleAdminToggle()">
           🔒 Admin Login
         </button>
         <button id="addEventHeaderBtn" class="btn btn-primary" onclick="openAddEventModal()" style="display: none;">
           ➕ Add Event
-        </button>
-        <button id="exportHeaderBtn" class="btn btn-secondary" onclick="exportData()" title="Backup or download schedule" style="display: none;">
-          💾 Export
         </button>
       </div>
     </div>
@@ -753,13 +850,12 @@
     <!-- Yom Tov Notice Banner -->
     <div class="yomtov-hero-banner">
       <div class="yomtov-hero-info">
-        <h2>✡️ High Holidays & Sukkot 2026 Overview</h2>
-        <p>Rosh Hashanah (Sept 11–13) · Yom Kippur (Sept 20–21) · Sukkot (Sept 25–Oct 4) · Simchat Torah (Oct 3–4)</p>
+        <h2>✡️ High Holidays & Sukkot 2026</h2>
+        <p>RH (Sept 11–13) · YK (Sept 20–21) · Sukkot (Sept 25–Oct 4) · Simchat Torah (Oct 3–4)</p>
       </div>
       <div class="yomtov-quick-badges">
         <span class="yom-badge">🕯️ RH Mincha: 6:00 PM</span>
-        <span class="yom-badge">🌿 Final Fridays in Sukkah: Sept 25</span>
-        <span class="yom-badge">🎓 Accelerator Lunch: Sept 26</span>
+        <span class="yom-badge">🌿 Final Fridays Sukkah: Sept 25</span>
       </div>
     </div>
 
@@ -772,9 +868,9 @@
       </div>
 
       <div class="view-segmented">
-        <button class="view-seg-btn active" id="viewCalBtn" onclick="switchView('calendar')">📅 Calendar</button>
-        <button class="view-seg-btn" id="viewListBtn" onclick="switchView('timeline')">📋 Timeline</button>
-        <button class="view-seg-btn" id="viewHostingBtn" onclick="switchView('hosting')">🍽️ Hosting Only</button>
+        <button class="view-seg-btn active" id="viewCalBtn" onclick="switchView('calendar')">📅 Month</button>
+        <button class="view-seg-btn" id="viewListBtn" onclick="switchView('timeline')">📋 Schedule List</button>
+        <button class="view-seg-btn" id="viewHostingBtn" onclick="switchView('hosting')">🍽️ Meals</button>
       </div>
     </div>
 
@@ -788,17 +884,30 @@
       <div class="calendar-grid-card">
         <div class="calendar-table-wrapper">
           <div class="cal-weekdays">
-            <span>SUN</span>
-            <span>MON</span>
-            <span>TUE</span>
-            <span>WED</span>
-            <span>THU</span>
-            <span>FRI</span>
-            <span>SAT</span>
+            <span>S</span>
+            <span>M</span>
+            <span>T</span>
+            <span>W</span>
+            <span>T</span>
+            <span>F</span>
+            <span>S</span>
           </div>
           <div class="cal-days-grid" id="calendarDaysGrid">
             <!-- Rendered dynamically -->
           </div>
+        </div>
+      </div>
+
+      <!-- Mobile Selected Day Agenda Section (appears below compact grid) -->
+      <div class="mobile-day-agenda-section" id="mobileDayAgendaSection">
+        <div class="mobile-agenda-header">
+          <div class="mobile-agenda-title" id="mobileAgendaDateTitle">Events for Selected Date</div>
+          <button class="btn btn-primary" id="mobileAddDayEventBtn" onclick="openAddEventModal(selectedDateKey)" style="display: none; padding: 4px 8px; font-size: 0.75rem;">
+            ➕ Add
+          </button>
+        </div>
+        <div id="mobileDayEventsList">
+          <!-- Rendered dynamically on day click -->
         </div>
       </div>
     </div>
@@ -817,30 +926,30 @@
     <div class="modal-card">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">⚙️</div>
+          <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">⚙️</div>
           <div>
-            <h2 style="font-size: 1.15rem; font-weight: 800;">Settings & Categories</h2>
-            <p style="font-size: 0.78rem; color: var(--muted);">Click "✏️ Edit" on any category to change its name, icon, or color</p>
+            <h2 style="font-size: 1.1rem; font-weight: 800;">Settings & Categories</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Click "✏️ Edit" on any category to change name or emoji</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <h4 style="font-size: 0.85rem; color: var(--accent); text-transform: uppercase; margin-bottom: 10px;">Active Categories (Editable):</h4>
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">Active Categories:</h4>
         <div id="settingsCategoryList">
           <!-- Rendered dynamically -->
         </div>
       </div>
 
       <!-- Add New Custom Category Form -->
-      <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 14px;">
-        <h4 style="font-size: 0.85rem; color: var(--gold); text-transform: uppercase; margin-bottom: 12px;">➕ Add New Category</h4>
+      <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px;">
+        <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase; margin-bottom: 10px;">➕ Add New Category</h4>
         <form onsubmit="saveNewCustomCategory(event)">
           <div class="form-row">
             <div class="form-group">
               <label for="newCategoryName">Category Name</label>
-              <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Youth / Teens, Volunteering" required>
+              <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Logistics, Youth" required>
             </div>
             <div class="form-group">
               <label for="newCategoryIcon">Emoji Icon (Optional)</label>
@@ -862,13 +971,13 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 6px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
             ➕ Add Category
           </button>
         </form>
       </div>
 
-      <div style="margin-top: 18px; text-align: center;">
+      <div style="margin-top: 14px; text-align: center;">
         <button class="btn btn-secondary" onclick="closeSettingsModal()" style="width: 100%; justify-content: center;">
           Done
         </button>
@@ -878,27 +987,27 @@
 
   <!-- Admin Login Modal -->
   <div class="modal-overlay" id="adminLoginModal">
-    <div class="modal-card" style="max-width: 400px;">
+    <div class="modal-card" style="max-width: 380px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🔒</div>
+          <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">🔒</div>
           <div>
-            <h2 style="font-size: 1.15rem; font-weight: 800;">Admin Login</h2>
-            <p style="font-size: 0.78rem; color: var(--muted);">Enter passcode to unlock admin controls</p>
+            <h2 style="font-size: 1.1rem; font-weight: 800;">Admin Login</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Enter passcode to unlock admin controls</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeAdminLoginModal()">✕</button>
       </div>
 
       <form onsubmit="submitAdminLogin(event)">
-        <div class="form-group" style="margin-top: 10px;">
+        <div class="form-group" style="margin-top: 8px;">
           <label for="adminPasscodeInput">Passcode</label>
           <input type="password" id="adminPasscodeInput" class="form-control" placeholder="••••••••" required autocomplete="current-password" autofocus style="font-size: 1.1rem; letter-spacing: 0.1em;">
-          <p id="adminLoginError" style="color: var(--rose); font-size: 0.8rem; margin-top: 6px; display: none; font-weight: 700;">❌ Incorrect passcode. Please try again.</p>
+          <p id="adminLoginError" style="color: var(--rose); font-size: 0.78rem; margin-top: 6px; display: none; font-weight: 700;">❌ Incorrect passcode. Please try again.</p>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center; padding: 11px;">
+        <div style="display: flex; gap: 8px; margin-top: 18px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center; padding: 10px;">
             🔓 Unlock Admin
           </button>
           <button type="button" class="btn btn-secondary" onclick="closeAdminLoginModal()">
@@ -914,55 +1023,55 @@
     <div class="modal-card">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <div class="brand-logo" style="width: 40px; height: 40px; font-size: 1.4rem;">🌿</div>
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🌿</div>
           <div>
-            <h2 style="font-size: 1.2rem; font-weight: 800;">Install Ohrsom App</h2>
-            <p style="font-size: 0.78rem; color: var(--muted);">Add to your Home Screen for instant 1-tap access</p>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Install Ohrsom App</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Add to your Home Screen for instant 1-tap access</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
       </div>
 
-      <div id="nativeInstallPromptSection" style="display: none; text-align: center; padding: 14px 0;">
-        <p style="font-size: 0.9rem; color: var(--ink); margin-bottom: 16px;">
+      <div id="nativeInstallPromptSection" style="display: none; text-align: center; padding: 12px 0;">
+        <p style="font-size: 0.88rem; color: var(--ink); margin-bottom: 14px;">
           Tap below to download and add the full interactive Ohrsom Yom Tov app to your phone!
         </p>
-        <button class="btn btn-primary" onclick="triggerNativeInstall()" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;">
+        <button class="btn btn-primary" onclick="triggerNativeInstall()" style="width: 100%; justify-content: center; padding: 11px; font-size: 0.95rem;">
           📲 Download & Install Now
         </button>
       </div>
 
       <div id="manualInstructionsSection">
-        <div style="margin-bottom: 16px;">
-          <h4 style="font-size: 0.85rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">🍎 On iPhone / iPad (Safari):</h4>
+        <div style="margin-bottom: 14px;">
+          <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">🍎 On iPhone / iPad (Safari):</h4>
           <div class="install-step-card">
             <span class="install-step-num">1</span>
-            <span style="font-size: 0.85rem;">Tap the <strong>Share</strong> button (<strong>⎋</strong> square with arrow up) at the bottom of Safari.</span>
+            <span style="font-size: 0.82rem;">Tap the <strong>Share</strong> button (<strong>⎋</strong> square with arrow up) at the bottom of Safari.</span>
           </div>
           <div class="install-step-card">
             <span class="install-step-num">2</span>
-            <span style="font-size: 0.85rem;">Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.</span>
+            <span style="font-size: 0.82rem;">Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.</span>
           </div>
           <div class="install-step-card">
             <span class="install-step-num">3</span>
-            <span style="font-size: 0.85rem;">Tap <strong>Add</strong> in the top-right corner. Done!</span>
+            <span style="font-size: 0.82rem;">Tap <strong>Add</strong> in the top-right corner. Done!</span>
           </div>
         </div>
 
         <div>
-          <h4 style="font-size: 0.85rem; color: var(--blue); text-transform: uppercase; margin-bottom: 8px;">🤖 On Android / Chrome:</h4>
+          <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 6px;">🤖 On Android / Chrome:</h4>
           <div class="install-step-card">
             <span class="install-step-num">1</span>
-            <span style="font-size: 0.85rem;">Tap the <strong>three dots (⋮)</strong> menu in the top right.</span>
+            <span style="font-size: 0.82rem;">Tap the <strong>three dots (⋮)</strong> menu in the top right.</span>
           </div>
           <div class="install-step-card">
             <span class="install-step-num">2</span>
-            <span style="font-size: 0.85rem;">Tap <strong>"Install App"</strong> or <strong>"Add to Home screen"</strong>.</span>
+            <span style="font-size: 0.82rem;">Tap <strong>"Install App"</strong> or <strong>"Add to Home screen"</strong>.</span>
           </div>
         </div>
       </div>
 
-      <div style="margin-top: 18px; text-align: center;">
+      <div style="margin-top: 14px; text-align: center;">
         <button class="btn btn-secondary" onclick="closeDownloadModal()" style="width: 100%; justify-content: center;">
           Close
         </button>
@@ -974,7 +1083,7 @@
   <div class="modal-overlay" id="eventModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="modalTitle" style="font-size: 1.25rem; font-weight: 800;">Event Details</h2>
+        <h2 id="modalTitle" style="font-size: 1.15rem; font-weight: 800;">Event Details</h2>
         <button class="modal-close-btn" onclick="closeModal()">✕</button>
       </div>
 
@@ -1005,14 +1114,20 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="eventHostInput">Host / Venue</label>
-            <input type="text" id="eventHostInput" class="form-control" placeholder="e.g. Perelmans / Ohrsom Sukkah / Shul">
+            <label for="eventAssigneeInput">Assignee / Lead</label>
+            <input type="text" id="eventAssigneeInput" class="form-control" placeholder="e.g. Bini, Rabbi Cannon, Ryan">
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="eventAudienceInput">Who is it for? (Target Audience)</label>
-          <input type="text" id="eventAudienceInput" class="form-control" placeholder="e.g. Accelerator Cohort / Students / All">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eventHostInput">Host / Venue</label>
+            <input type="text" id="eventHostInput" class="form-control" placeholder="e.g. Perelmans / Ohrsom Sukkah">
+          </div>
+          <div class="form-group">
+            <label for="eventAudienceInput">Audience</label>
+            <input type="text" id="eventAudienceInput" class="form-control" placeholder="e.g. Students / All">
+          </div>
         </div>
 
         <div class="form-group">
@@ -1032,8 +1147,8 @@
           </label>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary" id="saveEventBtn" style="flex: 1;">💾 Save Event</button>
+        <div style="display: flex; gap: 8px; margin-top: 18px;">
+          <button type="submit" class="btn btn-primary" id="saveEventBtn" style="flex: 1;">💾 Save</button>
           <button type="button" class="btn btn-secondary" id="deleteEventBtn" onclick="deleteCurrentEvent()" style="color: var(--rose);">🗑️ Delete</button>
           <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()">💬 WhatsApp</button>
         </div>
@@ -1059,6 +1174,7 @@
         date: "2026-09-11",
         time: "6:00 PM",
         type: "shul",
+        assignee: "Rabbi Cannon",
         host: "Ohrsom Shul",
         audience: "All Students & Community",
         notes: "6:00 PM Mincha and Mitzvahs service kicking off Rosh Hashanah.",
@@ -1071,6 +1187,7 @@
         date: "2026-09-05",
         time: "12:30 PM",
         type: "meal",
+        assignee: "Bini Bati",
         host: "Salmons",
         audience: "Students & Community",
         notes: "Shabbat Lunch hosting at Salmons.",
@@ -1083,6 +1200,7 @@
         date: "2026-09-11",
         time: "7:15 PM Dinner",
         type: "meal",
+        assignee: "Salamons",
         host: "Salamons (Friday Night)",
         audience: "Open to Students & Community",
         notes: "Rosh Hashanah 1st Night dinner at Salamons following Shul services.",
@@ -1095,6 +1213,7 @@
         date: "2026-09-12",
         time: "12:30 PM",
         type: "meal",
+        assignee: "Cannons",
         host: "Cannons",
         audience: "Students & Community",
         notes: "Rosh Hashanah Day 1 lunch hosted by Cannons.",
@@ -1107,6 +1226,7 @@
         date: "2026-09-12",
         time: "7:30 PM",
         type: "meal",
+        assignee: "Perelmans",
         host: "Perelmans (Saturday Night)",
         audience: "Students & Community",
         notes: "Rosh Hashanah 2nd Night dinner hosted at Perelmans.",
@@ -1119,6 +1239,7 @@
         date: "2026-09-18",
         time: "Morning",
         type: "action",
+        assignee: "Ryan",
         host: "Ohrsom Comms",
         audience: "Admin Team",
         notes: "Post Fridays promo & send WhatsApp coordination message to Ryan.",
@@ -1131,6 +1252,7 @@
         date: "2026-09-19",
         time: "12:30 PM",
         type: "meal",
+        assignee: "Salmons",
         host: "Salmons",
         audience: "Students & Community",
         notes: "Shabbat Shuva lunch at Salmons.",
@@ -1143,6 +1265,7 @@
         date: "2026-09-25",
         time: "6:30 PM",
         type: "event",
+        assignee: "Bini Bati",
         host: "Ohrsom Sukkah",
         audience: "All Students, Alumni & Young Pros",
         notes: "Massive Final Fridays Shabbat Dinner in the Sukkah!",
@@ -1155,6 +1278,7 @@
         date: "2026-09-26",
         time: "12:30 PM",
         type: "learning",
+        assignee: "Rabbi Cannon",
         host: "Ohrsom Sukkah",
         audience: "Accelerator Cohort",
         notes: "Sukkot Shabbat Lunch for Accelerator students.",
@@ -1167,6 +1291,7 @@
         date: "2026-09-26",
         time: "8:00 PM",
         type: "meal",
+        assignee: "Perelmans",
         host: "Perelmans in Ohrsom Sukkah",
         audience: "Students & Young Pros",
         notes: "Saturday night Chol Hamoed dinner at Perelmans in the Ohrsom Sukkah.",
@@ -1179,6 +1304,7 @@
         date: "2026-09-27",
         time: "12:30 PM",
         type: "meal",
+        assignee: "Cannons",
         host: "Cannons",
         audience: "Students & Community",
         notes: "Sunday Chol Hamoed Sukkah lunch at Cannons.",
@@ -1191,6 +1317,7 @@
         date: "2026-09-29",
         time: "6:00 PM - 8:30 PM",
         type: "learning",
+        assignee: "Rabbi Cannon",
         host: "Ohrsom Campus",
         audience: "Accelerator & Ohrsom 1 Cohorts",
         notes: "Tuesday regular program: Accelerator sessions and Ohrsom 1 learning.",
@@ -1203,6 +1330,7 @@
         date: "2026-09-08",
         time: "Design Deadline",
         type: "action",
+        assignee: "Ryan",
         host: "Marketing Team",
         audience: "All Campuses",
         notes: "Prepare and release posters for: 1. Rosh Hashanah, 2. Final Fridays, 3. Simchat Torah.",
@@ -1238,6 +1366,7 @@
     let currentMonth = 8; // 8 = September (0-indexed)
     let currentFilter = "all";
     let currentView = "calendar";
+    let selectedDateKey = "2026-09-11"; // Default active date on mobile
     let activeEditingId = null;
     let isAdmin = false;
     let deferredPrompt = null;
@@ -1328,6 +1457,33 @@
       }
     }
 
+    // Reminders & Notifications
+    function toggleNotifications() {
+      if (!("Notification" in window)) {
+        alert("Notifications are not supported in this browser.");
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        new Notification("🌿 Ohrsom Reminders Active!", {
+          body: "You will receive reminders for upcoming Yom Tov services, meals, and tasks.",
+          icon: "icons/icon.svg"
+        });
+        alert("🔔 Reminders are enabled on this device!");
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            new Notification("🌿 Ohrsom Reminders Activated!", {
+              body: "You will receive upcoming Yom Tov schedule reminders.",
+              icon: "icons/icon.svg"
+            });
+          }
+        });
+      } else {
+        alert("Notifications are currently blocked in your browser settings. Please allow notifications in your site settings to receive reminders.");
+      }
+    }
+
     // Dynamic Filter Chips Render
     function renderFilterChips() {
       const container = document.getElementById("dynamicFilterChips");
@@ -1373,7 +1529,7 @@
       }
     }
 
-    // Settings & Category Management Modal (All Categories Editable!)
+    // Settings & Category Management Modal
     function openSettingsModal() {
       if (!isAdmin) return;
       renderSettingsCategoryList();
@@ -1393,13 +1549,13 @@
       list.innerHTML = categories.map(cat => `
         <div class="category-manage-item">
           <div class="category-item-badge" style="color: ${cat.color};">
-            ${cat.icon ? `<span style="font-size: 1.2rem;">${cat.icon}</span>` : ''}
+            ${cat.icon ? `<span style="font-size: 1.1rem;">${cat.icon}</span>` : ''}
             <span style="font-weight: 800;">${cat.name}</span>
-            ${cat.isInternal ? '<span style="font-size:0.7rem; color:var(--rose); background:rgba(244,63,94,0.15); padding:2px 6px; border-radius:4px;">Admin Only</span>' : ''}
+            ${cat.isInternal ? '<span style="font-size:0.68rem; color:var(--rose); background:rgba(244,63,94,0.15); padding:2px 5px; border-radius:4px;">Admin Only</span>' : ''}
           </div>
           <div style="display: flex; gap: 6px;">
-            <button class="btn btn-secondary" style="padding:5px 10px; font-size:0.75rem;" onclick="promptEditCategory('${cat.id}')">✏️ Edit</button>
-            <button class="btn btn-secondary" style="padding:5px 10px; font-size:0.75rem; color:var(--rose);" onclick="deleteCategory('${cat.id}')">🗑️</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="promptEditCategory('${cat.id}')">✏️ Edit</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:var(--rose);" onclick="deleteCategory('${cat.id}')">🗑️</button>
           </div>
         </div>
       `).join("");
@@ -1451,7 +1607,7 @@
     function saveNewCustomCategory(e) {
       e.preventDefault();
       const name = document.getElementById("newCategoryName").value.trim();
-      const icon = document.getElementById("newCategoryIcon").value.trim(); // Optional!
+      const icon = document.getElementById("newCategoryIcon").value.trim();
 
       if (!name) return;
 
@@ -1538,21 +1694,21 @@
     function updateAdminUI() {
       const toggleBtn = document.getElementById("adminToggleBtn");
       const addBtn = document.getElementById("addEventHeaderBtn");
-      const exportBtn = document.getElementById("exportHeaderBtn");
       const settingsBtn = document.getElementById("settingsBtn");
+      const mobileAddBtn = document.getElementById("mobileAddDayEventBtn");
 
       if (isAdmin) {
         toggleBtn.className = "btn btn-admin-unlocked";
         toggleBtn.innerHTML = "🔓 Admin (Log Out)";
         addBtn.style.display = "inline-flex";
-        exportBtn.style.display = "inline-flex";
         settingsBtn.style.display = "inline-flex";
+        if (mobileAddBtn) mobileAddBtn.style.display = "inline-flex";
       } else {
         toggleBtn.className = "btn btn-admin-locked";
         toggleBtn.innerHTML = "🔒 Admin Login";
         addBtn.style.display = "none";
-        exportBtn.style.display = "none";
         settingsBtn.style.display = "none";
+        if (mobileAddBtn) mobileAddBtn.style.display = "none";
         if (currentFilter === "action") currentFilter = "all";
       }
     }
@@ -1563,6 +1719,7 @@
         document.getElementById("calendarViewContainer").style.display = "block";
         document.getElementById("timelineViewContainer").style.display = "none";
         renderCalendarGrid();
+        renderMobileDayAgenda(selectedDateKey);
       } else {
         document.getElementById("calendarViewContainer").style.display = "none";
         document.getElementById("timelineViewContainer").style.display = "block";
@@ -1615,7 +1772,43 @@
       });
     }
 
-    // Render Calendar Grid
+    // Select Day (Mobile & Desktop interactive sync)
+    function selectCalendarDay(dateKey) {
+      selectedDateKey = dateKey;
+      document.querySelectorAll(".cal-day-cell").forEach(cell => {
+        cell.classList.toggle("is-selected-day", cell.getAttribute("data-date") === dateKey);
+      });
+      renderMobileDayAgenda(dateKey);
+    }
+
+    // Render Mobile Day Agenda below compact month grid
+    function renderMobileDayAgenda(dateKey) {
+      const container = document.getElementById("mobileDayEventsList");
+      const titleEl = document.getElementById("mobileAgendaDateTitle");
+      if (!container || !titleEl) return;
+
+      const d = new Date(dateKey + "T00:00:00");
+      const formattedDate = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      const holText = JEWISH_HOLIDAYS_2026[dateKey];
+
+      titleEl.innerHTML = `📅 ${formattedDate} ${holText ? `<span class="jewish-holiday-pill" style="font-size:0.75rem; margin-left:6px;">✡️ ${holText}</span>` : ""}`;
+
+      const dayEvents = getFilteredEvents().filter(e => e.date === dateKey);
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 20px 10px; color: var(--muted); font-size: 0.85rem;">
+            No events scheduled for this day.
+            ${isAdmin ? `<br><button class="btn btn-primary" style="margin-top: 10px; font-size:0.78rem;" onclick="openAddEventModal('${dateKey}')">➕ Add Event for ${formattedDate}</button>` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = dayEvents.map(e => renderEventCardHtml(e)).join("");
+    }
+
+    // Render Calendar Grid (100% Mobile Clean & Responsive)
     function renderCalendarGrid() {
       const grid = document.getElementById("calendarDaysGrid");
       grid.innerHTML = "";
@@ -1632,7 +1825,7 @@
         const d = daysInPrevMonth - i;
         const cell = document.createElement("div");
         cell.className = "cal-day-cell other-month";
-        cell.innerHTML = `<div class="day-number-row"><span style="color: var(--muted);">${d}</span></div>`;
+        cell.innerHTML = `<div class="day-number-row"><span class="day-num-text" style="color: var(--muted);">${d}</span></div>`;
         grid.appendChild(cell);
       }
 
@@ -1644,35 +1837,51 @@
 
         const cell = document.createElement("div");
         cell.className = "cal-day-cell";
+        cell.setAttribute("data-date", dateKey);
         if (dateKey === todayStr) cell.classList.add("is-today");
+        if (dateKey === selectedDateKey) cell.classList.add("is-selected-day");
 
         const jewishHol = JEWISH_HOLIDAYS_2026[dateKey];
         const holBadge = jewishHol ? `<span class="jewish-holiday-pill" title="${jewishHol}">${jewishHol}</span>` : "";
+        const holDot = jewishHol ? `<span class="jewish-holiday-mobile-dot" title="${jewishHol}">✡️</span>` : "";
 
         const dayEvents = filtered.filter((e) => e.date === dateKey);
-        const eventsHtml = dayEvents.map((e) => {
+
+        // Desktop Event Pills
+        const desktopEventsHtml = dayEvents.map((e) => {
           const cat = getCategory(e.type);
           const iconSpan = cat.icon ? `<span>${cat.icon}</span>` : '';
           return `
             <div class="cal-event-pill" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})" style="background: ${cat.color}22; color: ${cat.color}; border-left-color: ${cat.color};">
               ${iconSpan}
               <span style="font-weight:700;">${e.title}</span>
+              ${e.assignee ? `<span style="font-size:0.65rem; color:var(--blue); font-weight:800;">[${e.assignee}]</span>` : ''}
               ${e.isInternal ? '<span style="font-size:0.65rem; color:var(--rose);">🔒</span>' : ''}
             </div>
           `;
         }).join("");
 
-        cell.innerHTML = `
-          <div class="day-number-row">
-            <span>${day}</span>
-            ${holBadge}
+        // Mobile Event Dots
+        const mobileDotsHtml = `
+          <div class="mobile-event-dots-wrap">
+            ${dayEvents.slice(0, 4).map(e => {
+              const cat = getCategory(e.type);
+              return `<span class="mobile-event-dot" style="background: ${cat.color};"></span>`;
+            }).join("")}
           </div>
-          ${eventsHtml}
         `;
 
-        if (isAdmin) {
-          cell.addEventListener("click", () => openAddEventModal(dateKey));
-        }
+        cell.innerHTML = `
+          <div class="day-number-row">
+            <span class="day-num-text">${day}</span>
+            ${holBadge}
+            ${holDot}
+          </div>
+          ${desktopEventsHtml}
+          ${mobileDotsHtml}
+        `;
+
+        cell.addEventListener("click", () => selectCalendarDay(dateKey));
         grid.appendChild(cell);
       }
 
@@ -1682,9 +1891,60 @@
       for (let i = 1; i <= nextDays; i++) {
         const cell = document.createElement("div");
         cell.className = "cal-day-cell other-month";
-        cell.innerHTML = `<div class="day-number-row"><span style="color: var(--muted);">${i}</span></div>`;
+        cell.innerHTML = `<div class="day-number-row"><span class="day-num-text" style="color: var(--muted);">${i}</span></div>`;
         grid.appendChild(cell);
       }
+    }
+
+    // Helper to render event card
+    function renderEventCardHtml(e) {
+      const cat = getCategory(e.type);
+      const d = new Date(e.date + "T00:00:00");
+      const monthName = d.toLocaleDateString("en-US", { month: "short" });
+      const dayNum = d.getDate();
+      const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+      const holText = JEWISH_HOLIDAYS_2026[e.date];
+
+      const editBtnHtml = isAdmin
+        ? `<button class="btn btn-secondary" style="padding:5px 9px; font-size:0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>`
+        : `<button class="btn btn-secondary" style="padding:5px 9px; font-size:0.75rem;" onclick="event.stopPropagation(); openViewEventModal('${e.id}')">ℹ️ Info</button>`;
+
+      const internalNoteHtml = (isAdmin && e.internalNotes)
+        ? `<div class="internal-note-box">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>`
+        : "";
+
+      return `
+        <div class="event-card" style="border-left: 4px solid ${cat.color};" onclick="${isAdmin ? `openEditEventModal('${e.id}')` : `openViewEventModal('${e.id}')`}">
+          <div class="event-card-left">
+            <div class="event-date-block">
+              <div class="date-month">${monthName}</div>
+              <div class="date-num">${dayNum}</div>
+              <div class="date-weekday">${weekday}</div>
+            </div>
+            <div class="event-main-details">
+              <h3>
+                ${e.title}
+                ${holText ? `<span class="jewish-holiday-pill">✡️ ${holText}</span>` : ""}
+                ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin Only</span>` : ""}
+              </h3>
+              <div class="event-tags-row">
+                <span class="event-tag" style="background: ${cat.color}22; color: ${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
+                ${e.assignee ? `<span class="event-tag assignee-badge">👤 ${e.assignee}</span>` : ""}
+                ${e.audience ? `<span class="event-tag" style="background: rgba(255,255,255,0.08); color: var(--ink);">👥 ${e.audience}</span>` : ""}
+              </div>
+              <div class="event-meta-info">
+                ${e.time ? `<span>⏱️ ${e.time}</span>` : ""}
+                ${e.host ? `<span>🏡 Host/Venue: <strong>${e.host}</strong></span>` : ""}
+              </div>
+              ${e.notes ? `<p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">📝 ${e.notes}</p>` : ""}
+              ${internalNoteHtml}
+            </div>
+          </div>
+          <div>
+            ${editBtnHtml}
+          </div>
+        </div>
+      `;
     }
 
     // Render Timeline View
@@ -1699,54 +1959,7 @@
         return;
       }
 
-      container.innerHTML = filtered.map((e) => {
-        const cat = getCategory(e.type);
-        const d = new Date(e.date + "T00:00:00");
-        const monthName = d.toLocaleDateString("en-US", { month: "short" });
-        const dayNum = d.getDate();
-        const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
-        const holText = JEWISH_HOLIDAYS_2026[e.date];
-
-        const editBtnHtml = isAdmin
-          ? `<button class="btn btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>`
-          : `<button class="btn btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openViewEventModal('${e.id}')">ℹ️ Info</button>`;
-
-        const internalNoteHtml = (isAdmin && e.internalNotes)
-          ? `<div class="internal-note-box">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>`
-          : "";
-
-        return `
-          <div class="event-card" style="border-left: 4px solid ${cat.color};" onclick="${isAdmin ? `openEditEventModal('${e.id}')` : `openViewEventModal('${e.id}')`}">
-            <div class="event-card-left">
-              <div class="event-date-block">
-                <div class="date-month">${monthName}</div>
-                <div class="date-num">${dayNum}</div>
-                <div class="date-weekday">${weekday}</div>
-              </div>
-              <div class="event-main-details">
-                <h3>
-                  ${e.title}
-                  ${holText ? `<span class="jewish-holiday-pill">✡️ ${holText}</span>` : ""}
-                  ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin Only</span>` : ""}
-                </h3>
-                <div class="event-tags-row">
-                  <span class="event-tag" style="background: ${cat.color}22; color: ${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
-                  ${e.audience ? `<span class="event-tag" style="background: rgba(255,255,255,0.08); color: var(--ink);">👥 ${e.audience}</span>` : ""}
-                </div>
-                <div class="event-meta-info">
-                  ${e.time ? `<span>⏱️ ${e.time}</span>` : ""}
-                  ${e.host ? `<span>🏡 Host/Venue: <strong>${e.host}</strong></span>` : ""}
-                </div>
-                ${e.notes ? `<p style="font-size:0.82rem; color:var(--muted); margin-top:6px;">📝 ${e.notes}</p>` : ""}
-                ${internalNoteHtml}
-              </div>
-            </div>
-            <div>
-              ${editBtnHtml}
-            </div>
-          </div>
-        `;
-      }).join("");
+      container.innerHTML = filtered.map(e => renderEventCardHtml(e)).join("");
     }
 
     // Modal Operations
@@ -1756,9 +1969,10 @@
       document.getElementById("modalTitle").textContent = "➕ Add New Event / Meal";
       document.getElementById("eventId").value = "";
       document.getElementById("eventTitleInput").value = "";
-      document.getElementById("eventDateInput").value = presetDate || new Date().toISOString().slice(0, 10);
+      document.getElementById("eventDateInput").value = presetDate || selectedDateKey || new Date().toISOString().slice(0, 10);
       document.getElementById("eventTimeInput").value = "";
       document.getElementById("eventTypeInput").value = categories[0].id;
+      document.getElementById("eventAssigneeInput").value = "";
       document.getElementById("eventHostInput").value = "";
       document.getElementById("eventAudienceInput").value = "Students & Community";
       document.getElementById("eventNotesInput").value = "";
@@ -1788,6 +2002,7 @@
       document.getElementById("eventDateInput").value = e.date;
       document.getElementById("eventTimeInput").value = e.time || "";
       document.getElementById("eventTypeInput").value = e.type || categories[0].id;
+      document.getElementById("eventAssigneeInput").value = e.assignee || "";
       document.getElementById("eventHostInput").value = e.host || "";
       document.getElementById("eventAudienceInput").value = e.audience || "";
       document.getElementById("eventNotesInput").value = e.notes || "";
@@ -1812,6 +2027,7 @@
       document.getElementById("eventDateInput").value = e.date;
       document.getElementById("eventTimeInput").value = e.time || "";
       document.getElementById("eventTypeInput").value = e.type || categories[0].id;
+      document.getElementById("eventAssigneeInput").value = e.assignee || "";
       document.getElementById("eventHostInput").value = e.host || "";
       document.getElementById("eventAudienceInput").value = e.audience || "";
       document.getElementById("eventNotesInput").value = e.notes || "";
@@ -1830,6 +2046,7 @@
       document.getElementById("eventDateInput").disabled = disabled;
       document.getElementById("eventTimeInput").disabled = disabled;
       document.getElementById("eventTypeInput").disabled = disabled;
+      document.getElementById("eventAssigneeInput").disabled = disabled;
       document.getElementById("eventHostInput").disabled = disabled;
       document.getElementById("eventAudienceInput").disabled = disabled;
       document.getElementById("eventNotesInput").disabled = disabled;
@@ -1850,13 +2067,14 @@
       const date = document.getElementById("eventDateInput").value;
       const time = document.getElementById("eventTimeInput").value.trim();
       const type = document.getElementById("eventTypeInput").value;
+      const assignee = document.getElementById("eventAssigneeInput").value.trim();
       const host = document.getElementById("eventHostInput").value.trim();
       const audience = document.getElementById("eventAudienceInput").value.trim();
       const notes = document.getElementById("eventNotesInput").value.trim();
       const internalNotes = document.getElementById("eventInternalNotesInput").value.trim();
       const isInternal = document.getElementById("eventIsInternalInput").checked;
 
-      const newEvent = { id, title, date, time, type, host, audience, notes, internalNotes, isInternal };
+      const newEvent = { id, title, date, time, type, assignee, host, audience, notes, internalNotes, isInternal };
 
       const existingIdx = events.findIndex((e) => e.id === id);
       if (existingIdx >= 0) {
@@ -1867,6 +2085,7 @@
 
       saveEvents();
       closeModal();
+      selectedDateKey = date;
       render();
     }
 
@@ -1889,21 +2108,6 @@
 
       const text = `🌿 *Ohrsom Event Info: ${title}*\n📅 *Date:* ${date}\n⏱️ *Time:* ${time}\n🏡 *Host/Location:* ${host}\n${notes ? `📝 *Notes:* ${notes}\n` : ''}\nRSVP via Ohrsom Events Hub!`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
-    }
-
-    function exportData() {
-      if (!isAdmin) return;
-      const dataToExport = {
-        categories: categories,
-        events: events
-      };
-      const jsonStr = JSON.stringify(dataToExport, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `ohrsom-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
     }
 
     document.addEventListener("DOMContentLoaded", init);
