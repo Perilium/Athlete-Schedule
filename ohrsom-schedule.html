@@ -57,20 +57,21 @@
       width: 100%;
     }
 
-    /* ── Floating In-App Push Notification Banner (Custom Pop-up, No browser alert) ── */
+    /* ── Floating In-App Push Notification Banner ── */
     .inapp-notification-banner {
       position: fixed;
-      top: -120px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 92%;
-      max-width: 460px;
+      top: -220px;
+      left: 12px;
+      right: 12px;
+      width: auto;
+      max-width: 440px;
+      margin: 0 auto;
       background: rgba(15, 25, 35, 0.98);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(245, 158, 11, 0.4);
+      border: 1px solid rgba(245, 158, 11, 0.45);
       border-radius: var(--radius);
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 15px rgba(245, 158, 11, 0.2);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.25);
       padding: 12px 14px;
       z-index: 9999;
       transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -117,6 +118,7 @@
       padding-top: 6px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       justify-content: flex-end;
+      flex-wrap: wrap;
     }
 
     /* ── Header ── */
@@ -378,7 +380,7 @@
       font-weight: 800;
     }
 
-    /* ── Expandable Calendar Grid (Zero cut-out on phone) ── */
+    /* ── Expandable Calendar Grid ── */
     .calendar-grid-card {
       background: var(--surface);
       border: 1px solid var(--surface-border);
@@ -1145,7 +1147,7 @@
           📲 Download App
         </button>
         <button class="btn btn-notify" onclick="openRemindersCenterModal()" title="View reminder schedule & notification logs">
-          🔔 Reminders & Logs
+          🔔 Reminders
         </button>
         <button id="settingsBtn" class="btn btn-secondary" onclick="openSettingsModal()" style="display: none;">
           ⚙️ Settings
@@ -1274,7 +1276,7 @@
         <div style="display: flex; align-items: center; gap: 10px;">
           <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🔔</div>
           <div>
-            <h2 style="font-size: 1.15rem; font-weight: 800;">Reminders & Activity Log</h2>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Reminders & Alerts</h2>
             <p style="font-size: 0.75rem; color: var(--gold);">Push notifications, test alerts & history log</p>
           </div>
         </div>
@@ -1887,6 +1889,11 @@
 
     // ══ INIT ══
     function init() {
+      // Register Background Service Worker for Lock Screen / Status Bar Notifications
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
+
       isAdmin = localStorage.getItem("ohrsom_is_admin") === "true";
       adminFirstName = localStorage.getItem("ohrsom_admin_first") || "";
       adminSurname = localStorage.getItem("ohrsom_admin_surname") || "";
@@ -1956,7 +1963,7 @@
       saveReminderLogs();
     }
 
-    // ══ IN-APP FLOATING PUSH NOTIFICATION POP-UP ══
+    // ══ FLOATING IN-APP POP-UP NOTIFICATION (Never cuts off) ══
     function showInAppNotification(title, body, eventId = null, badge = "🌿 Ohrsom Yom Tov Alert") {
       const banner = document.getElementById("inAppNotificationBanner");
       const badgeEl = document.getElementById("notifBannerBadge");
@@ -2000,6 +2007,35 @@
     function dismissInAppNotification() {
       const banner = document.getElementById("inAppNotificationBanner");
       if (banner) banner.classList.remove("active");
+    }
+
+    // ══ SYSTEM LOCK SCREEN / TOP BAR PUSH NOTIFICATION (Like WhatsApp) ══
+    function triggerSystemPush(title, body, eventId = null) {
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification(title, {
+                body: body,
+                icon: 'icons/ohrsom-icon.svg',
+                badge: 'icons/ohrsom-icon.svg',
+                vibrate: [200, 100, 200],
+                tag: 'ohrsom-reminder-' + (eventId || Date.now()),
+                renotify: true,
+                data: { url: '/ohrsom-schedule.html' }
+              });
+            }).catch(() => {
+              try { new Notification(title, { body, icon: 'icons/ohrsom-icon.svg' }); } catch (e) {}
+            });
+          } else {
+            try { new Notification(title, { body, icon: 'icons/ohrsom-icon.svg' }); } catch (e) {}
+          }
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then(p => {
+            if (p === 'granted') triggerSystemPush(title, body, eventId);
+          });
+        }
+      }
     }
 
     function getCategory(typeId) {
@@ -2198,7 +2234,6 @@
         ? `📋 Scheduled Reminders for ${fullName}:` 
         : `📋 Scheduled Yom Tov Reminders:`;
 
-      // Populate interactive Test Dropdown with specific events
       if (testSelect) {
         testSelect.innerHTML = events.map(e => {
           const cat = getCategory(e.type);
@@ -2293,6 +2328,7 @@
       const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Team Member";
       logReminderActivity(fullName, e.title, `Snoozed +${hours}h`);
       showInAppNotification(`⏰ Snoozed for +${hours}h`, `Reminder for "${e.title}" will fire in ${hours} hour.`, e.id, "⏱️ Reminder Snooze");
+      triggerSystemPush(`⏰ Reminder Snoozed (+${hours}h)`, `Reminder for "${e.title}" set for ${hours}h from now.`, e.id);
       renderReminderLogsUI();
     }
 
@@ -2311,21 +2347,15 @@
       const title = `${cat.icon || '🔔'} ${e.title}`;
       const body = `⏱️ ${e.time || 'Upcoming'} · 🏡 ${e.host || 'Ohrsom'} · Assigned: ${assignees}`;
 
-      // 1. Fire Custom Floating In-App Pop-up
+      // 1. Show Custom In-App Popup
       showInAppNotification(title, body, e.id, "🔔 Push Alert Preview");
 
-      // 2. Log in activity history
+      // 2. Trigger System Lock-Screen & Status Bar Notification (Like WhatsApp)
+      triggerSystemPush(`🌿 Ohrsom: ${e.title}`, body, e.id);
+
+      // 3. Log in activity history
       logReminderActivity(fullName, e.title, "🔔 Sent (Test Alert)");
       renderReminderLogsUI();
-
-      // 3. Optional native Web Notification if permission granted
-      if ("Notification" in window && Notification.permission === "granted") {
-        try {
-          new Notification(`🌿 Ohrsom: ${e.title}`, { body, icon: "icons/icon.svg" });
-        } catch (err) {}
-      } else if ("Notification" in window && Notification.permission !== "denied") {
-        Notification.requestPermission();
-      }
     }
 
     // ══ MARK AS COMPLETE / PENDING TOGGLE (Admin Action Items Only) ══
@@ -2453,7 +2483,7 @@
         saveEvents();
         render();
         openDayOverviewModal(selectedDateKey);
-        showInAppNotification("Event Deleted", "The event was removed from the schedule.");
+        showInAppNotification("Event Deleted", "The event has been removed.");
       }
     }
 
