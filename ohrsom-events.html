@@ -843,8 +843,8 @@
               <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Youth / Teens, Volunteering" required>
             </div>
             <div class="form-group">
-              <label for="newCategoryIcon">Emoji Icon</label>
-              <input type="text" id="newCategoryIcon" class="form-control" placeholder="e.g. 🕍, 🎈, 🤝, 🏕️" required maxlength="4">
+              <label for="newCategoryIcon">Emoji Icon (Optional)</label>
+              <input type="text" id="newCategoryIcon" class="form-control" placeholder="Optional (e.g. 🕍, 🎈, 🤝)" maxlength="4">
             </div>
           </div>
 
@@ -1338,9 +1338,10 @@
       categories.forEach(cat => {
         if (!isAdmin && cat.isInternal) return;
         const isActive = currentFilter === cat.id;
+        const iconHtml = cat.icon ? `<span>${cat.icon}</span>` : '';
         html += `
           <button class="filter-chip ${isActive ? 'active' : ''}" onclick="setFilter('${cat.id}')">
-            <span>${cat.icon}</span>
+            ${iconHtml}
             <span>${cat.name}</span>
           </button>
         `;
@@ -1356,7 +1357,8 @@
 
       let html = "";
       categories.forEach(cat => {
-        html += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+        const iconPrefix = cat.icon ? `${cat.icon} ` : '';
+        html += `<option value="${cat.id}">${iconPrefix}${cat.name}</option>`;
       });
       if (isAdmin) {
         html += `<option value="__manage__">⚙️ + Manage / Add Categories...</option>`;
@@ -1391,7 +1393,7 @@
       list.innerHTML = categories.map(cat => `
         <div class="category-manage-item">
           <div class="category-item-badge" style="color: ${cat.color};">
-            <span style="font-size: 1.2rem;">${cat.icon}</span>
+            ${cat.icon ? `<span style="font-size: 1.2rem;">${cat.icon}</span>` : ''}
             <span style="font-weight: 800;">${cat.name}</span>
             ${cat.isInternal ? '<span style="font-size:0.7rem; color:var(--rose); background:rgba(244,63,94,0.15); padding:2px 6px; border-radius:4px;">Admin Only</span>' : ''}
           </div>
@@ -1412,8 +1414,8 @@
       const trimmedName = newName.trim();
       if (!trimmedName) return;
 
-      const newIcon = prompt(`Enter emoji icon for "${trimmedName}":`, cat.icon);
-      if (newIcon !== null && newIcon.trim()) {
+      const newIcon = prompt(`Enter emoji icon for "${trimmedName}" (optional, leave blank for none):`, cat.icon || "");
+      if (newIcon !== null) {
         cat.icon = newIcon.trim();
       }
 
@@ -1449,7 +1451,7 @@
     function saveNewCustomCategory(e) {
       e.preventDefault();
       const name = document.getElementById("newCategoryName").value.trim();
-      const icon = document.getElementById("newCategoryIcon").value.trim() || "📌";
+      const icon = document.getElementById("newCategoryIcon").value.trim(); // Optional!
 
       if (!name) return;
 
@@ -1457,7 +1459,7 @@
       categories.push({
         id,
         name,
-        icon,
+        icon: icon || "",
         color: selectedCategoryColor
       });
 
@@ -1650,9 +1652,10 @@
         const dayEvents = filtered.filter((e) => e.date === dateKey);
         const eventsHtml = dayEvents.map((e) => {
           const cat = getCategory(e.type);
+          const iconSpan = cat.icon ? `<span>${cat.icon}</span>` : '';
           return `
             <div class="cal-event-pill" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})" style="background: ${cat.color}22; color: ${cat.color}; border-left-color: ${cat.color};">
-              <span>${cat.icon}</span>
+              ${iconSpan}
               <span style="font-weight:700;">${e.title}</span>
               ${e.isInternal ? '<span style="font-size:0.65rem; color:var(--rose);">🔒</span>' : ''}
             </div>
@@ -1727,7 +1730,7 @@
                   ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin Only</span>` : ""}
                 </h3>
                 <div class="event-tags-row">
-                  <span class="event-tag" style="background: ${cat.color}22; color: ${cat.color};">${cat.icon} ${cat.name}</span>
+                  <span class="event-tag" style="background: ${cat.color}22; color: ${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
                   ${e.audience ? `<span class="event-tag" style="background: rgba(255,255,255,0.08); color: var(--ink);">👥 ${e.audience}</span>` : ""}
                 </div>
                 <div class="event-meta-info">
