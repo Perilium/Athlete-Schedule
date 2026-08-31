@@ -3,10 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#070d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ohrsom Hub">
   <title>Ohrsom · Yom Tov & Events Calendar</title>
+  
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="manifest" href="manifest.json">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
       --bg: #070d14;
@@ -137,6 +147,19 @@
 
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-install {
+      background: linear-gradient(135deg, #38bdf8, #0284c7);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+      animation: bounceSubtle 3s infinite;
+    }
+
+    @keyframes bounceSubtle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
     }
 
     .btn-admin-locked {
@@ -525,7 +548,6 @@
       gap: 4px;
     }
 
-    /* Internal Notes Callout */
     .internal-note-box {
       background: rgba(244, 63, 94, 0.08);
       border: 1px dashed rgba(244, 63, 94, 0.35);
@@ -543,8 +565,8 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(3, 7, 12, 0.8);
-      backdrop-filter: blur(8px);
+      background: rgba(3, 7, 12, 0.85);
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -597,6 +619,32 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    /* Install Instruction Steps */
+    .install-step-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .install-step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      flex-shrink: 0;
     }
 
     .form-group {
@@ -660,6 +708,9 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="downloadAppBtn" class="btn btn-install" onclick="showDownloadModal()">
+          📲 Download App
+        </button>
         <button id="adminToggleBtn" class="btn btn-admin-locked" onclick="handleAdminToggle()">
           🔒 Staff Login
         </button>
@@ -738,6 +789,67 @@
     </div>
 
   </main>
+
+  <!-- Download / Install App Modal -->
+  <div class="modal-overlay" id="downloadModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 40px; height: 40px; font-size: 1.4rem;">🌿</div>
+          <div>
+            <h2 style="font-size: 1.2rem; font-weight: 800;">Install Ohrsom App</h2>
+            <p style="font-size: 0.78rem; color: var(--muted);">Add to your Home Screen for instant 1-tap access</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
+      </div>
+
+      <div id="nativeInstallPromptSection" style="display: none; text-align: center; padding: 14px 0;">
+        <p style="font-size: 0.9rem; color: var(--ink); margin-bottom: 16px;">
+          Tap below to download and add the full interactive Ohrsom Yom Tov app to your phone!
+        </p>
+        <button class="btn btn-primary" onclick="triggerNativeInstall()" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;">
+          📲 Download & Install Now
+        </button>
+      </div>
+
+      <div id="manualInstructionsSection">
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 0.85rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">🍎 On iPhone / iPad (Safari):</h4>
+          <div class="install-step-card">
+            <span class="install-step-num">1</span>
+            <span style="font-size: 0.85rem;">Tap the <strong>Share</strong> button (<strong>⎋</strong> square with arrow up) at the bottom of Safari.</span>
+          </div>
+          <div class="install-step-card">
+            <span class="install-step-num">2</span>
+            <span style="font-size: 0.85rem;">Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.</span>
+          </div>
+          <div class="install-step-card">
+            <span class="install-step-num">3</span>
+            <span style="font-size: 0.85rem;">Tap <strong>Add</strong> in the top-right corner. Done!</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size: 0.85rem; color: var(--blue); text-transform: uppercase; margin-bottom: 8px;">🤖 On Android / Chrome:</h4>
+          <div class="install-step-card">
+            <span class="install-step-num">1</span>
+            <span style="font-size: 0.85rem;">Tap the <strong>three dots (⋮)</strong> menu in the top right.</span>
+          </div>
+          <div class="install-step-card">
+            <span class="install-step-num">2</span>
+            <span style="font-size: 0.85rem;">Tap <strong>"Install App"</strong> or <strong>"Add to Home screen"</strong>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 18px; text-align: center;">
+        <button class="btn btn-secondary" onclick="closeDownloadModal()" style="width: 100%; justify-content: center;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Event Detail & Editor Modal -->
   <div class="modal-overlay" id="eventModal">
@@ -990,6 +1102,7 @@
     let currentView = "calendar";
     let activeEditingId = null;
     let isAdmin = false;
+    let deferredPrompt = null;
 
     // Simple Admin Passcode
     const ADMIN_PASSCODE = "ohrsom";
@@ -1009,8 +1122,43 @@
         events = [...DEFAULT_EVENTS];
         saveEvents();
       }
+      setupPWA();
       updateAdminUI();
       render();
+    }
+
+    function setupPWA() {
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const nativeSection = document.getElementById("nativeInstallPromptSection");
+        if (nativeSection) nativeSection.style.display = "block";
+      });
+
+      window.addEventListener("appinstalled", () => {
+        const btn = document.getElementById("downloadAppBtn");
+        if (btn) btn.style.display = "none";
+      });
+    }
+
+    function showDownloadModal() {
+      document.getElementById("downloadModal").classList.add("active");
+    }
+
+    function closeDownloadModal() {
+      document.getElementById("downloadModal").classList.remove("active");
+    }
+
+    function triggerNativeInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === "accepted") {
+            closeDownloadModal();
+          }
+          deferredPrompt = null;
+        });
+      }
     }
 
     function saveEvents() {
@@ -1116,7 +1264,6 @@
 
     function getFilteredEvents() {
       return events.filter((ev) => {
-        // If not admin, hide internal events completely
         if (!isAdmin && ev.isInternal) return false;
         if (currentFilter === "all") return true;
         return ev.type === currentFilter;
@@ -1284,7 +1431,6 @@
       document.getElementById("eventInternalNotesInput").value = "";
       document.getElementById("eventIsInternalInput").checked = false;
 
-      // Ensure fields are editable
       setFormInputsDisabled(false);
       document.getElementById("saveEventBtn").style.display = "inline-block";
       document.getElementById("deleteEventBtn").style.display = "none";
