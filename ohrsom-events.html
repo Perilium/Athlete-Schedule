@@ -1584,17 +1584,21 @@
           Click the <strong>Install icon (⨁ or 💻)</strong> on the right side of your browser's address bar at the very top of the window.
         </div>
 
-        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">🍎 iPhone / iPad (Safari):</h4>
-        <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; font-size: 0.82rem;">
-          1. Tap the <strong>Share ⎋</strong> button at the bottom of Safari.<br>
-          2. Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.<br>
-          3. Tap <strong>Add</strong>. It will install with its own <strong>Ohrsom Hub</strong> icon!
+        <div id="iosInstallTip" style="margin-bottom: 10px;">
+          <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">🍎 iPhone / iPad (Safari):</h4>
+          <div style="background: var(--surface-elevated); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 0.85rem; line-height: 1.5;">
+            1. Tap the <strong>Share ⎋</strong> button at the bottom of Safari.<br>
+            2. Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.<br>
+            3. Tap <strong>Add</strong>. It will install with its own <strong>Ohrsom Hub</strong> icon!
+          </div>
         </div>
 
-        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin: 10px 0 6px;">🤖 Android / Chrome:</h4>
-        <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem;">
-          1. Tap the <strong>Install App</strong> button above.<br>
-          2. If not prompted, tap the <strong>three dots ⋮</strong> menu in top right and select <strong>"Install App"</strong>.
+        <div id="androidInstallTip">
+          <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin: 10px 0 6px;">🤖 Android / Chrome:</h4>
+          <div style="background: var(--surface-elevated); border: 1px solid var(--blue); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 0.85rem; line-height: 1.5;">
+            1. Tap the <strong>Install App</strong> button above.<br>
+            2. If not prompted, tap the <strong>three dots ⋮</strong> menu in top right and select <strong>"Install App"</strong>.
+          </div>
         </div>
       </div>
 
@@ -2323,12 +2327,23 @@
       }
     }
 
+    function detectUserDevice() {
+      const ua = navigator.userAgent || '';
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isAndroid = /Android/i.test(ua);
+      const isMobile = isIOS || isAndroid || /Mobile|Tablet/i.test(ua);
+      if (isIOS) return 'ios';
+      if (isAndroid) return 'android';
+      if (isMobile) return 'mobile';
+      return 'desktop';
+    }
+
     function handleDownloadAppClick() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
           if (choiceResult.outcome === 'accepted') {
-            showInAppNotification("App Installed! 📲", "Ohrsom Hub is now added to your home screen with its dedicated icon.");
+            showInAppNotification("App Installed! 📲", "Ohrsom Hub is now added to your home screen.");
           }
           deferredPrompt = null;
         });
@@ -2338,29 +2353,37 @@
     }
 
     function showDownloadModal() { 
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const isAndroid = /Android/.test(navigator.userAgent);
+      const dev = detectUserDevice();
       const desktopTip = document.getElementById("desktopInstallTip");
-      if (desktopTip) desktopTip.style.display = (!isIOS && !isAndroid) ? "block" : "none";
+      const iosTip = document.getElementById("iosInstallTip");
+      const androidTip = document.getElementById("androidInstallTip");
+
+      if (desktopTip) desktopTip.style.display = (dev === 'desktop') ? "block" : "none";
+      if (iosTip) iosTip.style.display = (dev === 'ios') ? "block" : "none";
+      if (androidTip) androidTip.style.display = (dev === 'android') ? "block" : "none";
+
       document.getElementById("downloadModal").classList.add("active"); 
     }
     function closeDownloadModal() { document.getElementById("downloadModal").classList.remove("active"); }
+
     function triggerNativeInstall() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => { 
           if (choiceResult.outcome === 'accepted') {
-            showInAppNotification("App Installed! 📲", "Ohrsom Hub added to your device with its custom icon.");
+            showInAppNotification("App Installed! 📲", "Ohrsom Hub added with its dedicated Gold & Teal icon.");
           }
           deferredPrompt = null; 
           closeDownloadModal(); 
         });
       } else {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        if (isIOS) {
-          showInAppNotification("Install on iPhone / iPad 📲", "Tap the Share button (⎋) at the bottom of Safari, then tap 'Add to Home Screen' (➕).");
+        const dev = detectUserDevice();
+        if (dev === 'ios') {
+          showInAppNotification("🍎 iPhone Install Steps", "1. Tap Share (⎋) at bottom of Safari\n2. Tap 'Add to Home Screen' (➕)");
+        } else if (dev === 'android') {
+          showInAppNotification("🤖 Android Install Steps", "Tap the 3 dots (⋮) menu in top right ➔ Tap 'Install App'");
         } else {
-          showInAppNotification("Install on Computer 🖥️", "Look for the Install icon (⨁ or 💻) on the right side of your browser's address bar at the top of the screen!");
+          showInAppNotification("🖥️ Computer Install", "Click the Install icon (⨁) in your browser address bar at the top!");
         }
       }
     }
