@@ -100,14 +100,15 @@
 
     .header-actions {
       display: flex;
+      align-items: center;
       gap: 8px;
     }
 
     .btn {
       font-family: inherit;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      padding: 8px 14px;
+      padding: 8px 13px;
       border-radius: var(--radius-sm);
       border: none;
       cursor: pointer;
@@ -136,6 +137,18 @@
 
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-admin-locked {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--surface-border);
+      color: var(--muted);
+    }
+
+    .btn-admin-unlocked {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--green);
+      color: #86efac;
     }
 
     /* Main Container */
@@ -491,6 +504,12 @@
       border-radius: 999px;
     }
 
+    .internal-badge {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fda4af;
+    }
+
     .event-meta-info {
       font-size: 0.82rem;
       color: var(--muted);
@@ -504,6 +523,17 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+    }
+
+    /* Internal Notes Callout */
+    .internal-note-box {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px dashed rgba(244, 63, 94, 0.35);
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: #fecdd3;
     }
 
     /* Modal Styling */
@@ -630,8 +660,15 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-primary" onclick="openAddEventModal()">➕ Add Event</button>
-        <button class="btn btn-secondary" onclick="exportData()" title="Backup or download schedule">💾 Export</button>
+        <button id="adminToggleBtn" class="btn btn-admin-locked" onclick="handleAdminToggle()">
+          🔒 Staff Login
+        </button>
+        <button id="addEventHeaderBtn" class="btn btn-primary" onclick="openAddEventModal()" style="display: none;">
+          ➕ Add Event
+        </button>
+        <button id="exportHeaderBtn" class="btn btn-secondary" onclick="exportData()" title="Backup or download schedule" style="display: none;">
+          💾 Export
+        </button>
       </div>
     </div>
   </header>
@@ -672,7 +709,7 @@
       <button class="filter-chip" onclick="setFilter('meal')">🍽️ Meals & Hosting</button>
       <button class="filter-chip" onclick="setFilter('event')">🎉 Events & Parties</button>
       <button class="filter-chip" onclick="setFilter('learning')">🎓 Accelerator & Classes</button>
-      <button class="filter-chip" onclick="setFilter('action')">📋 Posters & Action Items</button>
+      <button class="filter-chip" id="actionChipBtn" onclick="setFilter('action')" style="display: none;">📋 Staff Action Items</button>
     </div>
 
     <!-- Calendar View Container -->
@@ -736,7 +773,7 @@
               <option value="meal">🍽️ Meal / Hosting</option>
               <option value="event">🎉 Event & Social</option>
               <option value="learning">🎓 Accelerator / Learning</option>
-              <option value="action">📋 Action Item / Poster</option>
+              <option value="action">📋 Staff Action Item / Poster</option>
             </select>
           </div>
           <div class="form-group">
@@ -751,12 +788,24 @@
         </div>
 
         <div class="form-group">
-          <label for="eventNotesInput">Notes & Action Checklist</label>
-          <textarea id="eventNotesInput" class="form-control" rows="3" placeholder="e.g. Send WhatsApp message to Ryan, confirm food prep..."></textarea>
+          <label for="eventNotesInput">Public Notes & Instructions</label>
+          <textarea id="eventNotesInput" class="form-control" rows="2" placeholder="Visible to all students & attendees..."></textarea>
+        </div>
+
+        <div class="form-group" id="internalNotesFieldWrap">
+          <label for="eventInternalNotesInput" style="color: #fda4af;">🔒 Internal Team Notes (Private)</label>
+          <textarea id="eventInternalNotesInput" class="form-control" rows="2" placeholder="Private internal checklist, prep assignments, reminders..." style="border-color: rgba(244, 63, 94, 0.4);"></textarea>
+        </div>
+
+        <div class="form-group" id="internalToggleWrap">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--ink);">
+            <input type="checkbox" id="eventIsInternalInput" style="width: 16px; height: 16px;">
+            <span>Mark as <strong>Internal Team Only</strong> (Hidden from public calendar)</span>
+          </label>
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Save Event</button>
+          <button type="submit" class="btn btn-primary" id="saveEventBtn" style="flex: 1;">💾 Save Event</button>
           <button type="button" class="btn btn-secondary" id="deleteEventBtn" onclick="deleteCurrentEvent()" style="color: var(--rose);">🗑️ Delete</button>
           <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()">💬 WhatsApp</button>
         </div>
@@ -775,7 +824,9 @@
         type: "meal",
         host: "Salmons",
         audience: "Students & Community",
-        notes: "Shabbat Lunch hosting at Salmons."
+        notes: "Shabbat Lunch hosting at Salmons.",
+        internalNotes: "Confirm head count by Thursday night.",
+        isInternal: false
       },
       {
         id: "evt-2",
@@ -785,7 +836,9 @@
         type: "meal",
         host: "Salamons (Friday Night)",
         audience: "Open to Students & Community",
-        notes: "6:00 PM Mincha and Mitzvahs. Rosh Hashanah 1st Night dinner at Salamons."
+        notes: "6:00 PM Mincha and Mitzvahs. Rosh Hashanah 1st Night dinner at Salamons.",
+        internalNotes: "Ensure prayer books (Machzorim) and seating setup ready by 4 PM.",
+        isInternal: false
       },
       {
         id: "evt-3",
@@ -795,7 +848,9 @@
         type: "meal",
         host: "Cannons",
         audience: "Students & Community",
-        notes: "Rosh Hashanah Day 1 lunch hosted by Cannons."
+        notes: "Rosh Hashanah Day 1 lunch hosted by Cannons.",
+        internalNotes: "Check table capacity (aiming for 18-20 students).",
+        isInternal: false
       },
       {
         id: "evt-4",
@@ -805,7 +860,9 @@
         type: "meal",
         host: "Perelmans (Saturday Night)",
         audience: "Students & Community",
-        notes: "Rosh Hashanah 2nd Night dinner hosted at Perelmans."
+        notes: "Rosh Hashanah 2nd Night dinner hosted at Perelmans.",
+        internalNotes: "Check second night simanim (pomegranate, dates) are prepped.",
+        isInternal: false
       },
       {
         id: "evt-5",
@@ -815,7 +872,9 @@
         type: "action",
         host: "Ohrsom Comms",
         audience: "Internal Admin",
-        notes: "Post Fridays promo & send WhatsApp coordination message to Ryan."
+        notes: "Post Fridays promo & send WhatsApp coordination message to Ryan.",
+        internalNotes: "Ryan handling campus graphic release and RSVP tracking spreadsheet.",
+        isInternal: true
       },
       {
         id: "evt-6",
@@ -825,7 +884,9 @@
         type: "meal",
         host: "Salmons",
         audience: "Students & Community",
-        notes: "Shabbat Shuva lunch at Salmons."
+        notes: "Shabbat Shuva lunch at Salmons.",
+        internalNotes: "Follow up on students who attended RH dinner.",
+        isInternal: false
       },
       {
         id: "evt-7",
@@ -835,7 +896,9 @@
         type: "event",
         host: "Ohrsom Sukkah",
         audience: "All Students, Alumni & Young Pros",
-        notes: "Massive Final Fridays Shabbat Dinner in the Sukkah!"
+        notes: "Massive Final Fridays Shabbat Dinner in the Sukkah!",
+        internalNotes: "Catering booked for 80 pax. Sukkah decorations complete by Wednesday 23rd.",
+        isInternal: false
       },
       {
         id: "evt-8",
@@ -845,7 +908,9 @@
         type: "learning",
         host: "Ohrsom Sukkah",
         audience: "Accelerator Cohort",
-        notes: "Sukkot Shabbat Lunch for Accelerator students."
+        notes: "Sukkot Shabbat Lunch for Accelerator students.",
+        internalNotes: "Special guest speaker discussion topic: Leadership in Business.",
+        isInternal: false
       },
       {
         id: "evt-9",
@@ -855,7 +920,9 @@
         type: "meal",
         host: "Perelmans in Ohrsom Sukkah",
         audience: "Students & Young Pros",
-        notes: "Saturday night Chol Hamoed dinner at Perelmans in the Ohrsom Sukkah."
+        notes: "Saturday night Chol Hamoed dinner at Perelmans in the Ohrsom Sukkah.",
+        internalNotes: "Music and refreshments.",
+        isInternal: false
       },
       {
         id: "evt-10",
@@ -865,7 +932,9 @@
         type: "meal",
         host: "Cannons",
         audience: "Students & Community",
-        notes: "Sunday Chol Hamoed Sukkah lunch at Cannons."
+        notes: "Sunday Chol Hamoed Sukkah lunch at Cannons.",
+        internalNotes: "Confirm student roster with Cannons by Friday 25th.",
+        isInternal: false
       },
       {
         id: "evt-11",
@@ -875,7 +944,9 @@
         type: "learning",
         host: "Ohrsom Campus",
         audience: "Accelerator & Ohrsom 1 Cohorts",
-        notes: "Tuesday regular program: Accelerator sessions and Ohrsom 1 learning."
+        notes: "Tuesday regular program: Accelerator sessions and Ohrsom 1 learning.",
+        internalNotes: "Classroom 1 & 2 booked; print handouts.",
+        isInternal: false
       },
       {
         id: "evt-12",
@@ -885,7 +956,9 @@
         type: "action",
         host: "Marketing Team",
         audience: "All Campuses",
-        notes: "Prepare and release posters for: 1. Rosh Hashanah, 2. Final Fridays, 3. Simchat Torah."
+        notes: "Prepare and release posters for: 1. Rosh Hashanah, 2. Final Fridays, 3. Simchat Torah.",
+        internalNotes: "Approve designs with Rabbi before sending to print and IG.",
+        isInternal: true
       }
     ];
 
@@ -916,8 +989,15 @@
     let currentFilter = "all";
     let currentView = "calendar";
     let activeEditingId = null;
+    let isAdmin = false;
+
+    // Simple Admin Passcode
+    const ADMIN_PASSCODE = "ohrsom";
 
     function init() {
+      // Check admin status from local storage
+      isAdmin = localStorage.getItem("ohrsom_is_admin") === "true";
+
       const stored = localStorage.getItem("ohrsom_events_data");
       if (stored) {
         try {
@@ -929,11 +1009,57 @@
         events = [...DEFAULT_EVENTS];
         saveEvents();
       }
+      updateAdminUI();
       render();
     }
 
     function saveEvents() {
       localStorage.setItem("ohrsom_events_data", JSON.stringify(events));
+    }
+
+    // Admin Toggle & Authentication
+    function handleAdminToggle() {
+      if (isAdmin) {
+        if (confirm("Log out of Staff Admin Mode?")) {
+          isAdmin = false;
+          localStorage.removeItem("ohrsom_is_admin");
+          updateAdminUI();
+          render();
+        }
+      } else {
+        const pin = prompt("Enter Staff Passcode to unlock admin controls & internal notes:\n(Default passcode: ohrsom)");
+        if (pin && pin.toLowerCase().trim() === ADMIN_PASSCODE) {
+          isAdmin = true;
+          localStorage.setItem("ohrsom_is_admin", "true");
+          alert("🔓 Staff Admin Mode Unlocked! Your browser will remember this login.");
+          updateAdminUI();
+          render();
+        } else if (pin !== null) {
+          alert("❌ Incorrect passcode.");
+        }
+      }
+    }
+
+    function updateAdminUI() {
+      const toggleBtn = document.getElementById("adminToggleBtn");
+      const addBtn = document.getElementById("addEventHeaderBtn");
+      const exportBtn = document.getElementById("exportHeaderBtn");
+      const actionChip = document.getElementById("actionChipBtn");
+
+      if (isAdmin) {
+        toggleBtn.className = "btn btn-admin-unlocked";
+        toggleBtn.innerHTML = "🔓 Staff Admin (Log Out)";
+        addBtn.style.display = "inline-flex";
+        exportBtn.style.display = "inline-flex";
+        actionChip.style.display = "inline-flex";
+      } else {
+        toggleBtn.className = "btn btn-admin-locked";
+        toggleBtn.innerHTML = "🔒 Staff Login";
+        addBtn.style.display = "none";
+        exportBtn.style.display = "none";
+        actionChip.style.display = "none";
+        if (currentFilter === "action") currentFilter = "all";
+      }
     }
 
     function render() {
@@ -990,6 +1116,8 @@
 
     function getFilteredEvents() {
       return events.filter((ev) => {
+        // If not admin, hide internal events completely
+        if (!isAdmin && ev.isInternal) return false;
         if (currentFilter === "all") return true;
         return ev.type === currentFilter;
       });
@@ -1034,6 +1162,7 @@
           <div class="cal-event-pill type-${e.type}" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})">
             <span>${getTypeIcon(e.type)}</span>
             <span style="font-weight:700;">${e.title}</span>
+            ${e.isInternal ? '<span style="font-size:0.6rem; color:var(--rose);">🔒</span>' : ''}
           </div>
         `).join("");
 
@@ -1045,7 +1174,9 @@
           ${eventsHtml}
         `;
 
-        cell.addEventListener("click", () => openAddEventModal(dateKey));
+        if (isAdmin) {
+          cell.addEventListener("click", () => openAddEventModal(dateKey));
+        }
         grid.appendChild(cell);
       }
 
@@ -1068,7 +1199,7 @@
       filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted);">No events found matching this filter. <br><button class="btn btn-primary" style="margin-top:12px;" onclick="openAddEventModal()">➕ Add an Event</button></div>`;
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted);">No events found matching this filter.</div>`;
         return;
       }
 
@@ -1079,8 +1210,16 @@
         const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
         const holText = JEWISH_HOLIDAYS_2026[e.date];
 
+        const editBtnHtml = isAdmin
+          ? `<button class="btn btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>`
+          : `<button class="btn btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openViewEventModal('${e.id}')">ℹ️ Info</button>`;
+
+        const internalNoteHtml = (isAdmin && e.internalNotes)
+          ? `<div class="internal-note-box">🔒 <strong>Staff Note:</strong> ${e.internalNotes}</div>`
+          : "";
+
         return `
-          <div class="event-card card-${e.type}" onclick="openEditEventModal('${e.id}')">
+          <div class="event-card card-${e.type}" onclick="${isAdmin ? `openEditEventModal('${e.id}')` : `openViewEventModal('${e.id}')`}">
             <div class="event-card-left">
               <div class="event-date-block">
                 <div class="date-month">${monthName}</div>
@@ -1091,6 +1230,7 @@
                 <h3>
                   ${e.title}
                   ${holText ? `<span class="jewish-holiday-pill">✡️ ${holText}</span>` : ""}
+                  ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Internal Only</span>` : ""}
                 </h3>
                 <div class="event-tags-row">
                   <span class="event-tag type-${e.type}">${getTypeLabel(e.type)}</span>
@@ -1101,10 +1241,11 @@
                   ${e.host ? `<span>🏡 Host/Venue: <strong>${e.host}</strong></span>` : ""}
                 </div>
                 ${e.notes ? `<p style="font-size:0.82rem; color:var(--muted); margin-top:6px;">📝 ${e.notes}</p>` : ""}
+                ${internalNoteHtml}
               </div>
             </div>
             <div>
-              <button class="btn btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
+              ${editBtnHtml}
             </div>
           </div>
         `;
@@ -1123,12 +1264,13 @@
       if (type === "meal") return "🍽️ Meal / Hosting";
       if (type === "event") return "🎉 Event";
       if (type === "learning") return "🎓 Accelerator / Class";
-      if (type === "action") return "📋 Action / Poster";
+      if (type === "action") return "📋 Staff Action Item";
       return "Event";
     }
 
     // Modal Operations
     function openAddEventModal(presetDate = null) {
+      if (!isAdmin) return;
       activeEditingId = null;
       document.getElementById("modalTitle").textContent = "➕ Add New Event / Meal";
       document.getElementById("eventId").value = "";
@@ -1139,13 +1281,26 @@
       document.getElementById("eventHostInput").value = "";
       document.getElementById("eventAudienceInput").value = "Students & Community";
       document.getElementById("eventNotesInput").value = "";
+      document.getElementById("eventInternalNotesInput").value = "";
+      document.getElementById("eventIsInternalInput").checked = false;
+
+      // Ensure fields are editable
+      setFormInputsDisabled(false);
+      document.getElementById("saveEventBtn").style.display = "inline-block";
       document.getElementById("deleteEventBtn").style.display = "none";
+      document.getElementById("internalNotesFieldWrap").style.display = "block";
+      document.getElementById("internalToggleWrap").style.display = "block";
+
       document.getElementById("eventModal").classList.add("active");
     }
 
     function openEditEventModal(id) {
       const e = events.find((item) => item.id === id);
       if (!e) return;
+      if (!isAdmin) {
+        openViewEventModal(id);
+        return;
+      }
       activeEditingId = id;
       document.getElementById("modalTitle").textContent = "✏️ Edit Event / Meal";
       document.getElementById("eventId").value = e.id;
@@ -1156,8 +1311,50 @@
       document.getElementById("eventHostInput").value = e.host || "";
       document.getElementById("eventAudienceInput").value = e.audience || "";
       document.getElementById("eventNotesInput").value = e.notes || "";
+      document.getElementById("eventInternalNotesInput").value = e.internalNotes || "";
+      document.getElementById("eventIsInternalInput").checked = !!e.isInternal;
+
+      setFormInputsDisabled(false);
+      document.getElementById("saveEventBtn").style.display = "inline-block";
       document.getElementById("deleteEventBtn").style.display = "inline-block";
+      document.getElementById("internalNotesFieldWrap").style.display = "block";
+      document.getElementById("internalToggleWrap").style.display = "block";
+
       document.getElementById("eventModal").classList.add("active");
+    }
+
+    function openViewEventModal(id) {
+      const e = events.find((item) => item.id === id);
+      if (!e) return;
+      document.getElementById("modalTitle").textContent = "ℹ️ " + e.title;
+      document.getElementById("eventId").value = e.id;
+      document.getElementById("eventTitleInput").value = e.title;
+      document.getElementById("eventDateInput").value = e.date;
+      document.getElementById("eventTimeInput").value = e.time || "";
+      document.getElementById("eventTypeInput").value = e.type || "meal";
+      document.getElementById("eventHostInput").value = e.host || "";
+      document.getElementById("eventAudienceInput").value = e.audience || "";
+      document.getElementById("eventNotesInput").value = e.notes || "";
+
+      setFormInputsDisabled(true);
+      document.getElementById("saveEventBtn").style.display = "none";
+      document.getElementById("deleteEventBtn").style.display = "none";
+      document.getElementById("internalNotesFieldWrap").style.display = "none";
+      document.getElementById("internalToggleWrap").style.display = "none";
+
+      document.getElementById("eventModal").classList.add("active");
+    }
+
+    function setFormInputsDisabled(disabled) {
+      document.getElementById("eventTitleInput").disabled = disabled;
+      document.getElementById("eventDateInput").disabled = disabled;
+      document.getElementById("eventTimeInput").disabled = disabled;
+      document.getElementById("eventTypeInput").disabled = disabled;
+      document.getElementById("eventHostInput").disabled = disabled;
+      document.getElementById("eventAudienceInput").disabled = disabled;
+      document.getElementById("eventNotesInput").disabled = disabled;
+      document.getElementById("eventInternalNotesInput").disabled = disabled;
+      document.getElementById("eventIsInternalInput").disabled = disabled;
     }
 
     function closeModal() {
@@ -1166,6 +1363,8 @@
 
     function saveEventForm(evt) {
       evt.preventDefault();
+      if (!isAdmin) return;
+
       const id = document.getElementById("eventId").value || ("evt-" + Date.now());
       const title = document.getElementById("eventTitleInput").value.trim();
       const date = document.getElementById("eventDateInput").value;
@@ -1174,8 +1373,10 @@
       const host = document.getElementById("eventHostInput").value.trim();
       const audience = document.getElementById("eventAudienceInput").value.trim();
       const notes = document.getElementById("eventNotesInput").value.trim();
+      const internalNotes = document.getElementById("eventInternalNotesInput").value.trim();
+      const isInternal = document.getElementById("eventIsInternalInput").checked;
 
-      const newEvent = { id, title, date, time, type, host, audience, notes };
+      const newEvent = { id, title, date, time, type, host, audience, notes, internalNotes, isInternal };
 
       const existingIdx = events.findIndex((e) => e.id === id);
       if (existingIdx >= 0) {
@@ -1190,7 +1391,7 @@
     }
 
     function deleteCurrentEvent() {
-      if (!activeEditingId) return;
+      if (!isAdmin || !activeEditingId) return;
       if (confirm("Delete this event from the calendar?")) {
         events = events.filter((e) => e.id !== activeEditingId);
         saveEvents();
@@ -1211,6 +1412,7 @@
     }
 
     function exportData() {
+      if (!isAdmin) return;
       const jsonStr = JSON.stringify(events, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
