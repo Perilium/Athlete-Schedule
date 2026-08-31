@@ -603,10 +603,92 @@
       color: var(--muted);
     }
 
-    .event-card:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.18);
+    /* ── Selected Day Clean Agenda Cards (Mobile & Desktop) ── */
+    .agenda-card {
       background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .agenda-card:hover {
+      background: #182635;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .agenda-card.is-completed {
+      opacity: 0.6;
+      background: #091118;
+    }
+    .agenda-card.is-completed .agenda-card-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .agenda-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .agenda-tag-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .agenda-time-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--accent);
+      background: rgba(45, 212, 191, 0.12);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .agenda-card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 5px;
+    }
+
+    .agenda-card-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 4px;
+      align-items: center;
+    }
+
+    .agenda-card-notes {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .agenda-card-actions {
+      display: flex;
+      gap: 5px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--surface-border);
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .event-card-left {
@@ -1650,6 +1732,14 @@
   </div>
 
   <script>
+    // Capture beforeinstallprompt immediately on page start for 1-click automatic download
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('beforeinstallprompt captured!');
+    });
+
     // ══ DATA PRESETS ══
     const TEAM_PRESETS = [
       "Cannons",
@@ -2807,7 +2897,66 @@
         container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No events on this day.${isAdmin ? `<br><button class="btn btn-primary" style="margin-top:10px; font-size:0.78rem;" onclick="openAddEventModal('${dateKey}')">➕ Add Event</button>` : ''}</div>`;
         return;
       }
-      container.innerHTML = dayEvts.map(e => renderEventCardHtml(e)).join("");
+      container.innerHTML = dayEvts.map(e => renderAgendaCardHtml(e)).join("");
+    }
+
+    // ══ CLEAN SELECTED-DAY AGENDA CARD HTML ══
+    function renderAgendaCardHtml(e) {
+      const cat = getCategory(e.type);
+      const hol = JEWISH_HOLIDAYS[e.date];
+      const assigneesList = e.assignees || (e.assignee ? [e.assignee] : []);
+      const audiences = e.audiences || (e.audience ? [e.audience] : []);
+      const assigneesHtml = assigneesList.map(a => `<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
+      const audiencesHtml = audiences.map(a => `<span class="event-tag" style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35); color:#d8b4fe;">👥 ${a}</span>`).join(" ");
+      
+      const isActionTask = (e.type === "action" || e.isInternal);
+      const completeTag = (isActionTask && e.isCompleted) ? `<span class="event-tag completed-badge">✅ Done</span>` : '';
+
+      const completeBtnHtml = (isAdmin && isActionTask) 
+        ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️ Pending' : '✅ Done'}</button>` 
+        : '';
+
+      const editBtnHtml = isAdmin
+        ? `
+          ${completeBtnHtml}
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); copyEventDirectly('${e.id}')">📋 Copy</button>
+        `
+        : `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Details</button>`;
+
+      const internalHtml = (isAdmin && e.internalNotes) 
+        ? `<div class="internal-note-box" style="margin-top:6px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
+        : "";
+
+      return `
+        <div class="agenda-card ${e.isCompleted ? 'is-completed' : ''}" style="border-left:4px solid ${(isActionTask && e.isCompleted) ? 'var(--muted)' : cat.color};" onclick="openDayOverviewModal('${e.date}', '${e.id}')">
+          <div class="agenda-card-top">
+            <div class="agenda-tag-group">
+              <span class="event-tag" style="background:${cat.color}22; color:${cat.color}; font-weight:800;">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
+              ${hol ? `<span class="jewish-holiday-pill" style="font-size:0.68rem;">✡️ ${hol}</span>` : ''}
+              ${completeTag}
+              ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin</span>` : ''}
+            </div>
+            ${e.time ? `<div class="agenda-time-pill">⏱️ ${e.time}</div>` : ''}
+          </div>
+
+          <div class="agenda-card-title">${e.title}</div>
+
+          <div class="agenda-card-meta">
+            ${e.host ? `<span>🏡 <strong>${e.host}</strong></span>` : ''}
+            ${assigneesHtml}
+            ${audiencesHtml}
+          </div>
+
+          ${e.notes ? `<div class="agenda-card-notes">📝 ${e.notes}</div>` : ''}
+          ${internalHtml}
+
+          <div class="agenda-card-actions">
+            ${editBtnHtml}
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); shareWhatsAppDirect('${e.id}')">💬 WhatsApp</button>
+            <button class="snooze-quick-btn" onclick="event.stopPropagation(); snoozeReminderForEvent('${e.id}', 1)">⏰ +1h</button>
+          </div>
+        </div>`;
     }
 
     // ══ EVENT CARD HTML ══
