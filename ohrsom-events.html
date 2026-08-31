@@ -1488,13 +1488,20 @@
         </div>
       </div>
 
-      <div id="nativeInstallPromptSection" style="display: none; text-align: center; padding: 12px 0;">
-        <button class="btn btn-primary" onclick="triggerNativeInstall()" style="width: 100%; justify-content: center; padding: 11px; font-size: 0.95rem;">
-          📲 Download & Install Now
+      <!-- Prominent Install Button -->
+      <div style="margin-bottom: 14px;">
+        <button class="btn btn-primary" id="modalInstallActionBtn" onclick="triggerNativeInstall()" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem; font-weight: 800; box-shadow: 0 4px 18px rgba(45, 212, 191, 0.35);">
+          📲 Install App on this Device
         </button>
       </div>
 
-      <div>
+      <!-- Device Specific Instructions -->
+      <div id="deviceInstallInstructions">
+        <div id="desktopInstallTip" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 10px; font-size: 0.82rem;">
+          🖥️ <strong>On Computer (Chrome / Edge):</strong><br>
+          Click the <strong>Install icon (⨁ or 💻)</strong> on the right side of your browser's address bar at the very top of the window.
+        </div>
+
         <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">🍎 iPhone / iPad (Safari):</h4>
         <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; font-size: 0.82rem;">
           1. Tap the <strong>Share ⎋</strong> button at the bottom of Safari.<br>
@@ -1502,10 +1509,10 @@
           3. Tap <strong>Add</strong>. It will install with its own <strong>Ohrsom Hub</strong> icon!
         </div>
 
-        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin: 12px 0 6px;">🤖 Android / Chrome:</h4>
+        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin: 10px 0 6px;">🤖 Android / Chrome:</h4>
         <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem;">
-          1. Tap the <strong>three dots ⋮</strong> menu in the top right.<br>
-          2. Tap <strong>"Install App"</strong> or <strong>"Add to Home screen"</strong>.
+          1. Tap the <strong>Install App</strong> button above.<br>
+          2. If not prompted, tap the <strong>three dots ⋮</strong> menu in top right and select <strong>"Install App"</strong>.
         </div>
       </div>
 
@@ -2242,8 +2249,10 @@
     }
 
     function showDownloadModal() { 
-      const nativeSec = document.getElementById("nativeInstallPromptSection");
-      if (nativeSec) nativeSec.style.display = deferredPrompt ? "block" : "none";
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isAndroid = /Android/.test(navigator.userAgent);
+      const desktopTip = document.getElementById("desktopInstallTip");
+      if (desktopTip) desktopTip.style.display = (!isIOS && !isAndroid) ? "block" : "none";
       document.getElementById("downloadModal").classList.add("active"); 
     }
     function closeDownloadModal() { document.getElementById("downloadModal").classList.remove("active"); }
@@ -2252,13 +2261,18 @@
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => { 
           if (choiceResult.outcome === 'accepted') {
-            showInAppNotification("App Installed! 📲", "Ohrsom Hub added to your home screen.");
+            showInAppNotification("App Installed! 📲", "Ohrsom Hub added to your device with its custom icon.");
           }
           deferredPrompt = null; 
           closeDownloadModal(); 
         });
       } else {
-        alert("To install on iPhone / iPad:\n1. Tap the Share button (⎋) at the bottom.\n2. Tap 'Add to Home Screen' (➕).");
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+          showInAppNotification("Install on iPhone / iPad 📲", "Tap the Share button (⎋) at the bottom of Safari, then tap 'Add to Home Screen' (➕).");
+        } else {
+          showInAppNotification("Install on Computer 🖥️", "Look for the Install icon (⨁ or 💻) on the right side of your browser's address bar at the top of the screen!");
+        }
       }
     }
 
