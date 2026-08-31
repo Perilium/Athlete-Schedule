@@ -820,14 +820,14 @@
           <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">⚙️</div>
           <div>
             <h2 style="font-size: 1.15rem; font-weight: 800;">Settings & Categories</h2>
-            <p style="font-size: 0.78rem; color: var(--muted);">Manage categories, add your own custom labels & colors</p>
+            <p style="font-size: 0.78rem; color: var(--muted);">Click "✏️ Edit" on any category to change its name, icon, or color</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
       </div>
 
       <div style="margin-bottom: 20px;">
-        <h4 style="font-size: 0.85rem; color: var(--accent); text-transform: uppercase; margin-bottom: 10px;">Current Categories:</h4>
+        <h4 style="font-size: 0.85rem; color: var(--accent); text-transform: uppercase; margin-bottom: 10px;">Active Categories (Editable):</h4>
         <div id="settingsCategoryList">
           <!-- Rendered dynamically -->
         </div>
@@ -835,7 +835,7 @@
 
       <!-- Add New Custom Category Form -->
       <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 14px;">
-        <h4 style="font-size: 0.85rem; color: var(--gold); text-transform: uppercase; margin-bottom: 12px;">➕ Add Custom Category</h4>
+        <h4 style="font-size: 0.85rem; color: var(--gold); text-transform: uppercase; margin-bottom: 12px;">➕ Add New Category</h4>
         <form onsubmit="saveNewCustomCategory(event)">
           <div class="form-row">
             <div class="form-group">
@@ -1042,13 +1042,13 @@
   </div>
 
   <script>
-    // Default Categories (including Shul / Davening)
+    // Default Categories
     const DEFAULT_CATEGORIES = [
-      { id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b", isSystem: true },
-      { id: "meal", name: "Meal / Hosting", icon: "🍽️", color: "#22c55e", isSystem: true },
-      { id: "event", name: "Event & Social", icon: "🎉", color: "#a855f7", isSystem: true },
-      { id: "learning", name: "Accelerator & Classes", icon: "🎓", color: "#38bdf8", isSystem: true },
-      { id: "action", name: "Admin Action Item", icon: "📋", color: "#f43f5e", isSystem: true, isInternal: true }
+      { id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b" },
+      { id: "meal", name: "Meal / Hosting", icon: "🍽️", color: "#22c55e" },
+      { id: "event", name: "Event & Social", icon: "🎉", color: "#a855f7" },
+      { id: "learning", name: "Accelerator & Classes", icon: "🎓", color: "#38bdf8" },
+      { id: "action", name: "Admin Action Item", icon: "📋", color: "#f43f5e", isInternal: true }
     ];
 
     // Initial Pre-Populated Events
@@ -1254,9 +1254,8 @@
       if (storedCategories) {
         try {
           categories = JSON.parse(storedCategories);
-          // Ensure shul category exists
           if (!categories.some(c => c.id === "shul")) {
-            categories.unshift({ id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b", isSystem: true });
+            categories.unshift({ id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b" });
             saveCategories();
           }
         } catch {
@@ -1372,7 +1371,7 @@
       }
     }
 
-    // Settings & Category Management Modal
+    // Settings & Category Management Modal (All Categories Editable!)
     function openSettingsModal() {
       if (!isAdmin) return;
       renderSettingsCategoryList();
@@ -1393,14 +1392,52 @@
         <div class="category-manage-item">
           <div class="category-item-badge" style="color: ${cat.color};">
             <span style="font-size: 1.2rem;">${cat.icon}</span>
-            <span>${cat.name}</span>
+            <span style="font-weight: 800;">${cat.name}</span>
             ${cat.isInternal ? '<span style="font-size:0.7rem; color:var(--rose); background:rgba(244,63,94,0.15); padding:2px 6px; border-radius:4px;">Admin Only</span>' : ''}
           </div>
-          <div>
-            ${!cat.isSystem ? `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:var(--rose);" onclick="deleteCustomCategory('${cat.id}')">🗑️ Remove</button>` : '<span style="font-size:0.75rem; color:var(--muted);">Default</span>'}
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-secondary" style="padding:5px 10px; font-size:0.75rem;" onclick="promptEditCategory('${cat.id}')">✏️ Edit</button>
+            <button class="btn btn-secondary" style="padding:5px 10px; font-size:0.75rem; color:var(--rose);" onclick="deleteCategory('${cat.id}')">🗑️</button>
           </div>
         </div>
       `).join("");
+    }
+
+    function promptEditCategory(id) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+
+      const newName = prompt(`Enter new name for category:`, cat.name);
+      if (newName === null) return;
+      const trimmedName = newName.trim();
+      if (!trimmedName) return;
+
+      const newIcon = prompt(`Enter emoji icon for "${trimmedName}":`, cat.icon);
+      if (newIcon !== null && newIcon.trim()) {
+        cat.icon = newIcon.trim();
+      }
+
+      cat.name = trimmedName;
+      saveCategories();
+      renderSettingsCategoryList();
+      renderFilterChips();
+      renderCategorySelectOptions();
+      render();
+    }
+
+    function deleteCategory(id) {
+      if (categories.length <= 1) {
+        alert("You must keep at least one category.");
+        return;
+      }
+      if (confirm("Delete this category? Existing events using it will still be saved.")) {
+        categories = categories.filter(c => c.id !== id);
+        saveCategories();
+        renderSettingsCategoryList();
+        renderFilterChips();
+        renderCategorySelectOptions();
+        render();
+      }
     }
 
     function selectCategoryColor(color, el) {
@@ -1416,18 +1453,12 @@
 
       if (!name) return;
 
-      const id = "cat_" + name.toLowerCase().replace(/[^a-z0-9]/g, "_");
-      if (categories.some(c => c.id === id)) {
-        alert("A category with this name already exists.");
-        return;
-      }
-
+      const id = "cat_" + Date.now();
       categories.push({
         id,
         name,
         icon,
-        color: selectedCategoryColor,
-        isSystem: false
+        color: selectedCategoryColor
       });
 
       saveCategories();
@@ -1438,17 +1469,6 @@
 
       document.getElementById("newCategoryName").value = "";
       document.getElementById("newCategoryIcon").value = "";
-    }
-
-    function deleteCustomCategory(id) {
-      if (confirm("Delete this category? Events using it will remain.")) {
-        categories = categories.filter(c => c.id !== id);
-        saveCategories();
-        renderSettingsCategoryList();
-        renderFilterChips();
-        renderCategorySelectOptions();
-        render();
-      }
     }
 
     // Category Lookup Helpers
