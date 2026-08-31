@@ -797,6 +797,39 @@
 
   </main>
 
+  <!-- Admin Login Modal -->
+  <div class="modal-overlay" id="adminLoginModal">
+    <div class="modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🔒</div>
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Admin Login</h2>
+            <p style="font-size: 0.78rem; color: var(--muted);">Enter passcode to unlock admin controls</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeAdminLoginModal()">✕</button>
+      </div>
+
+      <form onsubmit="submitAdminLogin(event)">
+        <div class="form-group" style="margin-top: 10px;">
+          <label for="adminPasscodeInput">Passcode</label>
+          <input type="password" id="adminPasscodeInput" class="form-control" placeholder="••••••••" required autocomplete="current-password" autofocus style="font-size: 1.1rem; letter-spacing: 0.1em;">
+          <p id="adminLoginError" style="color: var(--rose); font-size: 0.8rem; margin-top: 6px; display: none; font-weight: 700;">❌ Incorrect passcode. Please try again.</p>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center; padding: 11px;">
+            🔓 Unlock Admin
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeAdminLoginModal()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Download / Install App Modal -->
   <div class="modal-overlay" id="downloadModal">
     <div class="modal-card">
@@ -1111,7 +1144,7 @@
     let isAdmin = false;
     let deferredPrompt = null;
 
-    // Admin Passcode Updated to ohrsom613
+    // Admin Passcode
     const ADMIN_PASSCODE = "ohrsom613";
 
     function init() {
@@ -1172,7 +1205,7 @@
       localStorage.setItem("ohrsom_events_data", JSON.stringify(events));
     }
 
-    // Admin Toggle & Authentication
+    // Admin Toggle & Custom Modal Authentication
     function handleAdminToggle() {
       if (isAdmin) {
         if (confirm("Log out of Admin Mode?")) {
@@ -1182,15 +1215,40 @@
           render();
         }
       } else {
-        const pin = prompt("Enter Admin Passcode to unlock admin controls & internal notes:\n(Passcode: ohrsom613)");
-        if (pin && pin.toLowerCase().trim() === ADMIN_PASSCODE) {
-          isAdmin = true;
-          localStorage.setItem("ohrsom_is_admin", "true");
-          alert("🔓 Admin Mode Unlocked! Your browser will remember this login.");
-          updateAdminUI();
-          render();
-        } else if (pin !== null) {
-          alert("❌ Incorrect passcode.");
+        openAdminLoginModal();
+      }
+    }
+
+    function openAdminLoginModal() {
+      const input = document.getElementById("adminPasscodeInput");
+      const err = document.getElementById("adminLoginError");
+      if (input) input.value = "";
+      if (err) err.style.display = "none";
+      document.getElementById("adminLoginModal").classList.add("active");
+      setTimeout(() => { if (input) input.focus(); }, 150);
+    }
+
+    function closeAdminLoginModal() {
+      document.getElementById("adminLoginModal").classList.remove("active");
+    }
+
+    function submitAdminLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById("adminPasscodeInput");
+      const err = document.getElementById("adminLoginError");
+      const pin = input ? input.value.trim() : "";
+
+      if (pin === ADMIN_PASSCODE) {
+        isAdmin = true;
+        localStorage.setItem("ohrsom_is_admin", "true");
+        closeAdminLoginModal();
+        updateAdminUI();
+        render();
+      } else {
+        if (err) err.style.display = "block";
+        if (input) {
+          input.select();
+          input.focus();
         }
       }
     }
