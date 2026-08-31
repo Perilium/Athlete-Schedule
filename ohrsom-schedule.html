@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ohrsom · Yom Tov & Events Calendar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070d14;
+      --surface: #0f1923;
+      --surface-elevated: #16222f;
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --ink: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #2dd4bf;
+      --gold: #f59e0b;
+      --gold-bg: rgba(245, 158, 11, 0.12);
+      --purple: #a855f7;
+      --purple-bg: rgba(168, 85, 247, 0.12);
+      --blue: #38bdf8;
+      --blue-bg: rgba(56, 189, 248, 0.12);
+      --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.12);
+      --rose: #f43f5e;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    /* Top App Bar */
+    .header {
+      background: rgba(15, 25, 35, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--surface-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 18px;
+    }
+
+    .header-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.72rem;
+      color: var(--gold);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #0d9488);
+      color: #022c22;
+      box-shadow: 0 4px 14px rgba(45, 212, 191, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(45, 212, 191, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--ink);
+      border: 1px solid var(--surface-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 16px 18px;
+    }
+
+    /* Yom Tov Banner */
+    .yomtov-hero-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(168, 85, 247, 0.12));
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .yomtov-hero-info h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yomtov-hero-info p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .yomtov-quick-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .yom-badge {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* Controls: Month & View Switcher */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .month-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      min-width: 170px;
+    }
+
+    .view-segmented {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .view-seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .view-seg-btn.active {
+      background: var(--surface-elevated);
+      color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Filter Chips */
+    .filter-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 18px;
+      scrollbar-width: none;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .filter-chip:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--ink);
+    }
+
+    .filter-chip.active {
+      background: rgba(45, 212, 191, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Calendar Grid View */
+    .calendar-grid-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--surface-elevated);
+      border-bottom: 1px solid var(--surface-border);
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .cal-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--surface-border);
+    }
+
+    .cal-day-cell {
+      background: var(--surface);
+      min-height: 105px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .cal-day-cell:hover {
+      background: #13202e;
+    }
+
+    .cal-day-cell.other-month {
+      opacity: 0.35;
+      background: #091119;
+    }
+
+    .cal-day-cell.is-today {
+      background: rgba(45, 212, 191, 0.05);
+      border: 1px solid var(--accent);
+    }
+
+    .day-number-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .jewish-holiday-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--gold);
+      background: var(--gold-bg);
+      padding: 1px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cal-event-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-left: 3px solid;
+    }
+
+    .type-meal {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border-color: #22c55e;
+    }
+
+    .type-event {
+      background: rgba(168, 85, 247, 0.15);
+      color: #d8b4fe;
+      border-color: #a855f7;
+    }
+
+    .type-learning {
+      background: rgba(56, 189, 248, 0.15);
+      color: #7dd3fc;
+      border-color: #38bdf8;
+    }
+
+    .type-action {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fde047;
+      border-color: #f59e0b;
+    }
+
+    /* Timeline List View */
+    .timeline-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .event-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .event-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+    }
+
+    .event-card.card-meal::before { background: var(--green); }
+    .event-card.card-event::before { background: var(--purple); }
+    .event-card.card-learning::before { background: var(--blue); }
+    .event-card.card-action::before { background: var(--gold); }
+
+    .event-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.18);
+      background: var(--surface-elevated);
+      box-shadow: var(--shadow);
+    }
+
+    .event-card-left {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .event-date-block {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      min-width: 58px;
+      padding: 8px 4px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .date-month {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .date-num {
+      font-size: 1.35rem;
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+
+    .date-weekday {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .event-main-details h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .event-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    .event-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .event-meta-info {
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .event-meta-info span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(3, 7, 12, 0.8);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+      padding: 24px;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .cal-weekdays span { font-size: 0.65rem; }
+      .cal-day-cell { min-height: 85px; padding: 4px; }
+      .day-number-row { font-size: 0.75rem; }
+      .cal-event-pill { font-size: 0.65rem; padding: 2px 4px; }
+      .header-inner { flex-wrap: wrap; gap: 10px; }
+      .month-title { font-size: 1.1rem; min-width: auto; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <div class="brand-logo">🌿</div>
+        <div>
+          <h1 class="brand-title">Ohrsom Events Hub</h1>
+          <p class="brand-subtitle">Yom Tov & Hosting Schedule 5787</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="openAddEventModal()">➕ Add Event</button>
+        <button class="btn btn-secondary" onclick="exportData()" title="Backup or download schedule">💾 Export</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Yom Tov Notice Banner -->
+    <div class="yomtov-hero-banner">
+      <div class="yomtov-hero-info">
+        <h2>✡️ High Holidays & Sukkot 2026 Overview</h2>
+        <p>Rosh Hashanah (Sept 11–13) · Yom Kippur (Sept 20–21) · Sukkot (Sept 25–Oct 4) · Simchat Torah (Oct 3–4)</p>
+      </div>
+      <div class="yomtov-quick-badges">
+        <span class="yom-badge">🕯️ RH Mincha: 6:00 PM</span>
+        <span class="yom-badge">🌿 Final Fridays in Sukkah: Sept 25</span>
+        <span class="yom-badge">🎓 Accelerator Lunch: Sept 26</span>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <div class="month-nav">
+        <button class="btn btn-secondary" onclick="changeMonth(-1)">◀</button>
+        <h2 class="month-title" id="monthDisplay">September 2026</h2>
+        <button class="btn btn-secondary" onclick="changeMonth(1)">▶</button>
+      </div>
+
+      <div class="view-segmented">
+        <button class="view-seg-btn active" id="viewCalBtn" onclick="switchView('calendar')">📅 Calendar</button>
+        <button class="view-seg-btn" id="viewListBtn" onclick="switchView('timeline')">📋 Timeline</button>
+        <button class="view-seg-btn" id="viewHostingBtn" onclick="switchView('hosting')">🍽️ Hosting Only</button>
+      </div>
+    </div>
+
+    <!-- Filter Scroll Chips -->
+    <div class="filter-scroll">
+      <button class="filter-chip active" onclick="setFilter('all')">✨ All Items</button>
+      <button class="filter-chip" onclick="setFilter('meal')">🍽️ Meals & Hosting</button>
+      <button class="filter-chip" onclick="setFilter('event')">🎉 Events & Parties</button>
+      <button class="filter-chip" onclick="setFilter('learning')">🎓 Accelerator & Classes</button>
+      <button class="filter-chip" onclick="setFilter('action')">📋 Posters & Action Items</button>
+    </div>
+
+    <!-- Calendar View Container -->
+    <div id="calendarViewContainer">
+      <div class="calendar-grid-card">
+        <div class="cal-weekdays">
+          <span>SUN</span>
+          <span>MON</span>
+          <span>TUE</span>
+          <span>WED</span>
+          <span>THU</span>
+          <span>FRI</span>
+          <span>SAT</span>
+        </div>
+        <div class="cal-days-grid" id="calendarDaysGrid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline List View Container -->
+    <div id="timelineViewContainer" style="display: none;">
+      <div class="timeline-view" id="timelineList">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Event Detail & Editor Modal -->
+  <div class="modal-overlay" id="eventModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modalTitle" style="font-size: 1.25rem; font-weight: 800;">Event Details</h2>
+        <button class="modal-close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <form id="eventForm" onsubmit="saveEventForm(event)">
+        <input type="hidden" id="eventId">
+
+        <div class="form-group">
+          <label for="eventTitleInput">Event / Meal Title</label>
+          <input type="text" id="eventTitleInput" class="form-control" required placeholder="e.g. Final Fridays Sukkah Dinner">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eventDateInput">Date</label>
+            <input type="date" id="eventDateInput" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="eventTimeInput">Time / Service</label>
+            <input type="text" id="eventTimeInput" class="form-control" placeholder="e.g. 6:00 PM Mincha & Mitzvahs">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eventTypeInput">Category</label>
+            <select id="eventTypeInput" class="form-control">
+              <option value="meal">🍽️ Meal / Hosting</option>
+              <option value="event">🎉 Event & Social</option>
+              <option value="learning">🎓 Accelerator / Learning</option>
+              <option value="action">📋 Action Item / Poster</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="eventHostInput">Host / Venue</label>
+            <input type="text" id="eventHostInput" class="form-control" placeholder="e.g. Perelmans / Ohrsom Sukkah">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="eventAudienceInput">Who is it for? (Target Audience)</label>
+          <input type="text" id="eventAudienceInput" class="form-control" placeholder="e.g. Accelerator Cohort / Students / All">
+        </div>
+
+        <div class="form-group">
+          <label for="eventNotesInput">Notes & Action Checklist</label>
+          <textarea id="eventNotesInput" class="form-control" rows="3" placeholder="e.g. Send WhatsApp message to Ryan, confirm food prep..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Save Event</button>
+          <button type="button" class="btn btn-secondary" id="deleteEventBtn" onclick="deleteCurrentEvent()" style="color: var(--rose);">🗑️ Delete</button>
+          <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()">💬 WhatsApp</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Initial Pre-Populated Events from User's Schedule Specification
+    const DEFAULT_EVENTS = [
+      {
+        id: "evt-1",
+        title: "Salmons — Shabbat Lunch",
+        date: "2026-09-05",
+        time: "12:30 PM",
+        type: "meal",
+        host: "Salmons",
+        audience: "Students & Community",
+        notes: "Shabbat Lunch hosting at Salmons."
+      },
+      {
+        id: "evt-2",
+        title: "Rosh Hashanah Night 1 Dinner",
+        date: "2026-09-11",
+        time: "6:00 PM Mincha & Mitzvahs ➔ Dinner",
+        type: "meal",
+        host: "Salamons (Friday Night)",
+        audience: "Open to Students & Community",
+        notes: "6:00 PM Mincha and Mitzvahs. Rosh Hashanah 1st Night dinner at Salamons."
+      },
+      {
+        id: "evt-3",
+        title: "Rosh Hashanah Day 1 Lunch",
+        date: "2026-09-12",
+        time: "12:30 PM",
+        type: "meal",
+        host: "Cannons",
+        audience: "Students & Community",
+        notes: "Rosh Hashanah Day 1 lunch hosted by Cannons."
+      },
+      {
+        id: "evt-4",
+        title: "Rosh Hashanah Night 2 Dinner",
+        date: "2026-09-12",
+        time: "7:30 PM",
+        type: "meal",
+        host: "Perelmans (Saturday Night)",
+        audience: "Students & Community",
+        notes: "Rosh Hashanah 2nd Night dinner hosted at Perelmans."
+      },
+      {
+        id: "evt-5",
+        title: "Action: Send Message to Ryan (Post Fridays)",
+        date: "2026-09-18",
+        time: "Morning",
+        type: "action",
+        host: "Ohrsom Comms",
+        audience: "Internal Admin",
+        notes: "Post Fridays promo & send WhatsApp coordination message to Ryan."
+      },
+      {
+        id: "evt-6",
+        title: "Salmons — Shabbat Lunch",
+        date: "2026-09-19",
+        time: "12:30 PM",
+        type: "meal",
+        host: "Salmons",
+        audience: "Students & Community",
+        notes: "Shabbat Shuva lunch at Salmons."
+      },
+      {
+        id: "evt-7",
+        title: "🌿 Final Fridays in Sukkah",
+        date: "2026-09-25",
+        time: "6:30 PM",
+        type: "event",
+        host: "Ohrsom Sukkah",
+        audience: "All Students, Alumni & Young Pros",
+        notes: "Massive Final Fridays Shabbat Dinner in the Sukkah!"
+      },
+      {
+        id: "evt-8",
+        title: "Accelerator Sukkah Lunch",
+        date: "2026-09-26",
+        time: "12:30 PM",
+        type: "learning",
+        host: "Ohrsom Sukkah",
+        audience: "Accelerator Cohort",
+        notes: "Sukkot Shabbat Lunch for Accelerator students."
+      },
+      {
+        id: "evt-9",
+        title: "Saturday Night — Perelmans in Sukkah",
+        date: "2026-09-26",
+        time: "8:00 PM",
+        type: "meal",
+        host: "Perelmans in Ohrsom Sukkah",
+        audience: "Students & Young Pros",
+        notes: "Saturday night Chol Hamoed dinner at Perelmans in the Ohrsom Sukkah."
+      },
+      {
+        id: "evt-10",
+        title: "Cannons — Sukkah Lunch",
+        date: "2026-09-27",
+        time: "12:30 PM",
+        type: "meal",
+        host: "Cannons",
+        audience: "Students & Community",
+        notes: "Sunday Chol Hamoed Sukkah lunch at Cannons."
+      },
+      {
+        id: "evt-11",
+        title: "Normal Accelerator & Ohrsom 1",
+        date: "2026-09-29",
+        time: "6:00 PM - 8:30 PM",
+        type: "learning",
+        host: "Ohrsom Campus",
+        audience: "Accelerator & Ohrsom 1 Cohorts",
+        notes: "Tuesday regular program: Accelerator sessions and Ohrsom 1 learning."
+      },
+      {
+        id: "evt-12",
+        title: "🎨 Campaign Posters Release",
+        date: "2026-09-08",
+        time: "Design Deadline",
+        type: "action",
+        host: "Marketing Team",
+        audience: "All Campuses",
+        notes: "Prepare and release posters for: 1. Rosh Hashanah, 2. Final Fridays, 3. Simchat Torah."
+      }
+    ];
+
+    // Jewish Holidays Map (Hebrew Calendar 5787 / 2026)
+    const JEWISH_HOLIDAYS_2026 = {
+      "2026-09-11": "Erev Rosh Hashanah 🕯️",
+      "2026-09-12": "Rosh Hashanah I 📯",
+      "2026-09-13": "Rosh Hashanah II 📯",
+      "2026-09-14": "Fast of Gedaliah",
+      "2026-09-20": "Erev Yom Kippur 🕯️",
+      "2026-09-21": "Yom Kippur (Fast) ✡️",
+      "2026-09-25": "Erev Sukkot 🌿",
+      "2026-09-26": "Sukkot Day 1",
+      "2026-09-27": "Sukkot Day 2",
+      "2026-09-28": "Chol Hamoed Sukkot",
+      "2026-09-29": "Chol Hamoed Sukkot",
+      "2026-09-30": "Chol Hamoed Sukkot",
+      "2026-10-01": "Chol Hamoed Sukkot",
+      "2026-10-02": "Hoshana Rabbah",
+      "2026-10-03": "Shemini Atzeret 🕯️",
+      "2026-10-04": "Simchat Torah 📜"
+    };
+
+    // State Management
+    let events = [];
+    let currentYear = 2026;
+    let currentMonth = 8; // 8 = September (0-indexed)
+    let currentFilter = "all";
+    let currentView = "calendar";
+    let activeEditingId = null;
+
+    function init() {
+      const stored = localStorage.getItem("ohrsom_events_data");
+      if (stored) {
+        try {
+          events = JSON.parse(stored);
+        } catch {
+          events = [...DEFAULT_EVENTS];
+        }
+      } else {
+        events = [...DEFAULT_EVENTS];
+        saveEvents();
+      }
+      render();
+    }
+
+    function saveEvents() {
+      localStorage.setItem("ohrsom_events_data", JSON.stringify(events));
+    }
+
+    function render() {
+      updateMonthTitle();
+      if (currentView === "calendar") {
+        document.getElementById("calendarViewContainer").style.display = "block";
+        document.getElementById("timelineViewContainer").style.display = "none";
+        renderCalendarGrid();
+      } else {
+        document.getElementById("calendarViewContainer").style.display = "none";
+        document.getElementById("timelineViewContainer").style.display = "block";
+        renderTimeline();
+      }
+    }
+
+    function updateMonthTitle() {
+      const date = new Date(currentYear, currentMonth, 1);
+      const title = date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      document.getElementById("monthDisplay").textContent = title;
+    }
+
+    function changeMonth(delta) {
+      currentMonth += delta;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear -= 1;
+      } else if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear += 1;
+      }
+      render();
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.getElementById("viewCalBtn").classList.toggle("active", view === "calendar");
+      document.getElementById("viewListBtn").classList.toggle("active", view === "timeline");
+      document.getElementById("viewHostingBtn").classList.toggle("active", view === "hosting");
+
+      if (view === "hosting") {
+        currentFilter = "meal";
+        document.querySelectorAll(".filter-chip").forEach((c, idx) => c.classList.toggle("active", idx === 1));
+      }
+      render();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll(".filter-chip").forEach((btn) => {
+        btn.classList.toggle("active", btn.textContent.toLowerCase().includes(filter) || (filter === "all" && btn.textContent.includes("All")));
+      });
+      render();
+    }
+
+    function getFilteredEvents() {
+      return events.filter((ev) => {
+        if (currentFilter === "all") return true;
+        return ev.type === currentFilter;
+      });
+    }
+
+    // Render Calendar Grid
+    function renderCalendarGrid() {
+      const grid = document.getElementById("calendarDaysGrid");
+      grid.innerHTML = "";
+
+      const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+      const filtered = getFilteredEvents();
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      // Previous month days padding
+      for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+        const d = daysInPrevMonth - i;
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell other-month";
+        cell.innerHTML = `<div class="day-number-row"><span style="color: var(--muted);">${d}</span></div>`;
+        grid.appendChild(cell);
+      }
+
+      // Current month days
+      for (let day = 1; day <= daysInMonth; day++) {
+        const monthStr = String(currentMonth + 1).padStart(2, "0");
+        const dayStr = String(day).padStart(2, "0");
+        const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
+
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell";
+        if (dateKey === todayStr) cell.classList.add("is-today");
+
+        const jewishHol = JEWISH_HOLIDAYS_2026[dateKey];
+        const holBadge = jewishHol ? `<span class="jewish-holiday-pill" title="${jewishHol}">${jewishHol}</span>` : "";
+
+        const dayEvents = filtered.filter((e) => e.date === dateKey);
+        const eventsHtml = dayEvents.map((e) => `
+          <div class="cal-event-pill type-${e.type}" onclick="event.stopPropagation(); openEditEventModal('${e.id}')" title="${e.title} (${e.time || ''})">
+            <span>${getTypeIcon(e.type)}</span>
+            <span style="font-weight:700;">${e.title}</span>
+          </div>
+        `).join("");
+
+        cell.innerHTML = `
+          <div class="day-number-row">
+            <span>${day}</span>
+            ${holBadge}
+          </div>
+          ${eventsHtml}
+        `;
+
+        cell.addEventListener("click", () => openAddEventModal(dateKey));
+        grid.appendChild(cell);
+      }
+
+      // Next month padding
+      const totalCells = firstDayOfMonth + daysInMonth;
+      const nextDays = (7 - (totalCells % 7)) % 7;
+      for (let i = 1; i <= nextDays; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell other-month";
+        cell.innerHTML = `<div class="day-number-row"><span style="color: var(--muted);">${i}</span></div>`;
+        grid.appendChild(cell);
+      }
+    }
+
+    // Render Timeline View
+    function renderTimeline() {
+      const container = document.getElementById("timelineList");
+      const filtered = getFilteredEvents();
+
+      filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted);">No events found matching this filter. <br><button class="btn btn-primary" style="margin-top:12px;" onclick="openAddEventModal()">➕ Add an Event</button></div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((e) => {
+        const d = new Date(e.date + "T00:00:00");
+        const monthName = d.toLocaleDateString("en-US", { month: "short" });
+        const dayNum = d.getDate();
+        const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+        const holText = JEWISH_HOLIDAYS_2026[e.date];
+
+        return `
+          <div class="event-card card-${e.type}" onclick="openEditEventModal('${e.id}')">
+            <div class="event-card-left">
+              <div class="event-date-block">
+                <div class="date-month">${monthName}</div>
+                <div class="date-num">${dayNum}</div>
+                <div class="date-weekday">${weekday}</div>
+              </div>
+              <div class="event-main-details">
+                <h3>
+                  ${e.title}
+                  ${holText ? `<span class="jewish-holiday-pill">✡️ ${holText}</span>` : ""}
+                </h3>
+                <div class="event-tags-row">
+                  <span class="event-tag type-${e.type}">${getTypeLabel(e.type)}</span>
+                  ${e.audience ? `<span class="event-tag" style="background: rgba(255,255,255,0.08); color: var(--ink);">👥 ${e.audience}</span>` : ""}
+                </div>
+                <div class="event-meta-info">
+                  ${e.time ? `<span>⏱️ ${e.time}</span>` : ""}
+                  ${e.host ? `<span>🏡 Host/Venue: <strong>${e.host}</strong></span>` : ""}
+                </div>
+                ${e.notes ? `<p style="font-size:0.82rem; color:var(--muted); margin-top:6px;">📝 ${e.notes}</p>` : ""}
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function getTypeIcon(type) {
+      if (type === "meal") return "🍽️";
+      if (type === "event") return "🎉";
+      if (type === "learning") return "🎓";
+      if (type === "action") return "📋";
+      return "📌";
+    }
+
+    function getTypeLabel(type) {
+      if (type === "meal") return "🍽️ Meal / Hosting";
+      if (type === "event") return "🎉 Event";
+      if (type === "learning") return "🎓 Accelerator / Class";
+      if (type === "action") return "📋 Action / Poster";
+      return "Event";
+    }
+
+    // Modal Operations
+    function openAddEventModal(presetDate = null) {
+      activeEditingId = null;
+      document.getElementById("modalTitle").textContent = "➕ Add New Event / Meal";
+      document.getElementById("eventId").value = "";
+      document.getElementById("eventTitleInput").value = "";
+      document.getElementById("eventDateInput").value = presetDate || new Date().toISOString().slice(0, 10);
+      document.getElementById("eventTimeInput").value = "";
+      document.getElementById("eventTypeInput").value = "meal";
+      document.getElementById("eventHostInput").value = "";
+      document.getElementById("eventAudienceInput").value = "Students & Community";
+      document.getElementById("eventNotesInput").value = "";
+      document.getElementById("deleteEventBtn").style.display = "none";
+      document.getElementById("eventModal").classList.add("active");
+    }
+
+    function openEditEventModal(id) {
+      const e = events.find((item) => item.id === id);
+      if (!e) return;
+      activeEditingId = id;
+      document.getElementById("modalTitle").textContent = "✏️ Edit Event / Meal";
+      document.getElementById("eventId").value = e.id;
+      document.getElementById("eventTitleInput").value = e.title;
+      document.getElementById("eventDateInput").value = e.date;
+      document.getElementById("eventTimeInput").value = e.time || "";
+      document.getElementById("eventTypeInput").value = e.type || "meal";
+      document.getElementById("eventHostInput").value = e.host || "";
+      document.getElementById("eventAudienceInput").value = e.audience || "";
+      document.getElementById("eventNotesInput").value = e.notes || "";
+      document.getElementById("deleteEventBtn").style.display = "inline-block";
+      document.getElementById("eventModal").classList.add("active");
+    }
+
+    function closeModal() {
+      document.getElementById("eventModal").classList.remove("active");
+    }
+
+    function saveEventForm(evt) {
+      evt.preventDefault();
+      const id = document.getElementById("eventId").value || ("evt-" + Date.now());
+      const title = document.getElementById("eventTitleInput").value.trim();
+      const date = document.getElementById("eventDateInput").value;
+      const time = document.getElementById("eventTimeInput").value.trim();
+      const type = document.getElementById("eventTypeInput").value;
+      const host = document.getElementById("eventHostInput").value.trim();
+      const audience = document.getElementById("eventAudienceInput").value.trim();
+      const notes = document.getElementById("eventNotesInput").value.trim();
+
+      const newEvent = { id, title, date, time, type, host, audience, notes };
+
+      const existingIdx = events.findIndex((e) => e.id === id);
+      if (existingIdx >= 0) {
+        events[existingIdx] = newEvent;
+      } else {
+        events.push(newEvent);
+      }
+
+      saveEvents();
+      closeModal();
+      render();
+    }
+
+    function deleteCurrentEvent() {
+      if (!activeEditingId) return;
+      if (confirm("Delete this event from the calendar?")) {
+        events = events.filter((e) => e.id !== activeEditingId);
+        saveEvents();
+        closeModal();
+        render();
+      }
+    }
+
+    function shareWhatsApp() {
+      const title = document.getElementById("eventTitleInput").value;
+      const date = document.getElementById("eventDateInput").value;
+      const time = document.getElementById("eventTimeInput").value;
+      const host = document.getElementById("eventHostInput").value;
+      const notes = document.getElementById("eventNotesInput").value;
+
+      const text = `🌿 *Ohrsom Event Info: ${title}*\n📅 *Date:* ${date}\n⏱️ *Time:* ${time}\n🏡 *Host/Location:* ${host}\n${notes ? `📝 *Notes:* ${notes}\n` : ''}\nRSVP via Ohrsom Events Hub!`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    }
+
+    function exportData() {
+      const jsonStr = JSON.stringify(events, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ohrsom-events-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
