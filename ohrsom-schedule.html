@@ -8,1281 +8,2676 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Ohrsom Hub">
   <title>Ohrsom · Yom Tov & Events Calendar</title>
+  
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon.svg">
   <link rel="manifest" href="manifest.json">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg: #070d14; --surface: #0f1923; --surface-elevated: #16222f;
-      --surface-border: rgba(255,255,255,0.08); --ink: #f1f5f9; --muted: #94a3b8;
-      --accent: #2dd4bf; --gold: #f59e0b; --gold-bg: rgba(245,158,11,0.14);
-      --blue: #38bdf8; --blue-bg: rgba(56,189,248,0.14); --green: #22c55e;
-      --green-bg: rgba(34,197,94,0.14); --rose: #f43f5e; --purple: #a855f7;
-      --radius: 14px; --radius-sm: 8px; --shadow: 0 8px 30px rgba(0,0,0,0.45);
+      --bg: #070d14;
+      --surface: #0f1923;
+      --surface-elevated: #16222f;
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --ink: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #2dd4bf;
+      --gold: #f59e0b;
+      --gold-bg: rgba(245, 158, 11, 0.14);
+      --blue: #38bdf8;
+      --blue-bg: rgba(56, 189, 248, 0.14);
+      --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.14);
+      --rose: #f43f5e;
+      --purple: #a855f7;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
     }
-    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-    body{font-family:'Outfit',-apple-system,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.5;padding-bottom:80px;}
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding-bottom: 80px;
+    }
 
     /* ── Header ── */
-    .header{background:rgba(15,25,35,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--surface-border);position:sticky;top:0;z-index:100;padding:10px 16px;}
-    .header-inner{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
-    .brand-wrap{display:flex;align-items:center;gap:10px;}
-    .brand-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),#d97706);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 12px rgba(245,158,11,0.3);flex-shrink:0;}
-    .brand-title{font-size:1.1rem;font-weight:800;letter-spacing:-0.02em;line-height:1.2;}
-    .brand-subtitle{font-size:0.7rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;}
-    .header-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-    .btn{font-family:inherit;font-size:0.8rem;font-weight:700;padding:7px 12px;border-radius:var(--radius-sm);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s ease;white-space:nowrap;}
-    .btn-primary{background:linear-gradient(135deg,var(--accent),#0d9488);color:#022c22;box-shadow:0 4px 14px rgba(45,212,191,0.3);}
-    .btn-secondary{background:var(--surface-elevated);color:var(--ink);border:1px solid var(--surface-border);}
-    .btn-secondary:hover{background:rgba(255,255,255,0.08);}
-    .btn-install{background:linear-gradient(135deg,#38bdf8,#0284c7);color:#fff;font-weight:800;box-shadow:0 4px 14px rgba(56,189,248,0.35);}
-    .btn-notify{background:rgba(245,158,11,0.15);border:1px solid var(--gold);color:#fde047;}
-    .btn-admin-locked{background:rgba(255,255,255,0.06);border:1px solid var(--surface-border);color:var(--muted);}
-    .btn-admin-unlocked{background:rgba(34,197,94,0.15);border:1px solid var(--green);color:#86efac;}
-    .btn-warn{background:rgba(244,63,94,0.15);border:1px solid var(--rose);color:#fda4af;}
-
-    /* ── Container ── */
-    .container{max-width:1280px;margin:0 auto;padding:16px;}
-
-    /* ── Banner ── */
-    .yomtov-hero-banner{background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(168,85,247,0.12));border:1px solid rgba(245,158,11,0.35);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-    .yomtov-hero-info h2{font-size:1.05rem;font-weight:800;color:#fbbf24;display:flex;align-items:center;gap:8px;}
-    .yomtov-hero-info p{font-size:0.8rem;color:var(--muted);margin-top:2px;}
-    .yomtov-quick-badges{display:flex;flex-wrap:wrap;gap:6px;}
-    .yom-badge{background:rgba(255,255,255,0.08);padding:3px 8px;border-radius:999px;font-size:0.72rem;font-weight:700;color:var(--ink);}
-
-    /* ── Controls ── */
-    .controls-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
-    .month-nav{display:flex;align-items:center;gap:8px;}
-    .month-title{font-size:1.15rem;font-weight:800;min-width:150px;}
-    .view-segmented{display:flex;background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:2px;gap:2px;}
-    .view-seg-btn{background:transparent;border:none;color:var(--muted);font-family:inherit;font-size:0.78rem;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all 0.15s ease;white-space:nowrap;}
-    .view-seg-btn.active{background:var(--surface-elevated);color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,0.3);}
-
-    /* ── Filter Bar ── */
-    .filter-bar-container{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-    .person-filter-select{background:var(--surface-elevated);color:var(--accent);border:1px solid var(--surface-border);border-radius:999px;padding:6px 12px;font-family:inherit;font-size:0.78rem;font-weight:700;outline:none;cursor:pointer;}
-    .filter-scroll{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;}
-    .filter-scroll::-webkit-scrollbar{display:none;}
-    .filter-chip{background:var(--surface);border:1px solid var(--surface-border);color:var(--muted);font-family:inherit;font-size:0.78rem;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:all 0.15s ease;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;}
-    .filter-chip:hover{background:rgba(255,255,255,0.05);color:var(--ink);}
-    .filter-chip.active{background:rgba(45,212,191,0.15);border-color:var(--accent);color:var(--accent);}
-    .filter-chip-myitems{border-color:var(--gold);color:#fde047;background:rgba(245,158,11,0.12);}
-    .filter-chip-myitems.active{background:var(--gold);color:#070d14;font-weight:800;}
-
-    /* ── DESKTOP Calendar Grid ── */
-    .calendar-grid-card{background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;width:100%;}
-    .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface-elevated);border-bottom:1px solid var(--surface-border);text-align:center;padding:10px 0;font-size:0.75rem;font-weight:800;color:var(--muted);letter-spacing:0.05em;}
-    .cal-days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--surface-border);}
-
-    /* Desktop cell: tall enough for wrapped text */
-    .cal-day-cell{background:var(--surface);min-height:120px;padding:6px 6px 6px 6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:all 0.15s ease;position:relative;}
-    .cal-day-cell:hover{background:#13202e;}
-    .cal-day-cell.other-month{opacity:0.25;background:#081017;}
-    .cal-day-cell.is-today{background:rgba(45,212,191,0.06);box-shadow:inset 0 0 0 1px var(--accent);}
-    .cal-day-cell.is-selected-day{background:rgba(45,212,191,0.12)!important;box-shadow:inset 0 0 0 2px var(--accent)!important;}
-
-    .day-number-row{display:flex;justify-content:space-between;align-items:flex-start;font-size:0.82rem;font-weight:800;gap:2px;margin-bottom:2px;}
-    .day-num-circle{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;}
-    .is-today .day-num-circle{background:var(--accent);color:#022c22;}
-
-    .jewish-holiday-pill{font-size:0.6rem;font-weight:800;color:var(--gold);background:var(--gold-bg);padding:1px 4px;border-radius:4px;line-height:1.2;text-align:right;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
-    /* Desktop event pills: wrap text, no truncation */
-    .cal-event-pill{font-size:0.68rem;font-weight:700;padding:3px 5px;border-radius:5px;display:flex;align-items:flex-start;gap:4px;border-left:3px solid;word-break:break-word;white-space:normal;line-height:1.25;cursor:pointer;}
-    .cal-event-pill:hover{opacity:0.85;transform:translateX(1px);}
-    .cal-event-pill-icon{flex-shrink:0;margin-top:1px;}
-
-    /* ── Agenda / Timeline below calendar ── */
-    .day-agenda-section{margin-top:14px;background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
-    .day-agenda-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--surface-border);flex-wrap:wrap;gap:8px;}
-    .day-agenda-title{font-size:1.05rem;font-weight:800;color:var(--accent);}
-
-    /* ── Timeline List View ── */
-    .timeline-view{display:flex;flex-direction:column;gap:10px;margin-bottom:30px;}
-    .event-card{background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius);padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;cursor:pointer;transition:all 0.15s ease;position:relative;overflow:hidden;}
-    .event-card:hover{transform:translateY(-1px);border-color:rgba(255,255,255,0.18);background:var(--surface-elevated);}
-    .event-card-left{display:flex;gap:12px;align-items:flex-start;flex:1;}
-    .event-date-block{background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:8px;min-width:52px;padding:6px 2px;text-align:center;flex-shrink:0;}
-    .date-month{font-size:0.65rem;font-weight:800;text-transform:uppercase;color:var(--muted);}
-    .date-num{font-size:1.25rem;font-weight:900;line-height:1.1;color:var(--ink);}
-    .date-weekday{font-size:0.65rem;font-weight:700;color:var(--accent);}
-    .event-main-details{flex:1;}
-    .event-main-details h3{font-size:0.98rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-    .event-tags-row{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0;}
-    .event-tag{font-size:0.7rem;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;}
-    .assignee-badge{background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);color:#7dd3fc;font-weight:800;}
-    .internal-badge{background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.4);color:#fda4af;}
-    .event-meta-info{font-size:0.8rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
-    .event-meta-info span{display:inline-flex;align-items:center;gap:4px;}
-    .internal-note-box{background:rgba(244,63,94,0.08);border:1px dashed rgba(244,63,94,0.35);border-radius:6px;padding:5px 8px;margin-top:6px;font-size:0.75rem;color:#fecdd3;}
-
-    /* Event card action buttons */
-    .event-card-actions{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;}
-
-    /* ── Modal ── */
-    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(3,7,12,0.85);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.2s ease;}
-    .modal-overlay.active{opacity:1;pointer-events:auto;}
-    .modal-card{background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius);width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,0.6);transform:scale(0.95);transition:transform 0.2s ease;padding:20px;}
-    .modal-overlay.active .modal-card{transform:scale(1);}
-    .modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
-    .modal-close-btn{background:rgba(255,255,255,0.08);border:none;color:var(--muted);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
-    .form-group{margin-bottom:12px;}
-    .form-group label{display:block;font-size:0.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;}
-    .form-control{width:100%;background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:9px 11px;font-family:inherit;font-size:0.88rem;color:var(--ink);}
-    .form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(45,212,191,0.2);}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-    /* ── Multi-select Assignees ── */
-    .assignee-multiselect-container{background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 10px;}
-    .assignee-chips-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:28px;align-items:center;}
-    .assignee-chip-selected{background:rgba(56,189,248,0.18);border:1px solid var(--blue);color:#7dd3fc;padding:3px 8px;border-radius:999px;font-size:0.78rem;font-weight:800;display:inline-flex;align-items:center;gap:5px;}
-    .assignee-chip-remove{cursor:pointer;color:#94a3b8;font-size:0.85rem;line-height:1;display:inline-flex;}
-    .assignee-chip-remove:hover{color:var(--rose);}
-    .quick-assign-pills-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--surface-border);}
-    .quick-assign-btn{background:rgba(255,255,255,0.06);border:1px solid var(--surface-border);color:var(--muted);font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:999px;cursor:pointer;transition:all 0.15s ease;}
-    .quick-assign-btn:hover{background:rgba(56,189,248,0.15);border-color:var(--blue);color:var(--blue);}
-    .quick-assign-btn.is-active{background:var(--blue);color:#070d14;border-color:var(--blue);}
-    .custom-assignee-add-row{display:flex;gap:6px;margin-top:6px;}
-
-    /* ── Audience Multi-select ── */
-    .audience-multiselect-container{background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 10px;}
-    .audience-chips-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:28px;align-items:center;}
-    .audience-chip-selected{background:rgba(168,85,247,0.18);border:1px solid var(--purple);color:#d8b4fe;padding:3px 8px;border-radius:999px;font-size:0.78rem;font-weight:800;display:inline-flex;align-items:center;gap:5px;}
-    .audience-chip-remove{cursor:pointer;color:#94a3b8;font-size:0.85rem;display:inline-flex;}
-    .audience-chip-remove:hover{color:var(--rose);}
-    .audience-preset-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--surface-border);}
-    .audience-preset-btn{background:rgba(255,255,255,0.06);border:1px solid var(--surface-border);color:var(--muted);font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:999px;cursor:pointer;transition:all 0.15s ease;}
-    .audience-preset-btn:hover{background:rgba(168,85,247,0.15);border-color:var(--purple);color:#d8b4fe;}
-    .audience-preset-btn.is-active{background:var(--purple);color:#fff;border-color:var(--purple);}
-
-    /* ── Category Management ── */
-    .category-manage-item{display:flex;justify-content:space-between;align-items:center;background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:6px;}
-    .color-swatch-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
-    .color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s ease;}
-    .color-swatch.active{border-color:#fff;transform:scale(1.15);}
-
-    /* ── Install steps ── */
-    .install-step-card{background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
-    .install-step-num{width:26px;height:26px;background:var(--blue-bg);color:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;}
-
-    /* ── Move-to-date modal ── */
-    .move-date-modal-card{max-width:360px;}
-
-    /* ── MOBILE: Phone ── */
-    @media (max-width:768px){
-      .header-inner{flex-wrap:wrap;gap:8px;}
-      .brand-title{font-size:0.95rem;}
-      .brand-subtitle{font-size:0.65rem;}
-      .container{padding:8px;}
-      .controls-bar{flex-direction:column;align-items:stretch;gap:8px;}
-      .month-nav{justify-content:space-between;}
-      .month-title{min-width:auto;text-align:center;flex:1;}
-      .view-segmented{width:100%;}
-      .view-seg-btn{flex:1;text-align:center;padding:6px 4px;font-size:0.72rem;}
-      .form-row{grid-template-columns:1fr;}
-
-      /* Mobile: compact calendar — DOT-only mode to avoid overflow */
-      .cal-weekdays{font-size:0.68rem;padding:7px 0;}
-      /* Each cell is just tall enough for day number + 3 dots, no text pills */
-      .cal-day-cell{min-height:60px;padding:4px 2px;gap:2px;}
-      .day-number-row{font-size:0.72rem;}
-      .jewish-holiday-pill{display:none;} /* hide on mobile to keep cells clean */
-      .day-num-circle{width:20px;height:20px;font-size:0.72rem;}
-
-      /* Mobile event pills = colored dots only */
-      .cal-event-pill{display:block;width:8px;height:8px;border-radius:50%;padding:0;border:none;border-left:none;flex-shrink:0;margin:1px;}
-      .cal-event-pill-text{display:none;}
-      .cal-event-pill-icon{display:none;}
-
-      /* Mobile dots row */
-      .mobile-dots-row{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:2px;}
-
-      /* Yom Tov symbol on mobile */
-      .mobile-yomtov-dot{display:block;width:10px;height:10px;border-radius:50%;background:var(--gold);margin:0 auto 2px;}
-
-      .day-agenda-section{margin-top:10px;padding:12px;}
-      .event-card{padding:10px 12px;gap:8px;}
-      .event-card-actions{flex-direction:row;flex-wrap:wrap;}
+    .header {
+      background: rgba(15, 25, 35, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--surface-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 10px 16px;
     }
 
-    /* DESKTOP: hide mobile dot row */
-    @media (min-width:769px){
-      .mobile-dots-row{display:none;}
-      .mobile-yomtov-dot{display:none;}
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 0.7rem;
+      color: var(--gold);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #0d9488);
+      color: #022c22;
+      box-shadow: 0 4px 14px rgba(45, 212, 191, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--ink);
+      border: 1px solid var(--surface-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-install {
+      background: linear-gradient(135deg, #38bdf8, #0284c7);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+    }
+
+    .btn-notify {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--gold);
+      color: #fde047;
+    }
+
+    .btn-admin-locked {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--surface-border);
+      color: var(--muted);
+    }
+
+    .btn-admin-unlocked {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--green);
+      color: #86efac;
+    }
+
+    /* ── Container ── */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* ── Banner ── */
+    .yomtov-hero-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(168, 85, 247, 0.12));
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .yomtov-hero-info h2 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yomtov-hero-info p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .yomtov-quick-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .yom-badge {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* ── Controls ── */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .month-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      min-width: 150px;
+    }
+
+    .view-segmented {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .view-seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .view-seg-btn.active {
+      background: var(--surface-elevated);
+      color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ── Filter Bar ── */
+    .filter-bar-container {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .person-filter-select {
+      background: var(--surface-elevated);
+      color: var(--accent);
+      border: 1px solid var(--surface-border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .filter-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex: 1;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .filter-chip:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--ink);
+    }
+
+    .filter-chip.active {
+      background: rgba(45, 212, 191, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .filter-chip-myitems {
+      border-color: var(--gold);
+      color: #fde047;
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .filter-chip-myitems.active {
+      background: var(--gold);
+      color: #070d14;
+      font-weight: 800;
+    }
+
+    /* ── Calendar Grid ── */
+    .calendar-grid-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--surface-elevated);
+      border-bottom: 1px solid var(--surface-border);
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .cal-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--surface-border);
+    }
+
+    .cal-day-cell {
+      background: var(--surface);
+      min-height: 110px;
+      padding: 6px 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .cal-day-cell:hover {
+      background: #13202e;
+    }
+
+    .cal-day-cell.other-month {
+      opacity: 0.25;
+      background: #081017;
+    }
+
+    .cal-day-cell.is-today {
+      background: rgba(45, 212, 191, 0.06);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    .cal-day-cell.is-selected-day {
+      background: rgba(45, 212, 191, 0.12) !important;
+      box-shadow: inset 0 0 0 2px var(--accent) !important;
+    }
+
+    .day-number-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 0.82rem;
+      font-weight: 800;
+      gap: 2px;
+      margin-bottom: 2px;
+    }
+
+    .day-num-circle {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .is-today .day-num-circle {
+      background: var(--accent);
+      color: #022c22;
+    }
+
+    .jewish-holiday-pill {
+      font-size: 0.6rem;
+      font-weight: 800;
+      color: var(--gold);
+      background: var(--gold-bg);
+      padding: 1px 5px;
+      border-radius: 4px;
+      line-height: 1.2;
+      text-align: right;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Event pills inside cells (Wrapped text, readable) */
+    .cal-event-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 5px;
+      border-radius: 5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      border-left: 3px solid;
+      word-break: break-word;
+      white-space: normal;
+      line-height: 1.25;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .cal-event-pill:hover {
+      opacity: 0.85;
+      transform: translateX(1px);
+    }
+
+    .cal-event-pill-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Agenda / Timeline below calendar ── */
+    .day-agenda-section {
+      margin-top: 14px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .day-agenda-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--surface-border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .day-agenda-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    /* ── Timeline List View ── */
+    .timeline-view {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .event-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .event-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.18);
+      background: var(--surface-elevated);
+    }
+
+    .event-card-left {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex: 1;
+    }
+
+    .event-date-block {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      min-width: 52px;
+      padding: 6px 2px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .date-month {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .date-num {
+      font-size: 1.25rem;
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+
+    .date-weekday {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .event-main-details {
+      flex: 1;
+    }
+
+    .event-main-details h3 {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .event-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 4px 0;
+    }
+
+    .event-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .assignee-badge {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #7dd3fc;
+      font-weight: 800;
+    }
+
+    .internal-badge {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fda4af;
+    }
+
+    .event-meta-info {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .event-meta-info span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .internal-note-box {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px dashed rgba(244, 63, 94, 0.35);
+      border-radius: 6px;
+      padding: 5px 8px;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: #fecdd3;
+    }
+
+    .event-card-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── Modals & Pop-ups ── */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(3, 7, 12, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+      padding: 20px;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 5px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 9px 11px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: var(--ink);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* ── Multi-select Assignees ── */
+    .assignee-multiselect-container {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+
+    .assignee-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+      min-height: 28px;
+      align-items: center;
+    }
+
+    .assignee-chip-selected {
+      background: rgba(56, 189, 248, 0.18);
+      border: 1px solid var(--blue);
+      color: #7dd3fc;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .assignee-chip-remove {
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      line-height: 1;
+      display: inline-flex;
+    }
+    .assignee-chip-remove:hover { color: var(--rose); }
+
+    .quick-assign-pills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--surface-border);
+    }
+
+    .quick-assign-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--surface-border);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .quick-assign-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .quick-assign-btn.is-active {
+      background: var(--blue);
+      color: #070d14;
+      border-color: var(--blue);
+    }
+
+    .custom-assignee-add-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    /* ── Audience Multi-select ── */
+    .audience-multiselect-container {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+
+    .audience-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+      min-height: 28px;
+      align-items: center;
+    }
+
+    .audience-chip-selected {
+      background: rgba(168, 85, 247, 0.18);
+      border: 1px solid var(--purple);
+      color: #d8b4fe;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .audience-chip-remove {
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      display: inline-flex;
+    }
+    .audience-chip-remove:hover { color: var(--rose); }
+
+    .audience-preset-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--surface-border);
+    }
+
+    .audience-preset-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--surface-border);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .audience-preset-btn:hover {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: var(--purple);
+      color: #d8b4fe;
+    }
+
+    .audience-preset-btn.is-active {
+      background: var(--purple);
+      color: #fff;
+      border-color: var(--purple);
+    }
+
+    /* ── Category Management ── */
+    .category-manage-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      margin-bottom: 6px;
+    }
+
+    .color-swatch-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .color-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s ease;
+    }
+
+    .color-swatch.active {
+      border-color: #fff;
+      transform: scale(1.15);
+    }
+
+    /* ── Day Overview Modal Event Item Card ── */
+    .overview-event-item {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .overview-event-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .overview-event-item-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .overview-btn-bar {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--surface-border);
+      flex-wrap: wrap;
+    }
+
+    /* ── Notification Schedule Card ── */
+    .notif-rule-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .notif-rule-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    /* ── Responsive Styling ── */
+    @media (max-width: 768px) {
+      .header-inner { flex-wrap: wrap; gap: 8px; }
+      .brand-title { font-size: 0.95rem; }
+      .brand-subtitle { font-size: 0.65rem; }
+      .container { padding: 8px; }
+      
+      .controls-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+      .month-nav { justify-content: space-between; }
+      .month-title { min-width: auto; text-align: center; flex: 1; font-size: 1.05rem; }
+      .view-segmented { width: 100%; }
+      .view-seg-btn { flex: 1; text-align: center; padding: 6px 4px; font-size: 0.72rem; }
+      .form-row { grid-template-columns: 1fr; }
+
+      .cal-weekdays { font-size: 0.68rem; padding: 7px 0; }
+      .cal-day-cell { min-height: 75px; padding: 3px 2px; gap: 2px; }
+      .day-number-row { font-size: 0.72rem; }
+      .day-num-circle { width: 18px; height: 18px; font-size: 0.72rem; }
+      .jewish-holiday-pill { font-size: 0.55rem; padding: 1px 3px; }
+
+      /* Mobile legible mini event pills */
+      .cal-event-pill {
+        font-size: 0.62rem;
+        padding: 1px 3px;
+        line-height: 1.15;
+        border-radius: 3px;
+        margin-top: 1px;
+      }
+      .cal-event-pill-icon { font-size: 0.65rem; }
+
+      .day-agenda-section { margin-top: 10px; padding: 12px; }
+      .event-card { padding: 10px 12px; gap: 8px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ══ HEADER ══ -->
-<header class="header">
-  <div class="header-inner">
-    <div class="brand-wrap">
-      <div class="brand-logo">🌿</div>
-      <div>
-        <h1 class="brand-title">Ohrsom Events Hub</h1>
-        <p class="brand-subtitle">Yom Tov & Hosting Schedule 5787</p>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button class="btn btn-install" onclick="showDownloadModal()">📲 Download App</button>
-      <button class="btn btn-notify" onclick="toggleNotifications()">🔔 Reminders</button>
-      <button id="settingsBtn" class="btn btn-secondary" onclick="openSettingsModal()" style="display:none;">⚙️ Settings</button>
-      <button id="adminToggleBtn" class="btn btn-admin-locked" onclick="handleAdminToggle()">🔒 Admin Login</button>
-      <button id="addEventHeaderBtn" class="btn btn-primary" onclick="openAddEventModal()" style="display:none;">➕ Add Event</button>
-    </div>
-  </div>
-</header>
-
-<main class="container">
-
-  <!-- Banner -->
-  <div class="yomtov-hero-banner">
-    <div class="yomtov-hero-info">
-      <h2>✡️ High Holidays & Sukkot 2026</h2>
-      <p>RH (Sept 11–13) · YK (Sept 20–21) · Sukkot (Sept 25–Oct 4) · Simchat Torah (Oct 3–4)</p>
-    </div>
-    <div class="yomtov-quick-badges">
-      <span class="yom-badge">🕯️ RH Mincha: 6:00 PM</span>
-      <span class="yom-badge">🌿 Final Fridays Sukkah: Sept 25</span>
-    </div>
-  </div>
-
-  <!-- Controls -->
-  <div class="controls-bar">
-    <div class="month-nav">
-      <button class="btn btn-secondary" onclick="changeMonth(-1)">◀</button>
-      <h2 class="month-title" id="monthDisplay">September 2026</h2>
-      <button class="btn btn-secondary" onclick="changeMonth(1)">▶</button>
-    </div>
-    <div class="view-segmented">
-      <button class="view-seg-btn active" id="viewCalBtn" onclick="switchView('calendar')">📅 Month</button>
-      <button class="view-seg-btn" id="viewListBtn" onclick="switchView('timeline')">📋 List</button>
-      <button class="view-seg-btn" id="viewHostingBtn" onclick="switchView('hosting')">🍽️ Meals</button>
-    </div>
-  </div>
-
-  <!-- Filter Bar -->
-  <div class="filter-bar-container">
-    <select class="person-filter-select" id="personFilterSelect" onchange="handlePersonFilterChange(this.value)">
-      <option value="all">👥 All People & Families</option>
-      <option value="Cannons">🏠 Cannons</option>
-      <option value="Bati">👤 Bini Bati</option>
-      <option value="Ryan">👤 Ryan</option>
-      <option value="Perelmans">🏠 Perelmans</option>
-      <option value="Salmons">🏠 Salmons</option>
-    </select>
-    <div class="filter-scroll" id="dynamicFilterChips"></div>
-  </div>
-
-  <!-- Calendar View -->
-  <div id="calendarViewContainer">
-    <div class="calendar-grid-card">
-      <div class="cal-weekdays">
-        <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span>
-        <span>THU</span><span>FRI</span><span>SAT</span>
-      </div>
-      <div class="cal-days-grid" id="calendarDaysGrid"></div>
-    </div>
-    <div class="day-agenda-section" id="mobileDayAgendaSection">
-      <div class="day-agenda-header">
-        <div class="day-agenda-title" id="mobileAgendaDateTitle">Tap a date to view events</div>
-        <button class="btn btn-primary" id="mobileAddDayEventBtn" onclick="openAddEventModal(selectedDateKey)" style="display:none;padding:4px 8px;font-size:0.75rem;">➕ Add</button>
-      </div>
-      <div id="mobileDayEventsList"></div>
-    </div>
-  </div>
-
-  <!-- Timeline View -->
-  <div id="timelineViewContainer" style="display:none;">
-    <div class="timeline-view" id="timelineList"></div>
-  </div>
-
-</main>
-
-<!-- ══ SETTINGS MODAL ══ -->
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal-card">
-    <div class="modal-header">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="brand-logo" style="width:34px;height:34px;font-size:1.1rem;">⚙️</div>
+  <!-- ══ HEADER ══ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <div class="brand-logo">🌿</div>
         <div>
-          <h2 style="font-size:1.1rem;font-weight:800;">Settings & Categories</h2>
-          <p style="font-size:0.75rem;color:var(--muted);">Edit or delete any category</p>
+          <h1 class="brand-title">Ohrsom Events Hub</h1>
+          <p class="brand-subtitle">Yom Tov & Hosting Schedule 5787</p>
         </div>
       </div>
-      <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
+      <div class="header-actions">
+        <button class="btn btn-install" onclick="showDownloadModal()">
+          📲 Download App
+        </button>
+        <button class="btn btn-notify" onclick="openRemindersCenterModal()" title="View reminder schedule & notifications">
+          🔔 Reminders
+        </button>
+        <button id="settingsBtn" class="btn btn-secondary" onclick="openSettingsModal()" style="display: none;">
+          ⚙️ Settings
+        </button>
+        <button id="adminToggleBtn" class="btn btn-admin-locked" onclick="handleAdminToggle()">
+          🔒 Admin Login
+        </button>
+        <button id="addEventHeaderBtn" class="btn btn-primary" onclick="openAddEventModal()" style="display: none;">
+          ➕ Add Event
+        </button>
+      </div>
     </div>
+  </header>
 
-    <div style="margin-bottom:16px;">
-      <h4 style="font-size:0.8rem;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Categories</h4>
-      <div id="settingsCategoryList"></div>
-    </div>
+  <main class="container">
 
-    <!-- Audience Presets Manager -->
-    <div style="margin-bottom:16px;background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:12px;">
-      <h4 style="font-size:0.8rem;color:var(--blue);text-transform:uppercase;margin-bottom:8px;">👥 Audience Presets</h4>
-      <div id="audiencePresetList" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
-      <div style="display:flex;gap:6px;">
-        <input type="text" id="newAudiencePresetInput" class="form-control" placeholder="Add audience type..." style="flex:1;">
-        <button class="btn btn-secondary" onclick="addAudiencePreset()" type="button">➕ Add</button>
+    <!-- Yom Tov Notice Banner -->
+    <div class="yomtov-hero-banner">
+      <div class="yomtov-hero-info">
+        <h2>✡️ High Holidays & Sukkot 2026</h2>
+        <p>RH (Sept 11–13) · YK (Sept 20–21) · Sukkot (Sept 25–Oct 4) · Simchat Torah (Oct 3–4)</p>
+      </div>
+      <div class="yomtov-quick-badges">
+        <span class="yom-badge">🕯️ RH Mincha: 6:00 PM</span>
+        <span class="yom-badge">🌿 Final Fridays Sukkah: Sept 25</span>
       </div>
     </div>
 
-    <!-- Add New Category -->
-    <div style="background:var(--surface-elevated);border:1px solid var(--surface-border);border-radius:var(--radius-sm);padding:12px;">
-      <h4 style="font-size:0.8rem;color:var(--gold);text-transform:uppercase;margin-bottom:10px;">➕ Add New Category</h4>
-      <form onsubmit="saveNewCustomCategory(event)">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="newCategoryName">Name</label>
-            <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Youth, Outreach" required>
-          </div>
-          <div class="form-group">
-            <label for="newCategoryIcon">Emoji (Optional)</label>
-            <input type="text" id="newCategoryIcon" class="form-control" placeholder="Optional" maxlength="4">
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <div class="month-nav">
+        <button class="btn btn-secondary" onclick="changeMonth(-1)">◀</button>
+        <h2 class="month-title" id="monthDisplay">September 2026</h2>
+        <button class="btn btn-secondary" onclick="changeMonth(1)">▶</button>
+      </div>
+
+      <div class="view-segmented">
+        <button class="view-seg-btn active" id="viewCalBtn" onclick="switchView('calendar')">📅 Month</button>
+        <button class="view-seg-btn" id="viewListBtn" onclick="switchView('timeline')">📋 List</button>
+        <button class="view-seg-btn" id="viewHostingBtn" onclick="switchView('hosting')">🍽️ Meals</button>
+      </div>
+    </div>
+
+    <!-- Filter Bar: My Items + Person/Family Dropdown + Category Chips -->
+    <div class="filter-bar-container">
+      <select class="person-filter-select" id="personFilterSelect" onchange="handlePersonFilterChange(this.value)">
+        <option value="all">👥 All People & Families</option>
+        <option value="Cannons">🏠 Cannons</option>
+        <option value="Bati">👤 Bini Bati</option>
+        <option value="Ryan">👤 Ryan</option>
+        <option value="Perelmans">🏠 Perelmans</option>
+        <option value="Salmons">🏠 Salmons</option>
+      </select>
+
+      <div class="filter-scroll" id="dynamicFilterChips">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Calendar View Container -->
+    <div id="calendarViewContainer">
+      <div class="calendar-grid-card">
+        <div class="cal-weekdays">
+          <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span>
+          <span>THU</span><span>FRI</span><span>SAT</span>
+        </div>
+        <div class="cal-days-grid" id="calendarDaysGrid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Selected Day Agenda Section below grid -->
+      <div class="day-agenda-section" id="mobileDayAgendaSection">
+        <div class="day-agenda-header">
+          <div class="day-agenda-title" id="mobileAgendaDateTitle">Tap a date to view events</div>
+          <button class="btn btn-primary" id="mobileAddDayEventBtn" onclick="openAddEventModal(selectedDateKey)" style="display: none; padding: 4px 8px; font-size: 0.75rem;">
+            ➕ Add
+          </button>
+        </div>
+        <div id="mobileDayEventsList">
+          <!-- Rendered dynamically on day click -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline List View Container -->
+    <div id="timelineViewContainer" style="display: none;">
+      <div class="timeline-view" id="timelineList">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══ DAY / EVENT OVERVIEW POP-UP MODAL ══ -->
+  <div class="modal-overlay" id="dayOverviewModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">📅</div>
+          <div>
+            <h2 id="dayOverviewTitle" style="font-size: 1.1rem; font-weight: 800;">Day Events Overview</h2>
+            <p id="dayOverviewSubtitle" style="font-size: 0.75rem; color: var(--muted);"></p>
           </div>
         </div>
-        <div class="form-group">
-          <label>Color</label>
-          <div class="color-swatch-picker" id="colorSwatchPicker">
-            <div class="color-swatch active" style="background:#f59e0b;" onclick="selectCategoryColor('#f59e0b',this)"></div>
-            <div class="color-swatch" style="background:#22c55e;" onclick="selectCategoryColor('#22c55e',this)"></div>
-            <div class="color-swatch" style="background:#38bdf8;" onclick="selectCategoryColor('#38bdf8',this)"></div>
-            <div class="color-swatch" style="background:#a855f7;" onclick="selectCategoryColor('#a855f7',this)"></div>
-            <div class="color-swatch" style="background:#f43f5e;" onclick="selectCategoryColor('#f43f5e',this)"></div>
-            <div class="color-swatch" style="background:#2dd4bf;" onclick="selectCategoryColor('#2dd4bf',this)"></div>
-            <div class="color-swatch" style="background:#fb923c;" onclick="selectCategoryColor('#fb923c',this)"></div>
-            <div class="color-swatch" style="background:#ec4899;" onclick="selectCategoryColor('#ec4899',this)"></div>
+        <button class="modal-close-btn" onclick="closeDayOverviewModal()">✕</button>
+      </div>
+
+      <div id="dayOverviewContentList" style="margin-top: 10px;">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px; justify-content: space-between; align-items: center;">
+        <button id="dayOverviewAddBtn" class="btn btn-primary" onclick="openAddEventFromOverview()" style="display: none;">
+          ➕ Add Event to this Date
+        </button>
+        <button class="btn btn-secondary" onclick="closeDayOverviewModal()" style="margin-left: auto;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REMINDERS & NOTIFICATION CENTER MODAL ══ -->
+  <div class="modal-overlay" id="remindersCenterModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🔔</div>
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Reminders & Alerts</h2>
+            <p style="font-size: 0.75rem; color: var(--gold);">Push reminders on phone and computer</p>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">➕ Add Category</button>
+        <button class="modal-close-btn" onclick="closeRemindersCenterModal()">✕</button>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">
+          ⏰ How Notifications Work:
+        </h4>
+        <div class="notif-rule-card">
+          <div class="notif-rule-icon">🕍</div>
+          <div style="font-size: 0.82rem;">
+            <strong>1 Hour Before Shul & Davening:</strong><br>
+            <span style="color: var(--muted);">Alerts for Mincha, Shacharit, and Yom Kippur services.</span>
+          </div>
+        </div>
+        <div class="notif-rule-card">
+          <div class="notif-rule-icon">🌅</div>
+          <div style="font-size: 0.82rem;">
+            <strong>8:30 AM Morning-Of (Action Items):</strong><br>
+            <span style="color: var(--muted);">Reminds assigned staff (e.g. Ryan, Bini) for prep and promo tasks.</span>
+          </div>
+        </div>
+        <div class="notif-rule-card">
+          <div class="notif-rule-icon">🕯️</div>
+          <div style="font-size: 0.82rem;">
+            <strong>2 Hours Before Meals & Sukkah:</strong><br>
+            <span style="color: var(--muted);">Alerts host families (Cannons, Salmons, Perelmans) and students.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- User's upcoming reminders list -->
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 8px;" id="upcomingRemindersListHeader">
+          📋 Upcoming Scheduled Reminders:
+        </h4>
+        <div id="upcomingRemindersList" style="max-height: 180px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="triggerTestPushNotification()" style="flex: 1; justify-content: center; padding: 10px;">
+          🔔 Send Test Push Notification Now
+        </button>
+        <button class="btn btn-secondary" onclick="closeRemindersCenterModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS & CATEGORIES MODAL ══ -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">⚙️</div>
+          <div>
+            <h2 style="font-size: 1.1rem; font-weight: 800;">Settings & Categories</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Edit or delete any category & audience</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">Active Categories</h4>
+        <div id="settingsCategoryList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Audience Presets Manager -->
+      <div style="margin-bottom: 16px; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px;">
+        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin-bottom: 8px;">👥 Audience Presets</h4>
+        <div id="audiencePresetList" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+          <!-- Rendered dynamically -->
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="newAudiencePresetInput" class="form-control" placeholder="Add new audience type..." style="flex: 1;">
+          <button class="btn btn-secondary" onclick="addAudiencePreset()" type="button">➕ Add</button>
+        </div>
+      </div>
+
+      <!-- Add New Custom Category Form -->
+      <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px;">
+        <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase; margin-bottom: 10px;">➕ Add New Category</h4>
+        <form onsubmit="saveNewCustomCategory(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newCategoryName">Category Name</label>
+              <input type="text" id="newCategoryName" class="form-control" placeholder="e.g. Youth, Outreach" required>
+            </div>
+            <div class="form-group">
+              <label for="newCategoryIcon">Emoji (Optional)</label>
+              <input type="text" id="newCategoryIcon" class="form-control" placeholder="Optional (e.g. 🕍, 🤝)" maxlength="4">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Color Theme</label>
+            <div class="color-swatch-picker" id="colorSwatchPicker">
+              <div class="color-swatch active" style="background:#f59e0b;" onclick="selectCategoryColor('#f59e0b', this)"></div>
+              <div class="color-swatch" style="background:#22c55e;" onclick="selectCategoryColor('#22c55e', this)"></div>
+              <div class="color-swatch" style="background:#38bdf8;" onclick="selectCategoryColor('#38bdf8', this)"></div>
+              <div class="color-swatch" style="background:#a855f7;" onclick="selectCategoryColor('#a855f7', this)"></div>
+              <div class="color-swatch" style="background:#f43f5e;" onclick="selectCategoryColor('#f43f5e', this)"></div>
+              <div class="color-swatch" style="background:#2dd4bf;" onclick="selectCategoryColor('#2dd4bf', this)"></div>
+              <div class="color-swatch" style="background:#fb923c;" onclick="selectCategoryColor('#fb923c', this)"></div>
+              <div class="color-swatch" style="background:#ec4899;" onclick="selectCategoryColor('#ec4899', this)"></div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            ➕ Add Category
+          </button>
+        </form>
+      </div>
+
+      <div style="margin-top: 14px; text-align: center;">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()" style="width: 100%; justify-content: center;">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ADMIN LOGIN MODAL ══ -->
+  <div class="modal-overlay" id="adminLoginModal">
+    <div class="modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 34px; height: 34px; font-size: 1.1rem;">🔒</div>
+          <div>
+            <h2 style="font-size: 1.1rem; font-weight: 800;">Admin Login</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Enter your name and passcode</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeAdminLoginModal()">✕</button>
+      </div>
+
+      <form onsubmit="submitAdminLogin(event)">
+        <div class="form-row" style="margin-top: 6px;">
+          <div class="form-group">
+            <label for="adminFirstNameInput">First Name</label>
+            <input type="text" id="adminFirstNameInput" class="form-control" placeholder="e.g. Bini, Rabbi, Jodi" required>
+          </div>
+          <div class="form-group">
+            <label for="adminSurnameInput">Surname / Family</label>
+            <input type="text" id="adminSurnameInput" class="form-control" placeholder="e.g. Bati, Cannon, Perelman" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 6px;">
+          <label for="adminPasscodeInput">Passcode</label>
+          <input type="password" id="adminPasscodeInput" class="form-control" placeholder="••••••••" required autocomplete="current-password" style="font-size: 1.1rem; letter-spacing: 0.1em;">
+          <p id="adminLoginError" style="color: var(--rose); font-size: 0.78rem; margin-top: 6px; display: none; font-weight: 700;">❌ Incorrect passcode. Please try again.</p>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 18px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center; padding: 10px;">
+            🔓 Unlock Admin
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeAdminLoginModal()">
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
-
-    <button class="btn btn-secondary" onclick="closeSettingsModal()" style="width:100%;justify-content:center;margin-top:14px;">Done</button>
   </div>
-</div>
 
-<!-- ══ ADMIN LOGIN MODAL ══ -->
-<div class="modal-overlay" id="adminLoginModal">
-  <div class="modal-card" style="max-width:400px;">
-    <div class="modal-header">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="brand-logo" style="width:34px;height:34px;font-size:1.1rem;">🔒</div>
-        <div>
-          <h2 style="font-size:1.1rem;font-weight:800;">Admin Login</h2>
-          <p style="font-size:0.75rem;color:var(--muted);">Enter your name and passcode</p>
-        </div>
-      </div>
-      <button class="modal-close-btn" onclick="closeAdminLoginModal()">✕</button>
-    </div>
-    <form onsubmit="submitAdminLogin(event)">
-      <div class="form-row" style="margin-top:6px;">
-        <div class="form-group">
-          <label for="adminFirstNameInput">First Name</label>
-          <input type="text" id="adminFirstNameInput" class="form-control" placeholder="e.g. Bini, Rabbi, Jodi" required>
-        </div>
-        <div class="form-group">
-          <label for="adminSurnameInput">Surname / Family</label>
-          <input type="text" id="adminSurnameInput" class="form-control" placeholder="e.g. Bati, Cannon" required>
-        </div>
-      </div>
-      <div class="form-group" style="margin-top:6px;">
-        <label for="adminPasscodeInput">Passcode</label>
-        <input type="password" id="adminPasscodeInput" class="form-control" placeholder="••••••••" required autocomplete="current-password" style="font-size:1.1rem;letter-spacing:0.1em;">
-        <p id="adminLoginError" style="color:var(--rose);font-size:0.78rem;margin-top:6px;display:none;font-weight:700;">❌ Incorrect passcode. Please try again.</p>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:18px;">
-        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;padding:10px;">🔓 Unlock Admin</button>
-        <button type="button" class="btn btn-secondary" onclick="closeAdminLoginModal()">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- ══ DOWNLOAD MODAL ══ -->
-<div class="modal-overlay" id="downloadModal">
-  <div class="modal-card">
-    <div class="modal-header">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="brand-logo" style="width:36px;height:36px;font-size:1.2rem;">🌿</div>
-        <div>
-          <h2 style="font-size:1.15rem;font-weight:800;">Install Ohrsom App</h2>
-          <p style="font-size:0.75rem;color:var(--muted);">Add to Home Screen for 1-tap access</p>
-        </div>
-      </div>
-      <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
-    </div>
-    <div id="nativeInstallPromptSection" style="display:none;text-align:center;padding:12px 0;">
-      <button class="btn btn-primary" onclick="triggerNativeInstall()" style="width:100%;justify-content:center;padding:11px;font-size:0.95rem;">📲 Download & Install Now</button>
-    </div>
-    <div>
-      <h4 style="font-size:0.8rem;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">🍎 iPhone / iPad (Safari):</h4>
-      <div class="install-step-card"><span class="install-step-num">1</span><span style="font-size:0.82rem;">Tap the <strong>Share ⎋</strong> button at the bottom.</span></div>
-      <div class="install-step-card"><span class="install-step-num">2</span><span style="font-size:0.82rem;">Tap <strong>"Add to Home Screen" ➕</strong></span></div>
-      <div class="install-step-card"><span class="install-step-num">3</span><span style="font-size:0.82rem;">Tap <strong>Add</strong> — Done!</span></div>
-      <h4 style="font-size:0.8rem;color:var(--blue);text-transform:uppercase;margin:12px 0 6px;">🤖 Android / Chrome:</h4>
-      <div class="install-step-card"><span class="install-step-num">1</span><span style="font-size:0.82rem;">Tap the <strong>three dots ⋮</strong> menu.</span></div>
-      <div class="install-step-card"><span class="install-step-num">2</span><span style="font-size:0.82rem;">Tap <strong>"Install App"</strong> or <strong>"Add to Home screen"</strong>.</span></div>
-    </div>
-    <button class="btn btn-secondary" onclick="closeDownloadModal()" style="width:100%;justify-content:center;margin-top:14px;">Close</button>
-  </div>
-</div>
-
-<!-- ══ EVENT EDIT / ADD MODAL ══ -->
-<div class="modal-overlay" id="eventModal">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h2 id="modalTitle" style="font-size:1.15rem;font-weight:800;">Event Details</h2>
-      <button class="modal-close-btn" onclick="closeModal()">✕</button>
-    </div>
-    <form id="eventForm" onsubmit="saveEventForm(event)">
-      <input type="hidden" id="eventId">
-
-      <div class="form-group">
-        <label for="eventTitleInput">Event / Meal Title</label>
-        <input type="text" id="eventTitleInput" class="form-control" required placeholder="e.g. Hosting — Perelmans">
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="eventDateInput">Date</label>
-          <input type="date" id="eventDateInput" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label for="eventTimeInput">Time / Service</label>
-          <input type="text" id="eventTimeInput" class="form-control" placeholder="e.g. 6:00 PM">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="eventTypeInput">Category</label>
-        <select id="eventTypeInput" class="form-control" onchange="handleCategoryChange(this)"></select>
-      </div>
-
-      <!-- Multi-Select Assignees -->
-      <div class="form-group">
-        <label>Assignee / Leads</label>
-        <div class="assignee-multiselect-container">
-          <div class="assignee-chips-wrap" id="assigneeSelectedChips"></div>
-          <div class="custom-assignee-add-row" id="customAssigneeInputWrap">
-            <input type="text" id="customAssigneeInput" class="form-control" placeholder="Type name to add..." style="padding:6px 10px;font-size:0.82rem;">
-            <button type="button" class="btn btn-secondary" onclick="addCustomAssigneeFromInput()" style="padding:6px 12px;font-size:0.78rem;">➕</button>
+  <!-- ══ DOWNLOAD APP MODAL ══ -->
+  <div class="modal-overlay" id="downloadModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">🌿</div>
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Install Ohrsom App</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Add to Home Screen for 1-tap access</p>
           </div>
-          <div class="quick-assign-pills-row" id="quickAssignPillsRow"></div>
+        </div>
+        <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
+      </div>
+
+      <div id="nativeInstallPromptSection" style="display: none; text-align: center; padding: 12px 0;">
+        <button class="btn btn-primary" onclick="triggerNativeInstall()" style="width: 100%; justify-content: center; padding: 11px; font-size: 0.95rem;">
+          📲 Download & Install Now
+        </button>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">🍎 iPhone / iPad (Safari):</h4>
+        <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 8px; font-size: 0.82rem;">
+          1. Tap the <strong>Share ⎋</strong> button at the bottom of Safari.<br>
+          2. Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.<br>
+          3. Tap <strong>Add</strong> in the top-right corner.
+        </div>
+
+        <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin: 12px 0 6px;">🤖 Android / Chrome:</h4>
+        <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem;">
+          1. Tap the <strong>three dots ⋮</strong> menu in the top right.<br>
+          2. Tap <strong>"Install App"</strong> or <strong>"Add to Home screen"</strong>.
         </div>
       </div>
 
-      <!-- Audience Multi-select -->
-      <div class="form-group">
-        <label>Audience</label>
-        <div class="audience-multiselect-container">
-          <div class="audience-chips-wrap" id="audienceSelectedChips"></div>
-          <div style="display:flex;gap:6px;margin-top:6px;">
-            <input type="text" id="customAudienceInput" class="form-control" placeholder="Type audience to add..." style="padding:6px 10px;font-size:0.82rem;flex:1;">
-            <button type="button" class="btn btn-secondary" onclick="addCustomAudienceFromInput()" style="padding:6px 12px;font-size:0.78rem;">➕</button>
+      <button class="btn btn-secondary" onclick="closeDownloadModal()" style="width: 100%; justify-content: center; margin-top: 14px;">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ EVENT EDIT / CREATE FORM MODAL ══ -->
+  <div class="modal-overlay" id="eventModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modalTitle" style="font-size: 1.15rem; font-weight: 800;">Event Details</h2>
+        <button class="modal-close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <form id="eventForm" onsubmit="saveEventForm(event)">
+        <input type="hidden" id="eventId">
+
+        <div class="form-group">
+          <label for="eventTitleInput">Event / Meal Title</label>
+          <input type="text" id="eventTitleInput" class="form-control" required placeholder="e.g. Hosting — Perelmans">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="eventDateInput">Date</label>
+            <input type="date" id="eventDateInput" class="form-control" required>
           </div>
-          <div class="audience-preset-pills" id="audiencePresetPills"></div>
+          <div class="form-group">
+            <label for="eventTimeInput">Time / Service</label>
+            <input type="text" id="eventTimeInput" class="form-control" placeholder="e.g. 6:00 PM Mincha">
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="eventHostInput">Host / Venue</label>
-        <input type="text" id="eventHostInput" class="form-control" placeholder="e.g. Perelmans / Ohrsom Sukkah">
-      </div>
+        <div class="form-group">
+          <label for="eventTypeInput">Category</label>
+          <select id="eventTypeInput" class="form-control" onchange="handleCategoryChange(this)">
+            <!-- Dynamic Categories Options -->
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="eventNotesInput">Public Notes & Instructions</label>
-        <textarea id="eventNotesInput" class="form-control" rows="2" placeholder="Visible to all attendees..."></textarea>
-      </div>
+        <!-- Multi-Select Assignees Section -->
+        <div class="form-group">
+          <label>Assignee / Leads</label>
+          <div class="assignee-multiselect-container">
+            <div class="assignee-chips-wrap" id="assigneeSelectedChips">
+              <!-- Rendered dynamically -->
+            </div>
+            <div class="custom-assignee-add-row" id="customAssigneeInputWrap">
+              <input type="text" id="customAssigneeInput" class="form-control" placeholder="Type name to add..." style="padding: 6px 10px; font-size: 0.82rem;">
+              <button type="button" class="btn btn-secondary" onclick="addCustomAssigneeFromInput()" style="padding: 6px 12px; font-size: 0.78rem;">
+                ➕
+              </button>
+            </div>
+            <div class="quick-assign-pills-row" id="quickAssignPillsRow">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
 
-      <div class="form-group" id="internalNotesFieldWrap">
-        <label for="eventInternalNotesInput" style="color:#fda4af;">🔒 Admin Notes (Private)</label>
-        <textarea id="eventInternalNotesInput" class="form-control" rows="2" placeholder="Private checklist, prep notes..." style="border-color:rgba(244,63,94,0.4);"></textarea>
-      </div>
+        <!-- Multi-Select Audiences Section -->
+        <div class="form-group">
+          <label>Audience</label>
+          <div class="audience-multiselect-container">
+            <div class="audience-chips-wrap" id="audienceSelectedChips">
+              <!-- Rendered dynamically -->
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+              <input type="text" id="customAudienceInput" class="form-control" placeholder="Type audience to add..." style="padding: 6px 10px; font-size: 0.82rem; flex: 1;">
+              <button type="button" class="btn btn-secondary" onclick="addCustomAudienceFromInput()" style="padding: 6px 12px; font-size: 0.78rem;">
+                ➕
+              </button>
+            </div>
+            <div class="audience-preset-pills" id="audiencePresetPills">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
 
-      <div class="form-group" id="internalToggleWrap">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="eventIsInternalInput" style="width:16px;height:16px;">
-          <span>Mark as <strong>Admin Team Only</strong></span>
-        </label>
-      </div>
+        <div class="form-group">
+          <label for="eventHostInput">Host / Venue</label>
+          <input type="text" id="eventHostInput" class="form-control" placeholder="e.g. Perelmans / Ohrsom Sukkah">
+        </div>
 
-      <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;">
-        <button type="submit" class="btn btn-primary" id="saveEventBtn" style="flex:1;min-width:80px;">💾 Save</button>
-        <button type="button" class="btn btn-secondary" id="deleteEventBtn" onclick="deleteCurrentEvent()" style="color:var(--rose);">🗑️</button>
-        <button type="button" class="btn btn-secondary" onclick="copyCurrentEvent()">📋 Copy</button>
-        <button type="button" class="btn btn-secondary" id="moveEventBtn" onclick="openMoveEventModal()">📅 Move</button>
-        <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()">💬 Share</button>
-      </div>
-    </form>
+        <div class="form-group">
+          <label for="eventNotesInput">Public Notes & Instructions</label>
+          <textarea id="eventNotesInput" class="form-control" rows="2" placeholder="Visible to all attendees..."></textarea>
+        </div>
+
+        <div class="form-group" id="internalNotesFieldWrap">
+          <label for="eventInternalNotesInput" style="color: #fda4af;">🔒 Admin Notes (Private)</label>
+          <textarea id="eventInternalNotesInput" class="form-control" rows="2" placeholder="Private checklist, prep notes..." style="border-color: rgba(244, 63, 94, 0.4);"></textarea>
+        </div>
+
+        <div class="form-group" id="internalToggleWrap">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="eventIsInternalInput" style="width: 16px; height: 16px;">
+            <span>Mark as <strong>Admin Team Only</strong> (Hidden from public calendar)</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary" id="saveEventBtn" style="flex: 1; min-width: 80px;">💾 Save</button>
+          <button type="button" class="btn btn-secondary" id="deleteEventBtn" onclick="deleteCurrentEvent()" style="color: var(--rose);">🗑️</button>
+          <button type="button" class="btn btn-secondary" onclick="copyCurrentEvent()">📋 Copy</button>
+          <button type="button" class="btn btn-secondary" id="moveEventBtn" onclick="openMoveEventModal()">📅 Move</button>
+          <button type="button" class="btn btn-secondary" onclick="shareWhatsApp()">💬 Share</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
-<!-- ══ MOVE EVENT MODAL ══ -->
-<div class="modal-overlay" id="moveEventModal">
-  <div class="modal-card move-date-modal-card">
-    <div class="modal-header">
-      <h2 style="font-size:1.1rem;font-weight:800;">📅 Move Event to New Date</h2>
-      <button class="modal-close-btn" onclick="closeMoveEventModal()">✕</button>
-    </div>
-    <div class="form-group">
-      <label for="moveEventDateInput">New Date</label>
-      <input type="date" id="moveEventDateInput" class="form-control">
-    </div>
-    <div style="display:flex;gap:8px;margin-top:14px;">
-      <button class="btn btn-primary" onclick="confirmMoveEvent()" style="flex:1;justify-content:center;">✅ Move Event</button>
-      <button class="btn btn-secondary" onclick="closeMoveEventModal()">Cancel</button>
+  <!-- ══ MOVE EVENT MODAL ══ -->
+  <div class="modal-overlay" id="moveEventModal">
+    <div class="modal-card" style="max-width: 360px;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.1rem; font-weight: 800;">📅 Move Event to New Date</h2>
+        <button class="modal-close-btn" onclick="closeMoveEventModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label for="moveEventDateInput">New Date</label>
+        <input type="date" id="moveEventDateInput" class="form-control">
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button class="btn btn-primary" onclick="confirmMoveEvent()" style="flex: 1; justify-content: center;">
+          ✅ Move Event
+        </button>
+        <button class="btn btn-secondary" onclick="closeMoveEventModal()">
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-// ══ DATA ══
-const TEAM_PRESETS = ["Cannons","Rabbi Cannon","Jodi Cannon","Bini Bati","Ryan","Perelmans","Avi Perelman","Salmons"];
-const DEFAULT_AUDIENCE_PRESETS = ["Students & Community","Ohrsom 1","Accelerator","Young Professionals","Everyone","Admin Team","All Campuses","Alumni"];
+  <script>
+    // ══ DATA PRESETS ══
+    const TEAM_PRESETS = [
+      "Cannons",
+      "Rabbi Cannon",
+      "Jodi Cannon",
+      "Bini Bati",
+      "Ryan",
+      "Perelmans",
+      "Avi Perelman",
+      "Salmons"
+    ];
 
-const DEFAULT_CATEGORIES = [
-  {id:"shul",name:"Shul & Davening",icon:"🕍",color:"#f59e0b"},
-  {id:"meal",name:"Meal / Hosting",icon:"🍽️",color:"#22c55e"},
-  {id:"event",name:"Event & Social",icon:"🎉",color:"#a855f7"},
-  {id:"learning",name:"Accelerator & Classes",icon:"🎓",color:"#38bdf8"},
-  {id:"action",name:"Admin Action Item",icon:"📋",color:"#f43f5e",isInternal:true}
-];
+    const DEFAULT_AUDIENCE_PRESETS = [
+      "Students & Community",
+      "Ohrsom 1",
+      "Accelerator",
+      "Young Professionals",
+      "Everyone",
+      "Admin Team",
+      "All Campuses",
+      "Alumni"
+    ];
 
-const DEFAULT_EVENTS = [
-  {id:"evt-shul-rh",title:"Rosh Hashanah Mincha & Mitzvahs",date:"2026-09-11",time:"6:00 PM",type:"shul",assignees:["Rabbi Cannon","Cannons"],host:"Ohrsom Shul",audiences:["Students & Community","Ohrsom 1","Accelerator"],notes:"6:00 PM Mincha and Mitzvahs service kicking off Rosh Hashanah.",internalNotes:"Prayer books and shofar ready.",isInternal:false},
-  {id:"evt-1",title:"Hosting — Salmons",date:"2026-09-05",time:"12:30 PM",type:"meal",assignees:["Salmons"],host:"Salmons",audiences:["Students & Community"],notes:"Shabbat Lunch hosting at Salmons.",internalNotes:"Confirm head count by Thursday night.",isInternal:false},
-  {id:"evt-2",title:"Hosting — Salmons",date:"2026-09-11",time:"7:15 PM",type:"meal",assignees:["Salmons"],host:"Salamons (Friday Night)",audiences:["Students & Community"],notes:"Rosh Hashanah 1st Night dinner at Salamons following Shul services.",internalNotes:"Ensure seating setup ready by 4 PM.",isInternal:false},
-  {id:"evt-3",title:"Hosting — Cannons",date:"2026-09-12",time:"12:30 PM",type:"meal",assignees:["Cannons"],host:"Cannons",audiences:["Students & Community"],notes:"Rosh Hashanah Day 1 lunch hosted by Cannons.",internalNotes:"Check table capacity (aiming for 18-20 students).",isInternal:false},
-  {id:"evt-4",title:"Hosting — Perelmans",date:"2026-09-12",time:"7:30 PM",type:"meal",assignees:["Perelmans","Avi Perelman"],host:"Perelmans",audiences:["Students & Community"],notes:"Rosh Hashanah 2nd Night dinner hosted at Perelmans.",internalNotes:"Check simanim (pomegranate, dates) are prepped.",isInternal:false},
-  {id:"evt-5",title:"Admin Action Item",date:"2026-09-18",time:"Morning",type:"action",assignees:["Ryan","Bini Bati"],host:"Ohrsom Comms",audiences:["Admin Team"],notes:"Post Fridays promo & send WhatsApp coordination message to Ryan.",internalNotes:"Ryan handling campus graphic release and RSVP tracking.",isInternal:true},
-  {id:"evt-6",title:"Hosting — Salmons",date:"2026-09-19",time:"12:30 PM",type:"meal",assignees:["Salmons"],host:"Salmons",audiences:["Students & Community"],notes:"Shabbat Shuva lunch at Salmons.",internalNotes:"Follow up on students who attended RH dinner.",isInternal:false},
-  {id:"evt-7",title:"🌿 Final Fridays in Sukkah",date:"2026-09-25",time:"6:30 PM",type:"event",assignees:["Bini Bati","Rabbi Cannon"],host:"Ohrsom Sukkah",audiences:["Students & Community","Alumni","Young Professionals"],notes:"Massive Final Fridays Shabbat Dinner in the Sukkah!",internalNotes:"Catering booked for 80 pax. Sukkah decorations complete by Wednesday 23rd.",isInternal:false},
-  {id:"evt-8",title:"Accelerator & Classes",date:"2026-09-26",time:"12:30 PM",type:"learning",assignees:["Cannons","Rabbi Cannon"],host:"Ohrsom Sukkah",audiences:["Accelerator"],notes:"Sukkot Shabbat Lunch for Accelerator students.",internalNotes:"Special guest speaker: Leadership in Business.",isInternal:false},
-  {id:"evt-9",title:"Hosting — Perelmans",date:"2026-09-26",time:"8:00 PM",type:"meal",assignees:["Perelmans"],host:"Perelmans in Ohrsom Sukkah",audiences:["Students & Community","Young Professionals"],notes:"Saturday night Chol Hamoed dinner at Perelmans in the Sukkah.",internalNotes:"Music and refreshments.",isInternal:false},
-  {id:"evt-10",title:"Hosting — Cannons",date:"2026-09-27",time:"12:30 PM",type:"meal",assignees:["Cannons"],host:"Cannons",audiences:["Students & Community"],notes:"Sunday Chol Hamoed Sukkah lunch at Cannons.",internalNotes:"Confirm student roster with Cannons by Friday 25th.",isInternal:false},
-  {id:"evt-11",title:"Accelerator & Classes",date:"2026-09-29",time:"6:00 PM - 8:30 PM",type:"learning",assignees:["Rabbi Cannon"],host:"Ohrsom Campus",audiences:["Accelerator","Ohrsom 1"],notes:"Tuesday regular program: Accelerator sessions and Ohrsom 1 learning.",internalNotes:"Classroom 1 & 2 booked; print handouts.",isInternal:false},
-  {id:"evt-12",title:"Admin Action Item",date:"2026-09-08",time:"Design Deadline",type:"action",assignees:["Ryan"],host:"Marketing Team",audiences:["Admin Team","All Campuses"],notes:"Prepare and release posters for: 1. Rosh Hashanah, 2. Final Fridays, 3. Simchat Torah.",internalNotes:"Approve designs with Rabbi before sending to print and IG.",isInternal:true}
-];
+    const DEFAULT_CATEGORIES = [
+      { id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b" },
+      { id: "meal", name: "Meal / Hosting", icon: "🍽️", color: "#22c55e" },
+      { id: "event", name: "Event & Social", icon: "🎉", color: "#a855f7" },
+      { id: "learning", name: "Accelerator & Classes", icon: "🎓", color: "#38bdf8" },
+      { id: "action", name: "Admin Action Item", icon: "📋", color: "#f43f5e", isInternal: true }
+    ];
 
-const JEWISH_HOLIDAYS = {
-  "2026-09-11":"Erev RH 🕯️","2026-09-12":"RH I 📯","2026-09-13":"RH II 📯",
-  "2026-09-14":"Fast Gedaliah","2026-09-20":"Erev YK 🕯️","2026-09-21":"Yom Kippur ✡️",
-  "2026-09-25":"Erev Sukkot 🌿","2026-09-26":"Sukkot Day 1","2026-09-27":"Sukkot Day 2",
-  "2026-09-28":"Chol Hamoed","2026-09-29":"Chol Hamoed","2026-09-30":"Chol Hamoed",
-  "2026-10-01":"Chol Hamoed","2026-10-02":"Hoshana Rabbah",
-  "2026-10-03":"Shemini Atzeret 🕯️","2026-10-04":"Simchat Torah 📜"
-};
+    const DEFAULT_EVENTS = [
+      {
+        id: "evt-shul-rh",
+        title: "Rosh Hashanah Mincha & Mitzvahs",
+        date: "2026-09-11",
+        time: "6:00 PM",
+        type: "shul",
+        assignees: ["Rabbi Cannon", "Cannons"],
+        host: "Ohrsom Shul",
+        audiences: ["Students & Community", "Ohrsom 1", "Accelerator"],
+        notes: "6:00 PM Mincha and Mitzvahs service kicking off Rosh Hashanah.",
+        internalNotes: "Prayer books and shofar ready.",
+        isInternal: false
+      },
+      {
+        id: "evt-1",
+        title: "Hosting — Salmons",
+        date: "2026-09-05",
+        time: "12:30 PM",
+        type: "meal",
+        assignees: ["Salmons"],
+        host: "Salmons",
+        audiences: ["Students & Community"],
+        notes: "Shabbat Lunch hosting at Salmons.",
+        internalNotes: "Confirm head count by Thursday night.",
+        isInternal: false
+      },
+      {
+        id: "evt-2",
+        title: "Hosting — Salmons",
+        date: "2026-09-11",
+        time: "7:15 PM",
+        type: "meal",
+        assignees: ["Salmons"],
+        host: "Salamons (Friday Night)",
+        audiences: ["Students & Community"],
+        notes: "Rosh Hashanah 1st Night dinner at Salamons following Shul services.",
+        internalNotes: "Ensure seating setup ready by 4 PM.",
+        isInternal: false
+      },
+      {
+        id: "evt-3",
+        title: "Hosting — Cannons",
+        date: "2026-09-12",
+        time: "12:30 PM",
+        type: "meal",
+        assignees: ["Cannons"],
+        host: "Cannons",
+        audiences: ["Students & Community"],
+        notes: "Rosh Hashanah Day 1 lunch hosted by Cannons.",
+        internalNotes: "Check table capacity (aiming for 18-20 students).",
+        isInternal: false
+      },
+      {
+        id: "evt-4",
+        title: "Hosting — Perelmans",
+        date: "2026-09-12",
+        time: "7:30 PM",
+        type: "meal",
+        assignees: ["Perelmans", "Avi Perelman"],
+        host: "Perelmans",
+        audiences: ["Students & Community"],
+        notes: "Rosh Hashanah 2nd Night dinner hosted at Perelmans.",
+        internalNotes: "Check simanim (pomegranate, dates) are prepped.",
+        isInternal: false
+      },
+      {
+        id: "evt-5",
+        title: "Admin Action Item",
+        date: "2026-09-18",
+        time: "Morning",
+        type: "action",
+        assignees: ["Ryan", "Bini Bati"],
+        host: "Ohrsom Comms",
+        audiences: ["Admin Team"],
+        notes: "Post Fridays promo & send WhatsApp coordination message to Ryan.",
+        internalNotes: "Ryan handling campus graphic release and RSVP tracking.",
+        isInternal: true
+      },
+      {
+        id: "evt-6",
+        title: "Hosting — Salmons",
+        date: "2026-09-19",
+        time: "12:30 PM",
+        type: "meal",
+        assignees: ["Salmons"],
+        host: "Salmons",
+        audiences: ["Students & Community"],
+        notes: "Shabbat Shuva lunch at Salmons.",
+        internalNotes: "Follow up on students who attended RH dinner.",
+        isInternal: false
+      },
+      {
+        id: "evt-7",
+        title: "🌿 Final Fridays in Sukkah",
+        date: "2026-09-25",
+        time: "6:30 PM",
+        type: "event",
+        assignees: ["Bini Bati", "Rabbi Cannon"],
+        host: "Ohrsom Sukkah",
+        audiences: ["Students & Community", "Alumni", "Young Professionals"],
+        notes: "Massive Final Fridays Shabbat Dinner in the Sukkah!",
+        internalNotes: "Catering booked for 80 pax. Sukkah decorations complete by Wednesday 23rd.",
+        isInternal: false
+      },
+      {
+        id: "evt-8",
+        title: "Accelerator & Classes",
+        date: "2026-09-26",
+        time: "12:30 PM",
+        type: "learning",
+        assignees: ["Cannons", "Rabbi Cannon"],
+        host: "Ohrsom Sukkah",
+        audiences: ["Accelerator"],
+        notes: "Sukkot Shabbat Lunch for Accelerator students.",
+        internalNotes: "Special guest speaker: Leadership in Business.",
+        isInternal: false
+      },
+      {
+        id: "evt-9",
+        title: "Hosting — Perelmans",
+        date: "2026-09-26",
+        time: "8:00 PM",
+        type: "meal",
+        assignees: ["Perelmans"],
+        host: "Perelmans in Ohrsom Sukkah",
+        audiences: ["Students & Community", "Young Professionals"],
+        notes: "Saturday night Chol Hamoed dinner at Perelmans in the Sukkah.",
+        internalNotes: "Music and refreshments.",
+        isInternal: false
+      },
+      {
+        id: "evt-10",
+        title: "Hosting — Cannons",
+        date: "2026-09-27",
+        time: "12:30 PM",
+        type: "meal",
+        assignees: ["Cannons"],
+        host: "Cannons",
+        audiences: ["Students & Community"],
+        notes: "Sunday Chol Hamoed Sukkah lunch at Cannons.",
+        internalNotes: "Confirm student roster with Cannons by Friday 25th.",
+        isInternal: false
+      },
+      {
+        id: "evt-11",
+        title: "Accelerator & Classes",
+        date: "2026-09-29",
+        time: "6:00 PM - 8:30 PM",
+        type: "learning",
+        assignees: ["Rabbi Cannon"],
+        host: "Ohrsom Campus",
+        audiences: ["Accelerator", "Ohrsom 1"],
+        notes: "Tuesday regular program: Accelerator sessions and Ohrsom 1 learning.",
+        internalNotes: "Classroom 1 & 2 booked; print handouts.",
+        isInternal: false
+      },
+      {
+        id: "evt-12",
+        title: "Admin Action Item",
+        date: "2026-09-08",
+        time: "Design Deadline",
+        type: "action",
+        assignees: ["Ryan"],
+        host: "Marketing Team",
+        audiences: ["Admin Team", "All Campuses"],
+        notes: "Prepare and release posters for: 1. Rosh Hashanah, 2. Final Fridays, 3. Simchat Torah.",
+        internalNotes: "Approve designs with Rabbi before sending to print and IG.",
+        isInternal: true
+      }
+    ];
 
-// ══ STATE ══
-let events=[], categories=[], audiencePresets=[];
-let currentYear=2026, currentMonth=8;
-let currentFilter="all", currentPersonFilter="all", currentView="calendar";
-let selectedDateKey="2026-09-11", activeEditingId=null;
-let isAdmin=false, adminFirstName="", adminSurname="";
-let currentModalAssignees=[], currentModalAudiences=[];
-let deferredPrompt=null, selectedCategoryColor="#f59e0b";
-const ADMIN_PASSCODE="ohrsom613";
+    const JEWISH_HOLIDAYS = {
+      "2026-09-11": "Erev RH 🕯️",
+      "2026-09-12": "RH I 📯",
+      "2026-09-13": "RH II 📯",
+      "2026-09-14": "Fast Gedaliah",
+      "2026-09-20": "Erev YK 🕯️",
+      "2026-09-21": "Yom Kippur ✡️",
+      "2026-09-25": "Erev Sukkot 🌿",
+      "2026-09-26": "Sukkot Day 1",
+      "2026-09-27": "Sukkot Day 2",
+      "2026-09-28": "Chol Hamoed",
+      "2026-09-29": "Chol Hamoed",
+      "2026-09-30": "Chol Hamoed",
+      "2026-10-01": "Chol Hamoed",
+      "2026-10-02": "Hoshana Rabbah",
+      "2026-10-03": "Shemini Atzeret 🕯️",
+      "2026-10-04": "Simchat Torah 📜"
+    };
 
-// ══ INIT ══
-function init(){
-  isAdmin = localStorage.getItem("ohrsom_is_admin")==="true";
-  adminFirstName = localStorage.getItem("ohrsom_admin_first")||"";
-  adminSurname = localStorage.getItem("ohrsom_admin_surname")||"";
+    // ══ STATE ══
+    let events = [];
+    let categories = [];
+    let audiencePresets = [];
+    let currentYear = 2026;
+    let currentMonth = 8; // September
+    let currentFilter = "all";
+    let currentPersonFilter = "all";
+    let currentView = "calendar";
+    let selectedDateKey = "2026-09-11";
+    let activeEditingId = null;
+    let isAdmin = false;
+    let adminFirstName = "";
+    let adminSurname = "";
+    let currentModalAssignees = [];
+    let currentModalAudiences = [];
+    let deferredPrompt = null;
+    let selectedCategoryColor = "#f59e0b";
+    const ADMIN_PASSCODE = "ohrsom613";
 
-  try{ categories = JSON.parse(localStorage.getItem("ohrsom_categories_data")||"null")||[]; }catch{ categories=[]; }
-  if(!categories.length) categories=[...DEFAULT_CATEGORIES];
-  if(!categories.some(c=>c.id==="shul")) categories.unshift({id:"shul",name:"Shul & Davening",icon:"🕍",color:"#f59e0b"});
+    // ══ INIT ══
+    function init() {
+      isAdmin = localStorage.getItem("ohrsom_is_admin") === "true";
+      adminFirstName = localStorage.getItem("ohrsom_admin_first") || "";
+      adminSurname = localStorage.getItem("ohrsom_admin_surname") || "";
 
-  try{ audiencePresets = JSON.parse(localStorage.getItem("ohrsom_audience_presets")||"null")||[]; }catch{ audiencePresets=[]; }
-  if(!audiencePresets.length) audiencePresets=[...DEFAULT_AUDIENCE_PRESETS];
+      try {
+        categories = JSON.parse(localStorage.getItem("ohrsom_categories_data") || "null") || [];
+      } catch { categories = []; }
+      if (!categories.length) categories = [...DEFAULT_CATEGORIES];
+      if (!categories.some(c => c.id === "shul")) {
+        categories.unshift({ id: "shul", name: "Shul & Davening", icon: "🕍", color: "#f59e0b" });
+      }
 
-  try{ events = JSON.parse(localStorage.getItem("ohrsom_events_data")||"null")||[]; }catch{ events=[]; }
-  if(!events.length){ events=[...DEFAULT_EVENTS]; saveEvents(); }
-  // Migrate old format
-  events.forEach(e=>{
-    if(!e.assignees) e.assignees = e.assignee?[e.assignee]:[];
-    if(!e.audiences) e.audiences = e.audience?[e.audience]:[];
-  });
+      try {
+        audiencePresets = JSON.parse(localStorage.getItem("ohrsom_audience_presets") || "null") || [];
+      } catch { audiencePresets = []; }
+      if (!audiencePresets.length) audiencePresets = [...DEFAULT_AUDIENCE_PRESETS];
 
-  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;const s=document.getElementById("nativeInstallPromptSection");if(s)s.style.display="block";});
-  updateAdminUI(); renderFilterChips(); renderCategorySelectOptions(); render();
-}
+      try {
+        events = JSON.parse(localStorage.getItem("ohrsom_events_data") || "null") || [];
+      } catch { events = []; }
+      if (!events.length) {
+        events = [...DEFAULT_EVENTS];
+        saveEvents();
+      }
 
-function saveCategories(){ localStorage.setItem("ohrsom_categories_data",JSON.stringify(categories)); }
-function saveEvents(){ localStorage.setItem("ohrsom_events_data",JSON.stringify(events)); }
-function saveAudiencePresets(){ localStorage.setItem("ohrsom_audience_presets",JSON.stringify(audiencePresets)); }
-
-// ══ CATEGORY HELPERS ══
-function getCategory(typeId){
-  return categories.find(c=>c.id===typeId)||{id:typeId,name:typeId,icon:"📌",color:"#94a3b8"};
-}
-
-// Smart title auto-suggestion
-function autoFillTitle(){
-  const typeId = document.getElementById("eventTypeInput").value;
-  const titleInput = document.getElementById("eventTitleInput");
-  if(activeEditingId) return; // Don't override when editing existing
-
-  const cat = getCategory(typeId);
-  if(typeId==="meal"){
-    const assignees = currentModalAssignees;
-    if(assignees.length>0){
-      titleInput.value = "Hosting — "+assignees[0];
-    } else {
-      titleInput.value = "Hosting — ";
-    }
-  } else {
-    titleInput.value = cat.name;
-  }
-}
-
-function handleCategoryChange(select){
-  if(select.value==="__manage__"){ select.value=categories[0].id; openSettingsModal(); return; }
-  if(!activeEditingId) autoFillTitle();
-}
-
-// ══ RENDER CATEGORY SELECT ══
-function renderCategorySelectOptions(){
-  const select=document.getElementById("eventTypeInput");
-  if(!select) return;
-  let html="";
-  categories.forEach(cat=>{
-    html+=`<option value="${cat.id}">${cat.icon?cat.icon+' ':''}${cat.name}</option>`;
-  });
-  if(isAdmin) html+=`<option value="__manage__">⚙️ Manage Categories...</option>`;
-  select.innerHTML=html;
-}
-
-// ══ FILTER CHIPS ══
-function renderFilterChips(){
-  const container=document.getElementById("dynamicFilterChips");
-  if(!container) return;
-  let html=`<button class="filter-chip ${currentFilter==='all'?'active':''}" onclick="setFilter('all')">✨ All</button>`;
-  if(adminSurname||adminFirstName){
-    const dn=adminFirstName?`${adminFirstName} ${adminSurname}`.trim():adminSurname;
-    html+=`<button class="filter-chip filter-chip-myitems ${currentFilter==='my_items'?'active':''}" onclick="setFilter('my_items')">⭐ My Items (${dn})</button>`;
-  }
-  categories.forEach(cat=>{
-    if(!isAdmin&&cat.isInternal) return;
-    const icon=cat.icon?`<span>${cat.icon}</span>`:'';
-    html+=`<button class="filter-chip ${currentFilter===cat.id?'active':''}" onclick="setFilter('${cat.id}')">${icon}<span>${cat.name}</span></button>`;
-  });
-  container.innerHTML=html;
-}
-
-function handlePersonFilterChange(person){ currentPersonFilter=person; render(); }
-function setFilter(filter){ currentFilter=filter; renderFilterChips(); render(); }
-
-// ══ ADMIN ══
-function isEventAssignedToUser(ev){
-  if(!adminSurname&&!adminFirstName) return false;
-  const list=ev.assignees||(ev.assignee?[ev.assignee]:[]);
-  const sur=adminSurname.toLowerCase().trim();
-  const first=adminFirstName.toLowerCase().trim();
-  return list.some(a=>{
-    const aLow=a.toLowerCase();
-    return aLow.includes(sur)||(sur.endsWith('s')&&aLow.includes(sur.slice(0,-1)))||aLow.includes(first);
-  });
-}
-
-function handleAdminToggle(){
-  if(isAdmin){
-    const dn=`${adminFirstName} ${adminSurname}`.trim();
-    if(confirm(`Log out${dn?` (${dn})`:''}?`)){
-      isAdmin=false; adminFirstName=""; adminSurname="";
-      localStorage.removeItem("ohrsom_is_admin");
-      localStorage.removeItem("ohrsom_admin_first");
-      localStorage.removeItem("ohrsom_admin_surname");
-      if(currentFilter==="action"||currentFilter==="my_items") currentFilter="all";
-      updateAdminUI(); renderFilterChips(); renderCategorySelectOptions(); render();
-    }
-  } else { openAdminLoginModal(); }
-}
-
-function openAdminLoginModal(){
-  document.getElementById("adminFirstNameInput").value=adminFirstName||"";
-  document.getElementById("adminSurnameInput").value=adminSurname||"";
-  document.getElementById("adminPasscodeInput").value="";
-  document.getElementById("adminLoginError").style.display="none";
-  document.getElementById("adminLoginModal").classList.add("active");
-  setTimeout(()=>{
-    const f=document.getElementById("adminFirstNameInput");
-    if(f&&!f.value) f.focus(); else document.getElementById("adminPasscodeInput").focus();
-  },150);
-}
-function closeAdminLoginModal(){ document.getElementById("adminLoginModal").classList.remove("active"); }
-
-function submitAdminLogin(e){
-  e.preventDefault();
-  const first=document.getElementById("adminFirstNameInput").value.trim();
-  const sur=document.getElementById("adminSurnameInput").value.trim();
-  const pin=document.getElementById("adminPasscodeInput").value.trim();
-  const err=document.getElementById("adminLoginError");
-  if(pin===ADMIN_PASSCODE){
-    isAdmin=true; adminFirstName=first||"Admin"; adminSurname=sur||"";
-    localStorage.setItem("ohrsom_is_admin","true");
-    localStorage.setItem("ohrsom_admin_first",adminFirstName);
-    localStorage.setItem("ohrsom_admin_surname",adminSurname);
-    closeAdminLoginModal(); updateAdminUI(); renderFilterChips(); renderCategorySelectOptions(); render();
-  } else {
-    err.style.display="block";
-    document.getElementById("adminPasscodeInput").select();
-  }
-}
-
-function updateAdminUI(){
-  const tb=document.getElementById("adminToggleBtn");
-  const ab=document.getElementById("addEventHeaderBtn");
-  const sb=document.getElementById("settingsBtn");
-  const mb=document.getElementById("mobileAddDayEventBtn");
-  if(isAdmin){
-    tb.className="btn btn-admin-unlocked";
-    tb.innerHTML=`🔓 ${adminFirstName?`${adminFirstName} ${adminSurname}`.trim():'Admin'} (Log Out)`;
-    if(ab) ab.style.display="inline-flex";
-    if(sb) sb.style.display="inline-flex";
-    if(mb) mb.style.display="inline-flex";
-  } else {
-    tb.className="btn btn-admin-locked";
-    tb.innerHTML="🔒 Admin Login";
-    if(ab) ab.style.display="none";
-    if(sb) sb.style.display="none";
-    if(mb) mb.style.display="none";
-  }
-}
-
-// ══ DOWNLOAD / PWA ══
-function showDownloadModal(){ document.getElementById("downloadModal").classList.add("active"); }
-function closeDownloadModal(){ document.getElementById("downloadModal").classList.remove("active"); }
-function triggerNativeInstall(){
-  if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; closeDownloadModal(); }); }
-}
-
-// ══ REMINDERS ══
-function toggleNotifications(){
-  if(!("Notification" in window)){ alert("Notifications not supported."); return; }
-  const fullName=`${adminFirstName} ${adminSurname}`.trim()||"Team Member";
-  if(Notification.permission==="granted"){
-    const mine=events.filter(e=>isEventAssignedToUser(e));
-    new Notification(`🌿 Ohrsom Reminders Active for ${fullName}`,{body:mine.length>0?`You have ${mine.length} assigned items!`:"Reminders enabled for upcoming Yom Tov schedule.",icon:"icons/icon.svg"});
-    alert(`🔔 Reminders enabled for ${fullName}!`);
-  } else if(Notification.permission!=="denied"){
-    Notification.requestPermission().then(p=>{
-      if(p==="granted") new Notification(`🌿 Reminders Activated for ${fullName}`,{body:"You'll get alerts for assigned events.",icon:"icons/icon.svg"});
-    });
-  } else {
-    alert("Notifications blocked in browser settings. Please enable them to receive reminders.");
-  }
-}
-
-// ══ SETTINGS ══
-function openSettingsModal(){
-  if(!isAdmin) return;
-  renderSettingsCategoryList();
-  renderAudiencePresetManager();
-  document.getElementById("settingsModal").classList.add("active");
-}
-function closeSettingsModal(){ document.getElementById("settingsModal").classList.remove("active"); }
-
-function renderSettingsCategoryList(){
-  const list=document.getElementById("settingsCategoryList");
-  if(!list) return;
-  list.innerHTML=categories.map(cat=>`
-    <div class="category-manage-item">
-      <div style="display:flex;align-items:center;gap:6px;color:${cat.color};font-weight:800;">
-        ${cat.icon?`<span style="font-size:1.1rem;">${cat.icon}</span>`:''}
-        <span>${cat.name}</span>
-        ${cat.isInternal?`<span style="font-size:0.68rem;color:var(--rose);background:rgba(244,63,94,0.15);padding:2px 5px;border-radius:4px;">Admin Only</span>`:''}
-      </div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-secondary" style="padding:4px 8px;font-size:0.75rem;" onclick="promptEditCategory('${cat.id}')">✏️</button>
-        <button class="btn btn-secondary" style="padding:4px 8px;font-size:0.75rem;color:var(--rose);" onclick="deleteCategory('${cat.id}')">🗑️</button>
-      </div>
-    </div>
-  `).join("");
-}
-
-function promptEditCategory(id){
-  const cat=categories.find(c=>c.id===id);
-  if(!cat) return;
-  const newName=prompt("New name for category:",cat.name);
-  if(!newName||!newName.trim()) return;
-  const newIcon=prompt(`Emoji icon (optional, leave blank for none):`,cat.icon||"");
-  cat.name=newName.trim();
-  if(newIcon!==null) cat.icon=newIcon.trim();
-  saveCategories(); renderSettingsCategoryList(); renderFilterChips(); renderCategorySelectOptions(); render();
-}
-function deleteCategory(id){
-  if(categories.length<=1){ alert("Must keep at least one category."); return; }
-  if(confirm("Delete this category?")){ categories=categories.filter(c=>c.id!==id); saveCategories(); renderSettingsCategoryList(); renderFilterChips(); renderCategorySelectOptions(); render(); }
-}
-function selectCategoryColor(color,el){
-  selectedCategoryColor=color;
-  document.querySelectorAll(".color-swatch").forEach(s=>s.classList.remove("active"));
-  if(el) el.classList.add("active");
-}
-function saveNewCustomCategory(e){
-  e.preventDefault();
-  const name=document.getElementById("newCategoryName").value.trim();
-  const icon=document.getElementById("newCategoryIcon").value.trim();
-  if(!name) return;
-  categories.push({id:"cat_"+Date.now(),name,icon:icon||"",color:selectedCategoryColor});
-  saveCategories(); renderSettingsCategoryList(); renderFilterChips(); renderCategorySelectOptions(); render();
-  document.getElementById("newCategoryName").value="";
-  document.getElementById("newCategoryIcon").value="";
-}
-
-// ══ AUDIENCE PRESETS MANAGER ══
-function renderAudiencePresetManager(){
-  const container=document.getElementById("audiencePresetList");
-  if(!container) return;
-  container.innerHTML=audiencePresets.map((p,i)=>`
-    <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(168,85,247,0.15);border:1px solid var(--purple);color:#d8b4fe;padding:3px 8px;border-radius:999px;font-size:0.75rem;font-weight:700;">
-      ${p}
-      <span style="cursor:pointer;color:#94a3b8;" onclick="deleteAudiencePreset(${i})">✕</span>
-    </span>
-  `).join("");
-}
-function addAudiencePreset(){
-  const input=document.getElementById("newAudiencePresetInput");
-  const val=input.value.trim();
-  if(!val||audiencePresets.includes(val)) return;
-  audiencePresets.push(val); saveAudiencePresets(); renderAudiencePresetManager(); input.value="";
-}
-function deleteAudiencePreset(i){
-  audiencePresets.splice(i,1); saveAudiencePresets(); renderAudiencePresetManager();
-}
-
-// ══ FILTERED EVENTS ══
-function getFilteredEvents(){
-  return events.filter(ev=>{
-    if(!isAdmin&&ev.isInternal) return false;
-    if(currentPersonFilter!=="all"){
-      const list=ev.assignees||(ev.assignee?[ev.assignee]:[]);
-      const f=currentPersonFilter.toLowerCase();
-      if(!list.some(a=>a.toLowerCase().includes(f)||(f.endsWith('s')&&a.toLowerCase().includes(f.slice(0,-1))))) return false;
-    }
-    if(currentFilter==="all") return true;
-    if(currentFilter==="my_items") return isEventAssignedToUser(ev);
-    return ev.type===currentFilter;
-  });
-}
-
-// ══ RENDER ══
-function render(){
-  updateMonthTitle();
-  if(currentView==="calendar"){
-    document.getElementById("calendarViewContainer").style.display="block";
-    document.getElementById("timelineViewContainer").style.display="none";
-    renderCalendarGrid();
-    renderDayAgenda(selectedDateKey);
-  } else {
-    document.getElementById("calendarViewContainer").style.display="none";
-    document.getElementById("timelineViewContainer").style.display="block";
-    renderTimeline();
-  }
-}
-
-function updateMonthTitle(){
-  const d=new Date(currentYear,currentMonth,1);
-  document.getElementById("monthDisplay").textContent=d.toLocaleDateString("en-US",{month:"long",year:"numeric"});
-}
-function changeMonth(delta){
-  currentMonth+=delta;
-  if(currentMonth<0){currentMonth=11;currentYear--;}
-  else if(currentMonth>11){currentMonth=0;currentYear++;}
-  render();
-}
-function switchView(view){
-  currentView=view;
-  document.getElementById("viewCalBtn").classList.toggle("active",view==="calendar");
-  document.getElementById("viewListBtn").classList.toggle("active",view==="timeline");
-  document.getElementById("viewHostingBtn").classList.toggle("active",view==="hosting");
-  if(view==="hosting"){ currentFilter="meal"; renderFilterChips(); }
-  render();
-}
-
-// ══ CALENDAR GRID ══
-function renderCalendarGrid(){
-  const grid=document.getElementById("calendarDaysGrid");
-  grid.innerHTML="";
-  const firstDay=new Date(currentYear,currentMonth,1).getDay();
-  const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
-  const daysInPrev=new Date(currentYear,currentMonth,0).getDate();
-  const filtered=getFilteredEvents();
-  const todayStr=new Date().toISOString().slice(0,10);
-  const isMobile=window.innerWidth<=768;
-
-  // Prev month padding
-  for(let i=firstDay-1;i>=0;i--){
-    const cell=document.createElement("div");
-    cell.className="cal-day-cell other-month";
-    cell.innerHTML=`<div class="day-number-row"><span class="day-num-circle">${daysInPrev-i}</span></div>`;
-    grid.appendChild(cell);
-  }
-
-  // Current month days
-  for(let day=1;day<=daysInMonth;day++){
-    const ms=String(currentMonth+1).padStart(2,"0"), ds=String(day).padStart(2,"0");
-    const dateKey=`${currentYear}-${ms}-${ds}`;
-    const cell=document.createElement("div");
-    cell.className="cal-day-cell";
-    cell.setAttribute("data-date",dateKey);
-    if(dateKey===todayStr) cell.classList.add("is-today");
-    if(dateKey===selectedDateKey) cell.classList.add("is-selected-day");
-
-    const hol=JEWISH_HOLIDAYS[dateKey];
-    const dayEvts=filtered.filter(e=>e.date===dateKey);
-
-    let cellHtml=`<div class="day-number-row"><span class="day-num-circle">${day}</span>${hol&&!isMobile?`<span class="jewish-holiday-pill">${hol}</span>`:''}</div>`;
-
-    if(isMobile){
-      // Mobile: yom tov dot + colored event dots
-      if(hol) cellHtml+=`<div class="mobile-yomtov-dot"></div>`;
-      cellHtml+=`<div class="mobile-dots-row">`;
-      dayEvts.slice(0,5).forEach(e=>{
-        const cat=getCategory(e.type);
-        cellHtml+=`<span class="cal-event-pill" style="background:${cat.color};" title="${e.title}"></span>`;
+      events.forEach(e => {
+        if (!e.assignees) e.assignees = e.assignee ? [e.assignee] : [];
+        if (!e.audiences) e.audiences = e.audience ? [e.audience] : [];
       });
-      cellHtml+=`</div>`;
-    } else {
-      // Desktop: show text event pills (wrapped)
-      dayEvts.slice(0,4).forEach(e=>{
-        const cat=getCategory(e.type);
-        const shortTitle=e.title.length>22?e.title.slice(0,20)+"…":e.title;
-        cellHtml+=`
-          <div class="cal-event-pill" 
-               onclick="event.stopPropagation();openEditEventModal('${e.id}')" 
-               title="${e.title}${e.time?' · '+e.time:''}"
-               style="background:${cat.color}22;color:${cat.color};border-left-color:${cat.color};">
-            <span class="cal-event-pill-icon">${cat.icon||'•'}</span>
-            <span class="cal-event-pill-text">${shortTitle}</span>
-          </div>`;
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const s = document.getElementById("nativeInstallPromptSection");
+        if (s) s.style.display = "block";
       });
-      const moreCount=dayEvts.length-4;
-      if(moreCount>0) cellHtml+=`<div style="font-size:0.6rem;color:var(--muted);font-weight:700;text-align:center;">+${moreCount} more</div>`;
+
+      updateAdminUI();
+      renderFilterChips();
+      renderCategorySelectOptions();
+      render();
     }
 
-    cell.innerHTML=cellHtml;
-    cell.addEventListener("click",()=>selectCalendarDay(dateKey));
-    grid.appendChild(cell);
-  }
+    function saveCategories() { localStorage.setItem("ohrsom_categories_data", JSON.stringify(categories)); }
+    function saveEvents() { localStorage.setItem("ohrsom_events_data", JSON.stringify(events)); }
+    function saveAudiencePresets() { localStorage.setItem("ohrsom_audience_presets", JSON.stringify(audiencePresets)); }
 
-  // Next month padding
-  const total=firstDay+daysInMonth;
-  const next=(7-(total%7))%7;
-  for(let i=1;i<=next;i++){
-    const cell=document.createElement("div");
-    cell.className="cal-day-cell other-month";
-    cell.innerHTML=`<div class="day-number-row"><span class="day-num-circle">${i}</span></div>`;
-    grid.appendChild(cell);
-  }
-}
+    function getCategory(typeId) {
+      return categories.find(c => c.id === typeId) || { id: typeId, name: typeId, icon: "📌", color: "#94a3b8" };
+    }
 
-function selectCalendarDay(dateKey){
-  selectedDateKey=dateKey;
-  document.querySelectorAll(".cal-day-cell").forEach(c=>c.classList.toggle("is-selected-day",c.getAttribute("data-date")===dateKey));
-  renderDayAgenda(dateKey);
-}
+    function autoFillTitle() {
+      const typeId = document.getElementById("eventTypeInput").value;
+      const titleInput = document.getElementById("eventTitleInput");
+      if (activeEditingId) return;
 
-// ══ DAY AGENDA (below calendar) ══
-function renderDayAgenda(dateKey){
-  const container=document.getElementById("mobileDayEventsList");
-  const titleEl=document.getElementById("mobileAgendaDateTitle");
-  if(!container||!titleEl) return;
-  const d=new Date(dateKey+"T00:00:00");
-  const formattedDate=d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-  const hol=JEWISH_HOLIDAYS[dateKey];
-  titleEl.innerHTML=`📅 ${formattedDate}${hol?` <span class="jewish-holiday-pill" style="font-size:0.78rem;margin-left:6px;">✡️ ${hol}</span>`:''}`;
-  const dayEvts=getFilteredEvents().filter(e=>e.date===dateKey);
-  if(!dayEvts.length){
-    container.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;">No events on this day.${isAdmin?`<br><button class="btn btn-primary" style="margin-top:10px;font-size:0.78rem;" onclick="openAddEventModal('${dateKey}')">➕ Add Event</button>`:''}</div>`;
-    return;
-  }
-  container.innerHTML=dayEvts.map(e=>renderEventCardHtml(e)).join("");
-}
+      const cat = getCategory(typeId);
+      if (typeId === "meal") {
+        const assignees = currentModalAssignees;
+        titleInput.value = assignees.length > 0 ? `Hosting — ${assignees[0]}` : "Hosting — ";
+      } else {
+        titleInput.value = cat.name;
+      }
+    }
 
-// ══ EVENT CARD HTML ══
-function renderEventCardHtml(e){
-  const cat=getCategory(e.type);
-  const d=new Date(e.date+"T00:00:00");
-  const mn=d.toLocaleDateString("en-US",{month:"short"});
-  const dn=d.getDate();
-  const wd=d.toLocaleDateString("en-US",{weekday:"short"});
-  const hol=JEWISH_HOLIDAYS[e.date];
-  const assigneesList=e.assignees||(e.assignee?[e.assignee]:[]);
-  const audiences=e.audiences||(e.audience?[e.audience]:[]);
-  const assigneesHtml=assigneesList.map(a=>`<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
-  const audiencesHtml=audiences.map(a=>`<span class="event-tag" style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.35);color:#d8b4fe;">👥 ${a}</span>`).join(" ");
-  const editBtnHtml=isAdmin
-    ?`<button class="btn btn-secondary" style="padding:5px 9px;font-size:0.75rem;" onclick="event.stopPropagation();openEditEventModal('${e.id}')">✏️ Edit</button>`
-    :`<button class="btn btn-secondary" style="padding:5px 9px;font-size:0.75rem;" onclick="event.stopPropagation();openViewEventModal('${e.id}')">ℹ️ Info</button>`;
-  const internalHtml=isAdmin&&e.internalNotes?`<div class="internal-note-box">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>`:"";
-  return `
-    <div class="event-card" style="border-left:4px solid ${cat.color};" onclick="${isAdmin?`openEditEventModal('${e.id}')`:`openViewEventModal('${e.id}')`}">
-      <div class="event-card-left">
-        <div class="event-date-block">
-          <div class="date-month">${mn}</div>
-          <div class="date-num">${dn}</div>
-          <div class="date-weekday">${wd}</div>
-        </div>
-        <div class="event-main-details">
-          <h3>${e.title}${hol?` <span class="jewish-holiday-pill">✡️ ${hol}</span>`:''}${e.isInternal?` <span class="event-tag internal-badge">🔒 Admin Only</span>`:''}</h3>
-          <div class="event-tags-row">
-            <span class="event-tag" style="background:${cat.color}22;color:${cat.color};">${cat.icon?`${cat.icon} `:''}${cat.name}</span>
-            ${assigneesHtml}
-            ${audiencesHtml}
+    function handleCategoryChange(select) {
+      if (select.value === "__manage__") {
+        select.value = categories[0].id;
+        openSettingsModal();
+        return;
+      }
+      if (!activeEditingId) autoFillTitle();
+    }
+
+    function renderCategorySelectOptions() {
+      const select = document.getElementById("eventTypeInput");
+      if (!select) return;
+      let html = "";
+      categories.forEach(cat => {
+        html += `<option value="${cat.id}">${cat.icon ? cat.icon + ' ' : ''}${cat.name}</option>`;
+      });
+      if (isAdmin) html += `<option value="__manage__">⚙️ Manage Categories...</option>`;
+      select.innerHTML = html;
+    }
+
+    function renderFilterChips() {
+      const container = document.getElementById("dynamicFilterChips");
+      if (!container) return;
+      let html = `<button class="filter-chip ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">✨ All</button>`;
+      if (adminSurname || adminFirstName) {
+        const dn = adminFirstName ? `${adminFirstName} ${adminSurname}`.trim() : adminSurname;
+        html += `<button class="filter-chip filter-chip-myitems ${currentFilter === 'my_items' ? 'active' : ''}" onclick="setFilter('my_items')">⭐ My Items (${dn})</button>`;
+      }
+      categories.forEach(cat => {
+        if (!isAdmin && cat.isInternal) return;
+        const icon = cat.icon ? `<span>${cat.icon}</span>` : '';
+        html += `<button class="filter-chip ${currentFilter === cat.id ? 'active' : ''}" onclick="setFilter('${cat.id}')">${icon}<span>${cat.name}</span></button>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function handlePersonFilterChange(person) { currentPersonFilter = person; render(); }
+    function setFilter(filter) { currentFilter = filter; renderFilterChips(); render(); }
+
+    function isEventAssignedToUser(ev) {
+      if (!adminSurname && !adminFirstName) return false;
+      const list = ev.assignees || (ev.assignee ? [ev.assignee] : []);
+      const sur = adminSurname.toLowerCase().trim();
+      const first = adminFirstName.toLowerCase().trim();
+      return list.some(a => {
+        const aLow = a.toLowerCase();
+        return aLow.includes(sur) || (sur.endsWith('s') && aLow.includes(sur.slice(0, -1))) || aLow.includes(first);
+      });
+    }
+
+    function handleAdminToggle() {
+      if (isAdmin) {
+        const dn = `${adminFirstName} ${adminSurname}`.trim();
+        if (confirm(`Log out${dn ? ` (${dn})` : ''}?`)) {
+          isAdmin = false;
+          adminFirstName = "";
+          adminSurname = "";
+          localStorage.removeItem("ohrsom_is_admin");
+          localStorage.removeItem("ohrsom_admin_first");
+          localStorage.removeItem("ohrsom_admin_surname");
+          if (currentFilter === "action" || currentFilter === "my_items") currentFilter = "all";
+          updateAdminUI();
+          renderFilterChips();
+          renderCategorySelectOptions();
+          render();
+        }
+      } else {
+        openAdminLoginModal();
+      }
+    }
+
+    function openAdminLoginModal() {
+      document.getElementById("adminFirstNameInput").value = adminFirstName || "";
+      document.getElementById("adminSurnameInput").value = adminSurname || "";
+      document.getElementById("adminPasscodeInput").value = "";
+      document.getElementById("adminLoginError").style.display = "none";
+      document.getElementById("adminLoginModal").classList.add("active");
+      setTimeout(() => {
+        const f = document.getElementById("adminFirstNameInput");
+        if (f && !f.value) f.focus();
+        else document.getElementById("adminPasscodeInput").focus();
+      }, 150);
+    }
+    function closeAdminLoginModal() { document.getElementById("adminLoginModal").classList.remove("active"); }
+
+    function submitAdminLogin(e) {
+      e.preventDefault();
+      const first = document.getElementById("adminFirstNameInput").value.trim();
+      const sur = document.getElementById("adminSurnameInput").value.trim();
+      const pin = document.getElementById("adminPasscodeInput").value.trim();
+      const err = document.getElementById("adminLoginError");
+      if (pin === ADMIN_PASSCODE) {
+        isAdmin = true;
+        adminFirstName = first || "Admin";
+        adminSurname = sur || "";
+        localStorage.setItem("ohrsom_is_admin", "true");
+        localStorage.setItem("ohrsom_admin_first", adminFirstName);
+        localStorage.setItem("ohrsom_admin_surname", adminSurname);
+        closeAdminLoginModal();
+        updateAdminUI();
+        renderFilterChips();
+        renderCategorySelectOptions();
+        render();
+      } else {
+        err.style.display = "block";
+        document.getElementById("adminPasscodeInput").select();
+      }
+    }
+
+    function updateAdminUI() {
+      const tb = document.getElementById("adminToggleBtn");
+      const ab = document.getElementById("addEventHeaderBtn");
+      const sb = document.getElementById("settingsBtn");
+      const mb = document.getElementById("mobileAddDayEventBtn");
+      const ob = document.getElementById("dayOverviewAddBtn");
+
+      if (isAdmin) {
+        tb.className = "btn btn-admin-unlocked";
+        tb.innerHTML = `🔓 ${adminFirstName ? `${adminFirstName} ${adminSurname}`.trim() : 'Admin'} (Log Out)`;
+        if (ab) ab.style.display = "inline-flex";
+        if (sb) sb.style.display = "inline-flex";
+        if (mb) mb.style.display = "inline-flex";
+        if (ob) ob.style.display = "inline-flex";
+      } else {
+        tb.className = "btn btn-admin-locked";
+        tb.innerHTML = "🔒 Admin Login";
+        if (ab) ab.style.display = "none";
+        if (sb) sb.style.display = "none";
+        if (mb) mb.style.display = "none";
+        if (ob) ob.style.display = "none";
+      }
+    }
+
+    function showDownloadModal() { document.getElementById("downloadModal").classList.add("active"); }
+    function closeDownloadModal() { document.getElementById("downloadModal").classList.remove("active"); }
+    function triggerNativeInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => { deferredPrompt = null; closeDownloadModal(); });
+      }
+    }
+
+    // ══ REMINDERS & NOTIFICATION CENTER ══
+    function openRemindersCenterModal() {
+      const listContainer = document.getElementById("upcomingRemindersList");
+      const headerEl = document.getElementById("upcomingRemindersListHeader");
+      const fullName = `${adminFirstName} ${adminSurname}`.trim();
+
+      headerEl.textContent = fullName 
+        ? `📋 Scheduled Reminders for ${fullName}:` 
+        : `📋 Scheduled Yom Tov Reminders:`;
+
+      const myEvents = events.filter(e => {
+        if (fullName) return isEventAssignedToUser(e) || e.type === "shul" || e.type === "event";
+        return !e.isInternal;
+      }).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (myEvents.length === 0) {
+        listContainer.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.8rem;">No upcoming reminders found.</div>`;
+      } else {
+        listContainer.innerHTML = myEvents.slice(0, 8).map(e => {
+          const d = new Date(e.date + "T00:00:00");
+          const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" });
+          const cat = getCategory(e.type);
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--surface-border); padding:6px 0; font-size:0.8rem;">
+              <div>
+                <strong style="color:${cat.color};">${cat.icon || '•'} ${e.title}</strong><br>
+                <span style="color:var(--muted); font-size:0.75rem;">📅 ${dateStr} ${e.time ? `· ⏱️ ${e.time}` : ''}</span>
+              </div>
+              <span class="yom-badge" style="font-size:0.68rem; color:var(--gold);">🔔 Active</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      document.getElementById("remindersCenterModal").classList.add("active");
+    }
+
+    function closeRemindersCenterModal() {
+      document.getElementById("remindersCenterModal").classList.remove("active");
+    }
+
+    function triggerTestPushNotification() {
+      if (!("Notification" in window)) {
+        alert("Notifications are not supported in this browser.");
+        return;
+      }
+      const fullName = `${adminFirstName} ${adminSurname}`.trim() || "Team Member";
+
+      if (Notification.permission === "granted") {
+        new Notification(`🌿 Ohrsom Yom Tov Reminder`, {
+          body: `Reminder for ${fullName}: Next service is Rosh Hashanah Mincha (6:00 PM) at Ohrsom Shul!`,
+          icon: "icons/icon.svg"
+        });
+        alert(`🔔 Push Notification fired! Look for the popup banner.`);
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(p => {
+          if (p === "granted") {
+            new Notification(`🌿 Ohrsom Reminders Enabled`, {
+              body: `Push alerts are now active for ${fullName}!`,
+              icon: "icons/icon.svg"
+            });
+            alert(`🔔 Notifications enabled and test sent!`);
+          }
+        });
+      } else {
+        alert("Notifications are currently blocked in browser settings. Please allow notifications for this site.");
+      }
+    }
+
+    // ══ DAY / EVENT OVERVIEW POP-UP MODAL (Clean, readable overview before edit) ══
+    function openDayOverviewModal(dateKey, highlightEventId = null) {
+      selectedDateKey = dateKey;
+      const d = new Date(dateKey + "T00:00:00");
+      const formattedDate = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      const hol = JEWISH_HOLIDAYS[dateKey];
+
+      document.getElementById("dayOverviewTitle").textContent = formattedDate;
+      document.getElementById("dayOverviewSubtitle").innerHTML = hol ? `✡️ <strong>${hol}</strong>` : "Yom Tov & Events Schedule";
+
+      const listContainer = document.getElementById("dayOverviewContentList");
+      const dayEvts = getFilteredEvents().filter(e => e.date === dateKey);
+
+      if (dayEvts.length === 0) {
+        listContainer.innerHTML = `
+          <div style="text-align: center; padding: 30px 10px; color: var(--muted); font-size: 0.9rem;">
+            🌿 No events scheduled on ${formattedDate}.
+            ${isAdmin ? `<br><button class="btn btn-primary" style="margin-top: 14px;" onclick="openAddEventFromOverview()">➕ Add Event</button>` : ''}
           </div>
-          <div class="event-meta-info">
-            ${e.time?`<span>⏱️ ${e.time}</span>`:''}
-            ${e.host?`<span>🏡 <strong>${e.host}</strong></span>`:''}
+        `;
+      } else {
+        listContainer.innerHTML = dayEvts.map(e => {
+          const cat = getCategory(e.type);
+          const assignees = e.assignees || (e.assignee ? [e.assignee] : []);
+          const audiences = e.audiences || (e.audience ? [e.audience] : []);
+          const assigneesHtml = assignees.map(a => `<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
+          const audiencesHtml = audiences.map(a => `<span class="event-tag" style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35); color:#d8b4fe;">👥 ${a}</span>`).join(" ");
+
+          const internalHtml = (isAdmin && e.internalNotes) 
+            ? `<div class="internal-note-box" style="margin-top:8px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
+            : "";
+
+          const adminButtons = isAdmin ? `
+            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="openEditFromOverview('${e.id}')">✏️ Edit</button>
+            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="copyEventDirectly('${e.id}')">📋 Copy</button>
+            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="openMoveEventModalForId('${e.id}')">📅 Move</button>
+            <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem; color:var(--rose);" onclick="deleteEventDirectly('${e.id}')">🗑️</button>
+          ` : '';
+
+          const isHighlighted = (highlightEventId === e.id);
+
+          return `
+            <div class="overview-event-item" style="border-left: 4px solid ${cat.color}; ${isHighlighted ? 'box-shadow: 0 0 0 2px var(--accent); background:#162433;' : ''}">
+              <div class="overview-event-item-top">
+                <div>
+                  <div class="overview-event-item-title">${e.title}</div>
+                  <div class="event-tags-row" style="margin-top:6px;">
+                    <span class="event-tag" style="background:${cat.color}22; color:${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
+                    ${assigneesHtml}
+                    ${audiencesHtml}
+                    ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin Only</span>` : ''}
+                  </div>
+                </div>
+                ${e.time ? `<span class="yom-badge" style="font-size:0.75rem; font-weight:800; color:var(--accent);">⏱️ ${e.time}</span>` : ''}
+              </div>
+
+              ${e.host ? `<div style="font-size:0.82rem; color:var(--ink); margin-top:6px;">🏡 Host/Venue: <strong>${e.host}</strong></div>` : ''}
+              ${e.notes ? `<div style="font-size:0.82rem; color:var(--muted); margin-top:4px;">📝 ${e.notes}</div>` : ''}
+              ${internalHtml}
+
+              <div class="overview-btn-bar">
+                ${adminButtons}
+                <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.75rem;" onclick="shareWhatsAppDirect('${e.id}')">💬 WhatsApp</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      document.getElementById("dayOverviewModal").classList.add("active");
+    }
+
+    function closeDayOverviewModal() {
+      document.getElementById("dayOverviewModal").classList.remove("active");
+    }
+
+    function openAddEventFromOverview() {
+      closeDayOverviewModal();
+      openAddEventModal(selectedDateKey);
+    }
+
+    function openEditFromOverview(id) {
+      closeDayOverviewModal();
+      openEditEventModal(id);
+    }
+
+    function deleteEventDirectly(id) {
+      if (!isAdmin) return;
+      if (confirm("Delete this event?")) {
+        events = events.filter(e => e.id !== id);
+        saveEvents();
+        render();
+        openDayOverviewModal(selectedDateKey);
+      }
+    }
+
+    function copyEventDirectly(id) {
+      if (!isAdmin) return;
+      const orig = events.find(e => e.id === id);
+      if (!orig) return;
+      const copy = { ...orig, id: "evt-" + Date.now(), title: "Copy — " + orig.title, assignees: [...orig.assignees], audiences: [...(orig.audiences || [])] };
+      events.push(copy);
+      saveEvents();
+      render();
+      openDayOverviewModal(selectedDateKey);
+    }
+
+    function openMoveEventModalForId(id) {
+      activeEditingId = id;
+      closeDayOverviewModal();
+      openMoveEventModal();
+    }
+
+    function shareWhatsAppDirect(id) {
+      const e = events.find(item => item.id === id);
+      if (!e) return;
+      const text = `🌿 *Ohrsom Event: ${e.title}*\n📅 *Date:* ${e.date}\n⏱️ *Time:* ${e.time || 'TBD'}\n🏡 *Host/Location:* ${e.host || 'Ohrsom'}${e.notes ? `\n📝 *Notes:* ${e.notes}` : ''}\n\nRSVP via Ohrsom Events Hub!`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    }
+
+    // ══ SETTINGS MODAL ══
+    function openSettingsModal() {
+      if (!isAdmin) return;
+      renderSettingsCategoryList();
+      renderAudiencePresetManager();
+      document.getElementById("settingsModal").classList.add("active");
+    }
+    function closeSettingsModal() { document.getElementById("settingsModal").classList.remove("active"); }
+
+    function renderSettingsCategoryList() {
+      const list = document.getElementById("settingsCategoryList");
+      if (!list) return;
+      list.innerHTML = categories.map(cat => `
+        <div class="category-manage-item">
+          <div style="display:flex; align-items:center; gap:6px; color:${cat.color}; font-weight:800;">
+            ${cat.icon ? `<span style="font-size:1.1rem;">${cat.icon}</span>` : ''}
+            <span>${cat.name}</span>
+            ${cat.isInternal ? `<span style="font-size:0.68rem; color:var(--rose); background:rgba(244,63,94,0.15); padding:2px 5px; border-radius:4px;">Admin Only</span>` : ''}
           </div>
-          ${e.notes?`<p style="font-size:0.8rem;color:var(--muted);margin-top:4px;">📝 ${e.notes}</p>`:''}
-          ${internalHtml}
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="promptEditCategory('${cat.id}')">✏️</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem; color:var(--rose);" onclick="deleteCategory('${cat.id}')">🗑️</button>
+          </div>
         </div>
-      </div>
-      <div class="event-card-actions">${editBtnHtml}</div>
-    </div>`;
-}
+      `).join("");
+    }
 
-// ══ TIMELINE ══
-function renderTimeline(){
-  const container=document.getElementById("timelineList");
-  const filtered=getFilteredEvents().sort((a,b)=>new Date(a.date)-new Date(b.date));
-  container.innerHTML=filtered.length
-    ?filtered.map(e=>renderEventCardHtml(e)).join("")
-    :`<div style="text-align:center;padding:40px;color:var(--muted);">No events match this filter.</div>`;
-}
+    function promptEditCategory(id) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      const newName = prompt("New name for category:", cat.name);
+      if (!newName || !newName.trim()) return;
+      const newIcon = prompt(`Emoji icon (optional, leave blank for none):`, cat.icon || "");
+      cat.name = newName.trim();
+      if (newIcon !== null) cat.icon = newIcon.trim();
+      saveCategories();
+      renderSettingsCategoryList();
+      renderFilterChips();
+      renderCategorySelectOptions();
+      render();
+    }
 
-// ══ MULTI-SELECT ASSIGNEES ══
-function renderAssigneeUI(list=[]){
-  currentModalAssignees=[...list];
-  const chips=document.getElementById("assigneeSelectedChips");
-  const pills=document.getElementById("quickAssignPillsRow");
-  if(!chips||!pills) return;
-  chips.innerHTML=currentModalAssignees.length
-    ?currentModalAssignees.map((n,i)=>`<span class="assignee-chip-selected">👤 ${n}<span class="assignee-chip-remove" onclick="removeAssignee(${i})">✕</span></span>`).join("")
-    :`<span style="font-size:0.75rem;color:var(--muted);">No assignees selected</span>`;
-  pills.innerHTML=TEAM_PRESETS.map(p=>{
-    const active=currentModalAssignees.includes(p);
-    return `<button type="button" class="quick-assign-btn ${active?'is-active':''}" onclick="toggleAssigneePreset('${p}')">${active?'✓ ':'+ '}${p}</button>`;
-  }).join("");
-}
-function toggleAssigneePreset(name){
-  const i=currentModalAssignees.indexOf(name);
-  if(i>=0) currentModalAssignees.splice(i,1); else currentModalAssignees.push(name);
-  renderAssigneeUI(currentModalAssignees);
-  // Update auto title when assignee changes and it's a meal
-  const typeId=document.getElementById("eventTypeInput").value;
-  if(typeId==="meal"&&!activeEditingId) autoFillTitle();
-}
-function removeAssignee(i){ currentModalAssignees.splice(i,1); renderAssigneeUI(currentModalAssignees); }
-function addCustomAssigneeFromInput(){
-  const input=document.getElementById("customAssigneeInput");
-  const val=input.value.trim();
-  if(!val) return;
-  if(!currentModalAssignees.includes(val)) currentModalAssignees.push(val);
-  renderAssigneeUI(currentModalAssignees);
-  input.value="";
-}
+    function deleteCategory(id) {
+      if (categories.length <= 1) { alert("Must keep at least one category."); return; }
+      if (confirm("Delete this category?")) {
+        categories = categories.filter(c => c.id !== id);
+        saveCategories();
+        renderSettingsCategoryList();
+        renderFilterChips();
+        renderCategorySelectOptions();
+        render();
+      }
+    }
 
-// ══ MULTI-SELECT AUDIENCES ══
-function renderAudienceUI(list=[]){
-  currentModalAudiences=[...list];
-  const chips=document.getElementById("audienceSelectedChips");
-  const pills=document.getElementById("audiencePresetPills");
-  if(!chips||!pills) return;
-  chips.innerHTML=currentModalAudiences.length
-    ?currentModalAudiences.map((a,i)=>`<span class="audience-chip-selected">👥 ${a}<span class="audience-chip-remove" onclick="removeAudience(${i})">✕</span></span>`).join("")
-    :`<span style="font-size:0.75rem;color:var(--muted);">No audience selected</span>`;
-  pills.innerHTML=audiencePresets.map(p=>{
-    const active=currentModalAudiences.includes(p);
-    return `<button type="button" class="audience-preset-btn ${active?'is-active':''}" onclick="toggleAudiencePreset('${p}')">${active?'✓ ':'+ '}${p}</button>`;
-  }).join("");
-}
-function toggleAudiencePreset(name){
-  const i=currentModalAudiences.indexOf(name);
-  if(i>=0) currentModalAudiences.splice(i,1); else currentModalAudiences.push(name);
-  renderAudienceUI(currentModalAudiences);
-}
-function removeAudience(i){ currentModalAudiences.splice(i,1); renderAudienceUI(currentModalAudiences); }
-function addCustomAudienceFromInput(){
-  const input=document.getElementById("customAudienceInput");
-  const val=input.value.trim();
-  if(!val) return;
-  if(!currentModalAudiences.includes(val)) currentModalAudiences.push(val);
-  renderAudienceUI(currentModalAudiences);
-  input.value="";
-}
+    function selectCategoryColor(color, el) {
+      selectedCategoryColor = color;
+      document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
+      if (el) el.classList.add("active");
+    }
 
-// ══ MODAL OPS ══
-function openAddEventModal(presetDate=null){
-  if(!isAdmin) return;
-  activeEditingId=null;
-  document.getElementById("modalTitle").textContent="➕ Add New Event / Meal";
-  document.getElementById("eventId").value="";
-  document.getElementById("eventDateInput").value=presetDate||selectedDateKey||new Date().toISOString().slice(0,10);
-  document.getElementById("eventTimeInput").value="";
-  document.getElementById("eventTypeInput").value=categories[0].id;
-  document.getElementById("eventHostInput").value="";
-  document.getElementById("eventNotesInput").value="";
-  document.getElementById("eventInternalNotesInput").value="";
-  document.getElementById("eventIsInternalInput").checked=false;
+    function saveNewCustomCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById("newCategoryName").value.trim();
+      const icon = document.getElementById("newCategoryIcon").value.trim();
+      if (!name) return;
+      categories.push({ id: "cat_" + Date.now(), name, icon: icon || "", color: selectedCategoryColor });
+      saveCategories();
+      renderSettingsCategoryList();
+      renderFilterChips();
+      renderCategorySelectOptions();
+      render();
+      document.getElementById("newCategoryName").value = "";
+      document.getElementById("newCategoryIcon").value = "";
+    }
 
-  const defaultAssignees=adminSurname?[adminSurname]:adminFirstName?[adminFirstName]:[];
-  const defaultAudiences=["Students & Community"];
-  renderAssigneeUI(defaultAssignees);
-  renderAudienceUI(defaultAudiences);
+    // ══ AUDIENCE PRESETS MANAGER ══
+    function renderAudiencePresetManager() {
+      const container = document.getElementById("audiencePresetList");
+      if (!container) return;
+      container.innerHTML = audiencePresets.map((p, i) => `
+        <span style="display:inline-flex; align-items:center; gap:4px; background:rgba(168,85,247,0.15); border:1px solid var(--purple); color:#d8b4fe; padding:3px 8px; border-radius:999px; font-size:0.75rem; font-weight:700;">
+          ${p}
+          <span style="cursor:pointer; color:#94a3b8;" onclick="deleteAudiencePreset(${i})">✕</span>
+        </span>
+      `).join("");
+    }
 
-  // Auto-fill title with default assignee
-  setTimeout(()=>autoFillTitle(),50);
+    function addAudiencePreset() {
+      const input = document.getElementById("newAudiencePresetInput");
+      const val = input.value.trim();
+      if (!val || audiencePresets.includes(val)) return;
+      audiencePresets.push(val);
+      saveAudiencePresets();
+      renderAudiencePresetManager();
+      input.value = "";
+    }
 
-  setFormDisabled(false);
-  document.getElementById("saveEventBtn").style.display="inline-flex";
-  document.getElementById("deleteEventBtn").style.display="none";
-  document.getElementById("moveEventBtn").style.display="none";
-  document.getElementById("customAssigneeInputWrap").style.display="flex";
-  document.getElementById("internalNotesFieldWrap").style.display="block";
-  document.getElementById("internalToggleWrap").style.display="block";
-  document.getElementById("eventModal").classList.add("active");
-}
+    function deleteAudiencePreset(i) {
+      audiencePresets.splice(i, 1);
+      saveAudiencePresets();
+      renderAudiencePresetManager();
+    }
 
-function openEditEventModal(id){
-  const e=events.find(ev=>ev.id===id);
-  if(!e) return;
-  if(!isAdmin){ openViewEventModal(id); return; }
-  activeEditingId=id;
-  document.getElementById("modalTitle").textContent="✏️ Edit Event / Meal";
-  document.getElementById("eventId").value=e.id;
-  document.getElementById("eventTitleInput").value=e.title;
-  document.getElementById("eventDateInput").value=e.date;
-  document.getElementById("eventTimeInput").value=e.time||"";
-  document.getElementById("eventTypeInput").value=e.type||categories[0].id;
-  document.getElementById("eventHostInput").value=e.host||"";
-  document.getElementById("eventNotesInput").value=e.notes||"";
-  document.getElementById("eventInternalNotesInput").value=e.internalNotes||"";
-  document.getElementById("eventIsInternalInput").checked=!!e.isInternal;
-  renderAssigneeUI(e.assignees||(e.assignee?[e.assignee]:[]));
-  renderAudienceUI(e.audiences||(e.audience?[e.audience]:[]));
-  setFormDisabled(false);
-  document.getElementById("saveEventBtn").style.display="inline-flex";
-  document.getElementById("deleteEventBtn").style.display="inline-flex";
-  document.getElementById("moveEventBtn").style.display="inline-flex";
-  document.getElementById("customAssigneeInputWrap").style.display="flex";
-  document.getElementById("internalNotesFieldWrap").style.display="block";
-  document.getElementById("internalToggleWrap").style.display="block";
-  document.getElementById("eventModal").classList.add("active");
-}
+    // ══ FILTERED EVENTS ══
+    function getFilteredEvents() {
+      return events.filter(ev => {
+        if (!isAdmin && ev.isInternal) return false;
+        if (currentPersonFilter !== "all") {
+          const list = ev.assignees || (ev.assignee ? [ev.assignee] : []);
+          const f = currentPersonFilter.toLowerCase();
+          if (!list.some(a => a.toLowerCase().includes(f) || (f.endsWith('s') && a.toLowerCase().includes(f.slice(0, -1))))) return false;
+        }
+        if (currentFilter === "all") return true;
+        if (currentFilter === "my_items") return isEventAssignedToUser(ev);
+        return ev.type === currentFilter;
+      });
+    }
 
-function openViewEventModal(id){
-  const e=events.find(ev=>ev.id===id);
-  if(!e) return;
-  document.getElementById("modalTitle").textContent="ℹ️ "+e.title;
-  document.getElementById("eventId").value=e.id;
-  document.getElementById("eventTitleInput").value=e.title;
-  document.getElementById("eventDateInput").value=e.date;
-  document.getElementById("eventTimeInput").value=e.time||"";
-  document.getElementById("eventTypeInput").value=e.type||categories[0].id;
-  document.getElementById("eventHostInput").value=e.host||"";
-  document.getElementById("eventNotesInput").value=e.notes||"";
-  renderAssigneeUI(e.assignees||(e.assignee?[e.assignee]:[]));
-  renderAudienceUI(e.audiences||(e.audience?[e.audience]:[]));
-  setFormDisabled(true);
-  document.getElementById("saveEventBtn").style.display="none";
-  document.getElementById("deleteEventBtn").style.display="none";
-  document.getElementById("moveEventBtn").style.display="none";
-  document.getElementById("customAssigneeInputWrap").style.display="none";
-  document.getElementById("internalNotesFieldWrap").style.display="none";
-  document.getElementById("internalToggleWrap").style.display="none";
-  document.getElementById("eventModal").classList.add("active");
-}
+    // ══ RENDER ══
+    function render() {
+      updateMonthTitle();
+      if (currentView === "calendar") {
+        document.getElementById("calendarViewContainer").style.display = "block";
+        document.getElementById("timelineViewContainer").style.display = "none";
+        renderCalendarGrid();
+        renderDayAgenda(selectedDateKey);
+      } else {
+        document.getElementById("calendarViewContainer").style.display = "none";
+        document.getElementById("timelineViewContainer").style.display = "block";
+        renderTimeline();
+      }
+    }
 
-function setFormDisabled(d){
-  ["eventTitleInput","eventDateInput","eventTimeInput","eventTypeInput","eventHostInput","eventNotesInput","eventInternalNotesInput","eventIsInternalInput"].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.disabled=d;
-  });
-}
+    function updateMonthTitle() {
+      const d = new Date(currentYear, currentMonth, 1);
+      document.getElementById("monthDisplay").textContent = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
 
-function closeModal(){ document.getElementById("eventModal").classList.remove("active"); }
+    function changeMonth(delta) {
+      currentMonth += delta;
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      else if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      render();
+    }
 
-function saveEventForm(evt){
-  evt.preventDefault();
-  if(!isAdmin) return;
-  const id=document.getElementById("eventId").value||("evt-"+Date.now());
-  const ev={
-    id, title:document.getElementById("eventTitleInput").value.trim(),
-    date:document.getElementById("eventDateInput").value,
-    time:document.getElementById("eventTimeInput").value.trim(),
-    type:document.getElementById("eventTypeInput").value,
-    assignees:[...currentModalAssignees],
-    audiences:[...currentModalAudiences],
-    host:document.getElementById("eventHostInput").value.trim(),
-    notes:document.getElementById("eventNotesInput").value.trim(),
-    internalNotes:document.getElementById("eventInternalNotesInput").value.trim(),
-    isInternal:document.getElementById("eventIsInternalInput").checked
-  };
-  const idx=events.findIndex(e=>e.id===id);
-  if(idx>=0) events[idx]=ev; else events.push(ev);
-  saveEvents(); closeModal(); selectedDateKey=ev.date; render();
-}
+    function switchView(view) {
+      currentView = view;
+      document.getElementById("viewCalBtn").classList.toggle("active", view === "calendar");
+      document.getElementById("viewListBtn").classList.toggle("active", view === "timeline");
+      document.getElementById("viewHostingBtn").classList.toggle("active", view === "hosting");
+      if (view === "hosting") { currentFilter = "meal"; renderFilterChips(); }
+      render();
+    }
 
-function deleteCurrentEvent(){
-  if(!isAdmin||!activeEditingId) return;
-  if(confirm("Delete this event?")){ events=events.filter(e=>e.id!==activeEditingId); saveEvents(); closeModal(); render(); }
-}
+    // ══ CALENDAR GRID ══
+    function renderCalendarGrid() {
+      const grid = document.getElementById("calendarDaysGrid");
+      grid.innerHTML = "";
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const daysInPrev = new Date(currentYear, currentMonth, 0).getDate();
+      const filtered = getFilteredEvents();
+      const todayStr = new Date().toISOString().slice(0, 10);
 
-// ══ COPY EVENT ══
-function copyCurrentEvent(){
-  if(!isAdmin||!activeEditingId) return;
-  const orig=events.find(e=>e.id===activeEditingId);
-  if(!orig) return;
-  const copy={...orig, id:"evt-"+Date.now(), title:"Copy — "+orig.title, assignees:[...orig.assignees], audiences:[...(orig.audiences||[])]};
-  events.push(copy);
-  saveEvents();
-  closeModal();
-  alert(`📋 "${orig.title}" has been copied! Find and edit the copy in the schedule.`);
-  render();
-}
+      // Prev month padding
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell other-month";
+        cell.innerHTML = `<div class="day-number-row"><span class="day-num-circle">${daysInPrev - i}</span></div>`;
+        grid.appendChild(cell);
+      }
 
-// ══ MOVE EVENT ══
-function openMoveEventModal(){
-  if(!isAdmin||!activeEditingId) return;
-  const e=events.find(ev=>ev.id===activeEditingId);
-  if(!e) return;
-  document.getElementById("moveEventDateInput").value=e.date;
-  document.getElementById("moveEventModal").classList.add("active");
-}
-function closeMoveEventModal(){ document.getElementById("moveEventModal").classList.remove("active"); }
-function confirmMoveEvent(){
-  if(!isAdmin||!activeEditingId) return;
-  const newDate=document.getElementById("moveEventDateInput").value;
-  if(!newDate) return;
-  const e=events.find(ev=>ev.id===activeEditingId);
-  if(!e) return;
-  e.date=newDate;
-  saveEvents(); closeMoveEventModal(); closeModal(); selectedDateKey=newDate; render();
-}
+      // Current month days
+      for (let day = 1; day <= daysInMonth; day++) {
+        const ms = String(currentMonth + 1).padStart(2, "0");
+        const ds = String(day).padStart(2, "0");
+        const dateKey = `${currentYear}-${ms}-${ds}`;
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell";
+        cell.setAttribute("data-date", dateKey);
+        if (dateKey === todayStr) cell.classList.add("is-today");
+        if (dateKey === selectedDateKey) cell.classList.add("is-selected-day");
 
-// ══ SHARE ══
-function shareWhatsApp(){
-  const title=document.getElementById("eventTitleInput").value;
-  const date=document.getElementById("eventDateInput").value;
-  const time=document.getElementById("eventTimeInput").value;
-  const host=document.getElementById("eventHostInput").value;
-  const notes=document.getElementById("eventNotesInput").value;
-  const text=`🌿 *Ohrsom Event: ${title}*\n📅 *Date:* ${date}\n⏱️ *Time:* ${time}\n🏡 *Host/Location:* ${host}${notes?`\n📝 *Notes:* ${notes}`:''}\n\nRSVP via Ohrsom Events Hub!`;
-  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`,"_blank");
-}
+        const hol = JEWISH_HOLIDAYS[dateKey];
+        const dayEvts = filtered.filter(e => e.date === dateKey);
 
-document.addEventListener("DOMContentLoaded",init);
-window.addEventListener("resize",()=>{ if(currentView==="calendar") renderCalendarGrid(); });
-</script>
+        let cellHtml = `<div class="day-number-row"><span class="day-num-circle">${day}</span>${hol ? `<span class="jewish-holiday-pill" title="${hol}">${hol}</span>` : ''}</div>`;
+
+        // Render clean, legible event snippets inside the cell
+        dayEvts.slice(0, 3).forEach(e => {
+          const cat = getCategory(e.type);
+          const shortTitle = e.title.length > 20 ? e.title.slice(0, 18) + "…" : e.title;
+          cellHtml += `
+            <div class="cal-event-pill" 
+                 onclick="event.stopPropagation(); openDayOverviewModal('${dateKey}', '${e.id}')" 
+                 title="${e.title}${e.time ? ' · ' + e.time : ''}"
+                 style="background:${cat.color}22; color:${cat.color}; border-left-color:${cat.color};">
+              <span class="cal-event-pill-icon">${cat.icon || '•'}</span>
+              <span class="cal-event-pill-text">${shortTitle}</span>
+            </div>`;
+        });
+
+        const moreCount = dayEvts.length - 3;
+        if (moreCount > 0) {
+          cellHtml += `<div style="font-size:0.6rem; color:var(--muted); font-weight:700; text-align:center;">+${moreCount} more</div>`;
+        }
+
+        cell.innerHTML = cellHtml;
+        cell.addEventListener("click", () => {
+          selectCalendarDay(dateKey);
+          openDayOverviewModal(dateKey);
+        });
+        grid.appendChild(cell);
+      }
+
+      // Next month padding
+      const total = firstDay + daysInMonth;
+      const next = (7 - (total % 7)) % 7;
+      for (let i = 1; i <= next; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day-cell other-month";
+        cell.innerHTML = `<div class="day-number-row"><span class="day-num-circle">${i}</span></div>`;
+        grid.appendChild(cell);
+      }
+    }
+
+    function selectCalendarDay(dateKey) {
+      selectedDateKey = dateKey;
+      document.querySelectorAll(".cal-day-cell").forEach(c => c.classList.toggle("is-selected-day", c.getAttribute("data-date") === dateKey));
+      renderDayAgenda(dateKey);
+    }
+
+    // ══ DAY AGENDA (below calendar) ══
+    function renderDayAgenda(dateKey) {
+      const container = document.getElementById("mobileDayEventsList");
+      const titleEl = document.getElementById("mobileAgendaDateTitle");
+      if (!container || !titleEl) return;
+      const d = new Date(dateKey + "T00:00:00");
+      const formattedDate = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      const hol = JEWISH_HOLIDAYS[dateKey];
+      titleEl.innerHTML = `📅 ${formattedDate}${hol ? ` <span class="jewish-holiday-pill" style="font-size:0.78rem; margin-left:6px;">✡️ ${hol}</span>` : ''}`;
+
+      const dayEvts = getFilteredEvents().filter(e => e.date === dateKey);
+      if (!dayEvts.length) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No events on this day.${isAdmin ? `<br><button class="btn btn-primary" style="margin-top:10px; font-size:0.78rem;" onclick="openAddEventModal('${dateKey}')">➕ Add Event</button>` : ''}</div>`;
+        return;
+      }
+      container.innerHTML = dayEvts.map(e => renderEventCardHtml(e)).join("");
+    }
+
+    // ══ EVENT CARD HTML ══
+    function renderEventCardHtml(e) {
+      const cat = getCategory(e.type);
+      const d = new Date(e.date + "T00:00:00");
+      const mn = d.toLocaleDateString("en-US", { month: "short" });
+      const dn = d.getDate();
+      const wd = d.toLocaleDateString("en-US", { weekday: "short" });
+      const hol = JEWISH_HOLIDAYS[e.date];
+      const assigneesList = e.assignees || (e.assignee ? [e.assignee] : []);
+      const audiences = e.audiences || (e.audience ? [e.audience] : []);
+      const assigneesHtml = assigneesList.map(a => `<span class="event-tag assignee-badge">👤 ${a}</span>`).join(" ");
+      const audiencesHtml = audiences.map(a => `<span class="event-tag" style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.35); color:#d8b4fe;">👥 ${a}</span>`).join(" ");
+
+      const editBtnHtml = isAdmin
+        ? `<button class="btn btn-secondary" style="padding:5px 9px; font-size:0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>`
+        : `<button class="btn btn-secondary" style="padding:5px 9px; font-size:0.75rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Overview</button>`;
+
+      const internalHtml = (isAdmin && e.internalNotes) 
+        ? `<div class="internal-note-box">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
+        : "";
+
+      return `
+        <div class="event-card" style="border-left:4px solid ${cat.color};" onclick="openDayOverviewModal('${e.date}', '${e.id}')">
+          <div class="event-card-left">
+            <div class="event-date-block">
+              <div class="date-month">${mn}</div>
+              <div class="date-num">${dn}</div>
+              <div class="date-weekday">${wd}</div>
+            </div>
+            <div class="event-main-details">
+              <h3>${e.title}${hol ? ` <span class="jewish-holiday-pill">✡️ ${hol}</span>` : ''}${e.isInternal ? ` <span class="event-tag internal-badge">🔒 Admin Only</span>` : ''}</h3>
+              <div class="event-tags-row">
+                <span class="event-tag" style="background:${cat.color}22; color:${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
+                ${assigneesHtml}
+                ${audiencesHtml}
+              </div>
+              <div class="event-meta-info">
+                ${e.time ? `<span>⏱️ ${e.time}</span>` : ''}
+                ${e.host ? `<span>🏡 <strong>${e.host}</strong></span>` : ''}
+              </div>
+              ${e.notes ? `<p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">📝 ${e.notes}</p>` : ''}
+              ${internalHtml}
+            </div>
+          </div>
+          <div class="event-card-actions">${editBtnHtml}</div>
+        </div>`;
+    }
+
+    // ══ TIMELINE ══
+    function renderTimeline() {
+      const container = document.getElementById("timelineList");
+      const filtered = getFilteredEvents().sort((a, b) => new Date(a.date) - new Date(b.date));
+      container.innerHTML = filtered.length
+        ? filtered.map(e => renderEventCardHtml(e)).join("")
+        : `<div style="text-align:center; padding:40px; color:var(--muted);">No events match this filter.</div>`;
+    }
+
+    // ══ MULTI-SELECT ASSIGNEES ══
+    function renderAssigneeUI(list = []) {
+      currentModalAssignees = [...list];
+      const chips = document.getElementById("assigneeSelectedChips");
+      const pills = document.getElementById("quickAssignPillsRow");
+      if (!chips || !pills) return;
+      chips.innerHTML = currentModalAssignees.length
+        ? currentModalAssignees.map((n, i) => `<span class="assignee-chip-selected">👤 ${n}<span class="assignee-chip-remove" onclick="removeAssignee(${i})">✕</span></span>`).join("")
+        : `<span style="font-size:0.75rem; color:var(--muted);">No assignees selected</span>`;
+      pills.innerHTML = TEAM_PRESETS.map(p => {
+        const active = currentModalAssignees.includes(p);
+        return `<button type="button" class="quick-assign-btn ${active ? 'is-active' : ''}" onclick="toggleAssigneePreset('${p}')">${active ? '✓ ' : '+ '}${p}</button>`;
+      }).join("");
+    }
+
+    function toggleAssigneePreset(name) {
+      const i = currentModalAssignees.indexOf(name);
+      if (i >= 0) currentModalAssignees.splice(i, 1);
+      else currentModalAssignees.push(name);
+      renderAssigneeUI(currentModalAssignees);
+      const typeId = document.getElementById("eventTypeInput").value;
+      if (typeId === "meal" && !activeEditingId) autoFillTitle();
+    }
+
+    function removeAssignee(i) { currentModalAssignees.splice(i, 1); renderAssigneeUI(currentModalAssignees); }
+    function addCustomAssigneeFromInput() {
+      const input = document.getElementById("customAssigneeInput");
+      const val = input.value.trim();
+      if (!val) return;
+      if (!currentModalAssignees.includes(val)) currentModalAssignees.push(val);
+      renderAssigneeUI(currentModalAssignees);
+      input.value = "";
+    }
+
+    // ══ MULTI-SELECT AUDIENCES ══
+    function renderAudienceUI(list = []) {
+      currentModalAudiences = [...list];
+      const chips = document.getElementById("audienceSelectedChips");
+      const pills = document.getElementById("audiencePresetPills");
+      if (!chips || !pills) return;
+      chips.innerHTML = currentModalAudiences.length
+        ? currentModalAudiences.map((a, i) => `<span class="audience-chip-selected">👥 ${a}<span class="audience-chip-remove" onclick="removeAudience(${i})">✕</span></span>`).join("")
+        : `<span style="font-size:0.75rem; color:var(--muted);">No audience selected</span>`;
+      pills.innerHTML = audiencePresets.map(p => {
+        const active = currentModalAudiences.includes(p);
+        return `<button type="button" class="audience-preset-btn ${active ? 'is-active' : ''}" onclick="toggleAudiencePreset('${p}')">${active ? '✓ ' : '+ '}${p}</button>`;
+      }).join("");
+    }
+
+    function toggleAudiencePreset(name) {
+      const i = currentModalAudiences.indexOf(name);
+      if (i >= 0) currentModalAudiences.splice(i, 1);
+      else currentModalAudiences.push(name);
+      renderAudienceUI(currentModalAudiences);
+    }
+
+    function removeAudience(i) { currentModalAudiences.splice(i, 1); renderAudienceUI(currentModalAudiences); }
+    function addCustomAudienceFromInput() {
+      const input = document.getElementById("customAudienceInput");
+      const val = input.value.trim();
+      if (!val) return;
+      if (!currentModalAudiences.includes(val)) currentModalAudiences.push(val);
+      renderAudienceUI(currentModalAudiences);
+      input.value = "";
+    }
+
+    // ══ EVENT FORM OPS ══
+    function openAddEventModal(presetDate = null) {
+      if (!isAdmin) return;
+      activeEditingId = null;
+      document.getElementById("modalTitle").textContent = "➕ Add New Event / Meal";
+      document.getElementById("eventId").value = "";
+      document.getElementById("eventDateInput").value = presetDate || selectedDateKey || new Date().toISOString().slice(0, 10);
+      document.getElementById("eventTimeInput").value = "";
+      document.getElementById("eventTypeInput").value = categories[0].id;
+      document.getElementById("eventHostInput").value = "";
+      document.getElementById("eventNotesInput").value = "";
+      document.getElementById("eventInternalNotesInput").value = "";
+      document.getElementById("eventIsInternalInput").checked = false;
+
+      const defaultAssignees = adminSurname ? [adminSurname] : adminFirstName ? [adminFirstName] : [];
+      const defaultAudiences = ["Students & Community"];
+      renderAssigneeUI(defaultAssignees);
+      renderAudienceUI(defaultAudiences);
+
+      setTimeout(() => autoFillTitle(), 50);
+
+      setFormDisabled(false);
+      document.getElementById("saveEventBtn").style.display = "inline-flex";
+      document.getElementById("deleteEventBtn").style.display = "none";
+      document.getElementById("moveEventBtn").style.display = "none";
+      document.getElementById("customAssigneeInputWrap").style.display = "flex";
+      document.getElementById("internalNotesFieldWrap").style.display = "block";
+      document.getElementById("internalToggleWrap").style.display = "block";
+      document.getElementById("eventModal").classList.add("active");
+    }
+
+    function openEditEventModal(id) {
+      const e = events.find(ev => ev.id === id);
+      if (!e) return;
+      if (!isAdmin) { openDayOverviewModal(e.date, id); return; }
+      activeEditingId = id;
+      document.getElementById("modalTitle").textContent = "✏️ Edit Event / Meal";
+      document.getElementById("eventId").value = e.id;
+      document.getElementById("eventTitleInput").value = e.title;
+      document.getElementById("eventDateInput").value = e.date;
+      document.getElementById("eventTimeInput").value = e.time || "";
+      document.getElementById("eventTypeInput").value = e.type || categories[0].id;
+      document.getElementById("eventHostInput").value = e.host || "";
+      document.getElementById("eventNotesInput").value = e.notes || "";
+      document.getElementById("eventInternalNotesInput").value = e.internalNotes || "";
+      document.getElementById("eventIsInternalInput").checked = !!e.isInternal;
+
+      renderAssigneeUI(e.assignees || (e.assignee ? [e.assignee] : []));
+      renderAudienceUI(e.audiences || (e.audience ? [e.audience] : []));
+
+      setFormDisabled(false);
+      document.getElementById("saveEventBtn").style.display = "inline-flex";
+      document.getElementById("deleteEventBtn").style.display = "inline-flex";
+      document.getElementById("moveEventBtn").style.display = "inline-flex";
+      document.getElementById("customAssigneeInputWrap").style.display = "flex";
+      document.getElementById("internalNotesFieldWrap").style.display = "block";
+      document.getElementById("internalToggleWrap").style.display = "block";
+      document.getElementById("eventModal").classList.add("active");
+    }
+
+    function setFormDisabled(d) {
+      ["eventTitleInput", "eventDateInput", "eventTimeInput", "eventTypeInput", "eventHostInput", "eventNotesInput", "eventInternalNotesInput", "eventIsInternalInput"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = d;
+      });
+    }
+
+    function closeModal() { document.getElementById("eventModal").classList.remove("active"); }
+
+    function saveEventForm(evt) {
+      evt.preventDefault();
+      if (!isAdmin) return;
+      const id = document.getElementById("eventId").value || ("evt-" + Date.now());
+      const ev = {
+        id,
+        title: document.getElementById("eventTitleInput").value.trim(),
+        date: document.getElementById("eventDateInput").value,
+        time: document.getElementById("eventTimeInput").value.trim(),
+        type: document.getElementById("eventTypeInput").value,
+        assignees: [...currentModalAssignees],
+        audiences: [...currentModalAudiences],
+        host: document.getElementById("eventHostInput").value.trim(),
+        notes: document.getElementById("eventNotesInput").value.trim(),
+        internalNotes: document.getElementById("eventInternalNotesInput").value.trim(),
+        isInternal: document.getElementById("eventIsInternalInput").checked
+      };
+      const idx = events.findIndex(e => e.id === id);
+      if (idx >= 0) events[idx] = ev;
+      else events.push(ev);
+
+      saveEvents();
+      closeModal();
+      selectedDateKey = ev.date;
+      render();
+    }
+
+    function deleteCurrentEvent() {
+      if (!isAdmin || !activeEditingId) return;
+      if (confirm("Delete this event?")) {
+        events = events.filter(e => e.id !== activeEditingId);
+        saveEvents();
+        closeModal();
+        render();
+      }
+    }
+
+    function copyCurrentEvent() {
+      if (!isAdmin || !activeEditingId) return;
+      const orig = events.find(e => e.id === activeEditingId);
+      if (!orig) return;
+      const copy = { ...orig, id: "evt-" + Date.now(), title: "Copy — " + orig.title, assignees: [...orig.assignees], audiences: [...(orig.audiences || [])] };
+      events.push(copy);
+      saveEvents();
+      closeModal();
+      alert(`📋 "${orig.title}" has been copied!`);
+      render();
+    }
+
+    function openMoveEventModal() {
+      if (!isAdmin || !activeEditingId) return;
+      const e = events.find(ev => ev.id === activeEditingId);
+      if (!e) return;
+      document.getElementById("moveEventDateInput").value = e.date;
+      document.getElementById("moveEventModal").classList.add("active");
+    }
+
+    function closeMoveEventModal() { document.getElementById("moveEventModal").classList.remove("active"); }
+
+    function confirmMoveEvent() {
+      if (!isAdmin || !activeEditingId) return;
+      const newDate = document.getElementById("moveEventDateInput").value;
+      if (!newDate) return;
+      const e = events.find(ev => ev.id === activeEditingId);
+      if (!e) return;
+      e.date = newDate;
+      saveEvents();
+      closeMoveEventModal();
+      closeModal();
+      selectedDateKey = newDate;
+      render();
+    }
+
+    function shareWhatsApp() {
+      const title = document.getElementById("eventTitleInput").value;
+      const date = document.getElementById("eventDateInput").value;
+      const time = document.getElementById("eventTimeInput").value;
+      const host = document.getElementById("eventHostInput").value;
+      const notes = document.getElementById("eventNotesInput").value;
+      const text = `🌿 *Ohrsom Event: ${title}*\n📅 *Date:* ${date}\n⏱️ *Time:* ${time}\n🏡 *Host/Location:* ${host}${notes ? `\n📝 *Notes:* ${notes}` : ''}\n\nRSVP via Ohrsom Events Hub!`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
