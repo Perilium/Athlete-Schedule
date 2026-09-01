@@ -1680,20 +1680,11 @@
         <div style="display: flex; align-items: center; gap: 10px;">
           <img src="icons/ohrsom-icon.svg" style="width: 38px; height: 38px; border-radius: 9px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" alt="Ohrsom Icon">
           <div>
-            <h2 style="font-size: 1.15rem; font-weight: 800;">Install Ohrsom App</h2>
-            <p style="font-size: 0.75rem; color: var(--muted);">Dedicated standalone app with custom icon</p>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">Download & Install App</h2>
+            <p style="font-size: 0.75rem; color: var(--muted);">Direct home screen install for fast access</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
-      </div>
-
-      <!-- Icon & Standalone Badge -->
-      <div style="display: flex; align-items: center; gap: 12px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 12px;">
-        <img src="icons/ohrsom-icon.svg" style="width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" alt="Ohrsom App Icon">
-        <div>
-          <div style="font-size: 0.88rem; font-weight: 800; color: #fbbf24;">✨ Dedicated "Ohrsom Hub" Icon</div>
-          <div style="font-size: 0.72rem; color: var(--muted);">Distinct Yom Tov Gold & Teal emblem. Completely separate from Perilium CRM!</div>
-        </div>
       </div>
 
       <!-- Prominent Install Button -->
@@ -1715,14 +1706,14 @@
           <div style="background: var(--surface-elevated); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 0.85rem; line-height: 1.5;">
             1. Tap the <strong>Share ⎋</strong> button at the bottom of Safari.<br>
             2. Scroll down and tap <strong>"Add to Home Screen" ➕</strong>.<br>
-            3. Tap <strong>Add</strong>. It will install with its own <strong>Ohrsom Hub</strong> icon!
+            3. Tap <strong>Add</strong> in the top right corner.
           </div>
         </div>
 
         <div id="androidInstallTip">
           <h4 style="font-size: 0.8rem; color: var(--blue); text-transform: uppercase; margin: 10px 0 6px;">🤖 Android / Chrome:</h4>
           <div style="background: var(--surface-elevated); border: 1px solid var(--blue); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 0.85rem; line-height: 1.5;">
-            1. Tap the <strong>Install App</strong> button above.<br>
+            1. Tap the <strong>Install App on this Device</strong> button above.<br>
             2. If not prompted, tap the <strong>three dots ⋮</strong> menu in top right and select <strong>"Install App"</strong>.
           </div>
         </div>
@@ -3486,7 +3477,7 @@
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => { 
           if (choiceResult.outcome === 'accepted') {
-            showInAppNotification("App Installed! 📲", "Ohrsom Hub added with its dedicated Gold & Teal icon.");
+            showInAppNotification("App Installed! 📲", "Ohrsom Hub is now installed on your device.");
           }
           deferredPrompt = null; 
           closeDownloadModal(); 
