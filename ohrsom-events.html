@@ -1550,6 +1550,24 @@
         <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
       </div>
 
+      <!-- Guest List Privacy Default (WhatsApp Poll Style) -->
+      <div style="margin-bottom: 14px; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px;">
+        <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase; margin-bottom: 4px;">👥 Guest List Visibility (WhatsApp Poll Mode)</h4>
+        <div style="font-size: 0.72rem; color: var(--muted); margin-bottom: 8px;">
+          Control if attendees can see who else is coming (like a WhatsApp poll) or if guest lists stay private to Admin & Host.
+        </div>
+        <div style="display: flex; gap: 14px; font-size: 0.78rem; flex-wrap: wrap;">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="radio" name="globalGuestPrivacyRadio" id="privacyPublicRadio" value="public" onchange="setGlobalGuestPrivacy('public')" checked style="accent-color:var(--accent);">
+            <span>🌐 <strong>Public</strong> (WhatsApp Poll style)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="radio" name="globalGuestPrivacyRadio" id="privacyPrivateRadio" value="private" onchange="setGlobalGuestPrivacy('private')" style="accent-color:var(--accent);">
+            <span>🔒 <strong>Private</strong> (Admin & Host only)</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Assignees / Team Members Manager -->
       <div style="margin-bottom: 14px; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px;">
         <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">👥 Team Members & Assignees</h4>
@@ -1811,6 +1829,16 @@
           </select>
         </div>
 
+        <!-- Guest List Visibility Selector -->
+        <div class="form-group" id="eventGuestPrivacyWrap">
+          <label for="eventGuestPrivacyInput">👥 Guest List Visibility (WhatsApp Poll Mode)</label>
+          <select id="eventGuestPrivacyInput" class="form-control">
+            <option value="inherit">Use Global Default</option>
+            <option value="public">🌐 Public (Show attendees like WhatsApp Poll)</option>
+            <option value="private">🔒 Private (Only Admin & Host see names)</option>
+          </select>
+        </div>
+
         <div class="form-group" id="internalNotesFieldWrap">
           <label for="eventInternalNotesInput" style="color: #fda4af;">🔒 Admin Notes (Private)</label>
           <textarea id="eventInternalNotesInput" class="form-control" rows="2" placeholder="Private checklist, prep notes..." style="border-color: rgba(244, 63, 94, 0.4);"></textarea>
@@ -1886,7 +1914,12 @@
       <form id="multiMealSignupForm" onsubmit="submitMultiMealSignup(event)">
         <!-- Personal Info Section -->
         <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
-          <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">👤 1. Your Contact Details</h4>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 0;">👤 1. Your Contact Details</h4>
+            <div id="multiRsvpProfileBadge" style="display:none; font-size:0.72rem; color:#7dd3fc; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:999px;">
+              💾 Auto-filled from device
+            </div>
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label for="multiRsvpName">Full Name *</label>
@@ -1918,9 +1951,13 @@
               </select>
             </div>
           </div>
-          <div class="form-group" style="margin-bottom: 0;">
+          <div class="form-group" style="margin-bottom: 8px;">
             <label for="multiRsvpDietary">Dietary Requirements / Allergies</label>
             <input type="text" id="multiRsvpDietary" class="form-control" placeholder="e.g. Vegetarian, Gluten-Free, Nut Allergy, None">
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--muted);">
+            <input type="checkbox" id="multiRsvpSaveProfileCheck" checked style="accent-color: var(--accent); cursor: pointer;">
+            <label for="multiRsvpSaveProfileCheck" style="cursor: pointer; font-weight: normal; margin-bottom: 0;">Save my details on this device for fast 1-click sign-up next time</label>
           </div>
         </div>
 
@@ -1951,7 +1988,7 @@
 
   <!-- ══ SINGLE EVENT RSVP MODAL ══ -->
   <div class="modal-overlay" id="singleEventRsvpModal">
-    <div class="modal-card" style="max-width: 440px;">
+    <div class="modal-card" style="max-width: 460px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">✍️</div>
@@ -1961,6 +1998,17 @@
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeSingleEventRsvpModal()">✕</button>
+      </div>
+
+      <!-- Saved Profile Badge -->
+      <div id="singleRsvpProfileBadge" style="display:none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 12px; font-size: 0.78rem; color: #7dd3fc;">
+        👤 <strong>Auto-filling saved profile:</strong> <span id="singleRsvpProfileName"></span> (<span id="singleRsvpProfilePhone"></span>)
+      </div>
+
+      <!-- Existing RSVP Alert Box -->
+      <div id="singleRsvpExistingAlert" style="display:none; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 12px;">
+        <div style="color: #86efac; font-weight: 800; font-size: 0.85rem;">✅ You are currently registered for this meal!</div>
+        <div style="font-size: 0.75rem; color: var(--muted); margin-top: 2px;" id="singleRsvpExistingDetails">Party of 1 · Vegetarian</div>
       </div>
 
       <form onsubmit="submitSingleEventRsvp(event)">
@@ -1977,15 +2025,15 @@
           <div class="form-group">
             <label for="singleRsvpGuests">Total Guests</label>
             <select id="singleRsvpGuests" class="form-control">
-              <option value="1">1 Person</option>
-              <option value="2">2 People</option>
-              <option value="3">3 People</option>
-              <option value="4">4 People</option>
+              <option value="1">Just Me (1)</option>
+              <option value="2">Me + 1 Friend (2 Total)</option>
+              <option value="3">Me + 2 Friends (3 Total)</option>
+              <option value="4">Me + 3 Friends (4 Total)</option>
             </select>
           </div>
         </div>
         <div class="form-group">
-          <label for="singleRsvpDietary">Dietary Requirements</label>
+          <label for="singleRsvpDietary">Dietary Requirements / Allergies</label>
           <input type="text" id="singleRsvpDietary" class="form-control" placeholder="e.g. Vegetarian, Gluten-Free, None">
         </div>
         <div class="form-group">
@@ -1993,15 +2041,52 @@
           <input type="text" id="singleRsvpNotes" class="form-control" placeholder="e.g. Bringing dessert / arriving 7:45">
         </div>
 
-        <div style="display: flex; gap: 8px; margin-top: 16px;">
-          <button type="submit" class="btn btn-primary" style="flex: 1; padding: 11px; font-size: 0.9rem; font-weight: 800; justify-content: center;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 0.75rem; color: var(--muted);">
+          <input type="checkbox" id="singleRsvpSaveProfileCheck" checked style="accent-color: var(--accent); cursor: pointer;">
+          <label for="singleRsvpSaveProfileCheck" style="cursor: pointer; font-weight: normal; margin-bottom: 0;">Remember my details on this device for fast 1-click sign-up next time</label>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary" id="singleRsvpSubmitBtn" style="flex: 2; min-width: 140px; padding: 11px; font-size: 0.9rem; font-weight: 800; justify-content: center;">
             ✅ Confirm My RSVP
           </button>
-          <button type="button" class="btn btn-secondary" onclick="closeSingleEventRsvpModal()">
-            Cancel
+          <button type="button" class="btn btn-secondary" id="singleRsvpCancelBtn" onclick="cancelCurrentEventRsvp()" style="display: none; flex: 1; min-width: 120px; padding: 11px; font-size: 0.82rem; color: var(--rose); font-weight: 700; justify-content: center;">
+            ❌ Cancel RSVP
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeSingleEventRsvpModal()" style="padding: 11px 14px;">
+            Close
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ══ PUBLIC ATTENDEES (WHATSAPP POLL STYLE) MODAL ══ -->
+  <div class="modal-overlay" id="publicAttendeesModal">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">👥</div>
+          <div>
+            <h2 id="publicAttendeesModalTitle" style="font-size: 1.15rem; font-weight: 800;">Who's Coming</h2>
+            <p id="publicAttendeesModalSubtitle" style="font-size: 0.75rem; color: var(--gold);">See your friends attending!</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closePublicAttendeesModal()">✕</button>
+      </div>
+
+      <div id="publicAttendeesListContainer" style="max-height: 280px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 14px;">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-primary" id="publicAttendeesJoinBtn" style="flex: 1; justify-content: center; padding: 10px; font-weight: 800;">
+          ✍️ Sign Up to Join
+        </button>
+        <button class="btn btn-secondary" onclick="closePublicAttendeesModal()">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2024,9 +2109,19 @@
         <!-- Rendered dynamically -->
       </div>
 
-      <!-- Guest Table Container -->
-      <div id="guestListTableContainer" style="max-height: 260px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 14px;">
+      <!-- Guest Table Container (Active Guests) -->
+      <div id="guestListTableContainer" style="max-height: 240px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 10px;">
         <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Cancelled Guests Collapsible Section -->
+      <div id="guestListCancelledSection" style="display:none; background: rgba(244,63,94,0.06); border: 1px dashed rgba(244,63,94,0.3); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 14px;">
+        <div style="font-size:0.75rem; font-weight:800; color:var(--rose); margin-bottom:6px;" id="guestListCancelledTitle">
+          ❌ Cancelled Sign-Ups (0)
+        </div>
+        <div id="guestListCancelledTableContainer" style="max-height: 120px; overflow-y: auto;">
+          <!-- Rendered dynamically -->
+        </div>
       </div>
 
       <!-- Action Buttons -->
@@ -2438,23 +2533,55 @@
     function saveReminderLogs() { localStorage.setItem("ohrsom_reminder_logs", JSON.stringify(reminderLogs)); }
     function saveRsvps() { localStorage.setItem("ohrsom_rsvps_data", JSON.stringify(rsvps)); updateTotalRsvpsBadge(); }
 
+    // ══ GUEST PRIVACY & PERSISTENCE ══
+    let globalGuestPrivacy = localStorage.getItem("ohrsom_guest_privacy_mode") || "public";
+
+    function setGlobalGuestPrivacy(mode) {
+      globalGuestPrivacy = mode;
+      localStorage.setItem("ohrsom_guest_privacy_mode", mode);
+      const pubRadio = document.getElementById("privacyPublicRadio");
+      const privRadio = document.getElementById("privacyPrivateRadio");
+      if (pubRadio) pubRadio.checked = (mode === "public");
+      if (privRadio) privRadio.checked = (mode === "private");
+      render();
+    }
+
+    function isGuestListPublic(e) {
+      if (e && e.guestPrivacy && e.guestPrivacy !== "inherit") {
+        return e.guestPrivacy === "public";
+      }
+      return globalGuestPrivacy === "public";
+    }
+
     // ══ RSVP DATA GETTERS ══
     function getEventRsvps(eventId) {
-      return rsvps.filter(r => r.eventId === eventId);
+      return rsvps.filter(r => r.eventId === eventId && r.status !== "cancelled");
+    }
+
+    function getEventCancelledRsvps(eventId) {
+      return rsvps.filter(r => r.eventId === eventId && r.status === "cancelled");
     }
 
     function getEventRsvpGuestCount(eventId) {
       return getEventRsvps(eventId).reduce((sum, r) => sum + (parseInt(r.guests) || 1), 0);
     }
 
-    function isUserRsvpd(eventId) {
+    function getUserEventRsvp(eventId) {
       const phone = localStorage.getItem("ohrsom_user_phone");
-      if (!phone) return false;
-      return rsvps.some(r => r.eventId === eventId && r.phone === phone);
+      const name = localStorage.getItem("ohrsom_user_name");
+      if (!phone && !name) return null;
+      return rsvps.find(r => r.eventId === eventId && r.status !== "cancelled" && (
+        (phone && r.phone && r.phone.replace(/[^0-9]/g, '') === phone.replace(/[^0-9]/g, '')) ||
+        (name && r.name && r.name.toLowerCase().trim() === name.toLowerCase().trim())
+      ));
+    }
+
+    function isUserRsvpd(eventId) {
+      return !!getUserEventRsvp(eventId);
     }
 
     function updateTotalRsvpsBadge() {
-      const total = rsvps.reduce((sum, r) => sum + (parseInt(r.guests) || 1), 0);
+      const total = rsvps.filter(r => r.status !== "cancelled").reduce((sum, r) => sum + (parseInt(r.guests) || 1), 0);
       const badge = document.getElementById("totalRsvpsHeaderBadge");
       if (badge) badge.textContent = total;
       const masterBtn = document.getElementById("masterRostersBtn");
@@ -2475,6 +2602,11 @@
       if (savedPhone) document.getElementById("multiRsvpPhone").value = savedPhone;
       if (savedAffiliation) document.getElementById("multiRsvpAffiliation").value = savedAffiliation;
       if (savedDietary) document.getElementById("multiRsvpDietary").value = savedDietary;
+
+      const profileBadge = document.getElementById("multiRsvpProfileBadge");
+      if (profileBadge) {
+        profileBadge.style.display = (savedName && savedPhone) ? "inline-block" : "none";
+      }
 
       if (!mealEvents.length) {
         container.innerHTML = `<div style="text-align:center; padding:15px; color:var(--muted);">No meal events scheduled.</div>`;
@@ -2522,6 +2654,7 @@
       const affiliation = document.getElementById("multiRsvpAffiliation").value;
       const guests = parseInt(document.getElementById("multiRsvpGuests").value) || 1;
       const dietary = document.getElementById("multiRsvpDietary").value.trim();
+      const saveCheck = document.getElementById("multiRsvpSaveProfileCheck");
 
       const checkedBoxes = document.querySelectorAll('input[name="multiMealItem"]:checked');
       if (checkedBoxes.length === 0) {
@@ -2529,10 +2662,12 @@
         return;
       }
 
-      localStorage.setItem("ohrsom_user_name", name);
-      localStorage.setItem("ohrsom_user_phone", phone);
-      localStorage.setItem("ohrsom_user_affiliation", affiliation);
-      localStorage.setItem("ohrsom_user_dietary", dietary);
+      if (saveCheck && saveCheck.checked) {
+        localStorage.setItem("ohrsom_user_name", name);
+        localStorage.setItem("ohrsom_user_phone", phone);
+        localStorage.setItem("ohrsom_user_affiliation", affiliation);
+        localStorage.setItem("ohrsom_user_dietary", dietary);
+      }
 
       const selectedEvents = [];
       checkedBoxes.forEach(cb => {
@@ -2553,6 +2688,7 @@
           affiliation,
           guests,
           dietary: dietary || "None",
+          status: "confirmed",
           createdAt: new Date().toISOString()
         });
       });
@@ -2577,7 +2713,7 @@
       }, 300);
     }
 
-    // ══ SINGLE EVENT RSVP MODAL ══
+    // ══ SINGLE EVENT RSVP MODAL & PROFILE AUTOFILL ══
     function openSingleEventRsvpModal(eventId) {
       const e = events.find(ev => ev.id === eventId);
       if (!e) return;
@@ -2585,9 +2721,50 @@
       document.getElementById("singleRsvpModalTitle").textContent = `✍️ RSVP: ${e.title}`;
       document.getElementById("singleRsvpModalSubtitle").textContent = `📅 ${e.date}${e.time ? ` at ${e.time}` : ''} ${e.host ? `· 🏡 ${e.host}` : ''}`;
       
-      document.getElementById("singleRsvpName").value = localStorage.getItem("ohrsom_user_name") || "";
-      document.getElementById("singleRsvpPhone").value = localStorage.getItem("ohrsom_user_phone") || "";
-      document.getElementById("singleRsvpDietary").value = localStorage.getItem("ohrsom_user_dietary") || "";
+      const savedName = localStorage.getItem("ohrsom_user_name") || "";
+      const savedPhone = localStorage.getItem("ohrsom_user_phone") || "";
+      const savedDietary = localStorage.getItem("ohrsom_user_dietary") || "";
+
+      const existing = getUserEventRsvp(e.id);
+      const profileBadge = document.getElementById("singleRsvpProfileBadge");
+      const existingAlert = document.getElementById("singleRsvpExistingAlert");
+      const cancelBtn = document.getElementById("singleRsvpCancelBtn");
+      const submitBtn = document.getElementById("singleRsvpSubmitBtn");
+
+      if (existing) {
+        document.getElementById("singleRsvpName").value = existing.name;
+        document.getElementById("singleRsvpPhone").value = existing.phone;
+        document.getElementById("singleRsvpGuests").value = String(existing.guests || 1);
+        document.getElementById("singleRsvpDietary").value = existing.dietary && existing.dietary !== "None" ? existing.dietary : "";
+        document.getElementById("singleRsvpNotes").value = existing.notes || "";
+
+        if (existingAlert) {
+          existingAlert.style.display = "block";
+          document.getElementById("singleRsvpExistingDetails").textContent = `Registered for ${existing.guests} guests · Dietary: ${existing.dietary || 'None'}`;
+        }
+        if (profileBadge) profileBadge.style.display = "none";
+        if (cancelBtn) cancelBtn.style.display = "inline-flex";
+        if (submitBtn) submitBtn.innerHTML = "💾 Update My RSVP";
+      } else {
+        document.getElementById("singleRsvpName").value = savedName;
+        document.getElementById("singleRsvpPhone").value = savedPhone;
+        document.getElementById("singleRsvpGuests").value = "1";
+        document.getElementById("singleRsvpDietary").value = savedDietary;
+        document.getElementById("singleRsvpNotes").value = "";
+
+        if (existingAlert) existingAlert.style.display = "none";
+        if (profileBadge) {
+          if (savedName && savedPhone) {
+            profileBadge.style.display = "block";
+            document.getElementById("singleRsvpProfileName").textContent = savedName;
+            document.getElementById("singleRsvpProfilePhone").textContent = savedPhone;
+          } else {
+            profileBadge.style.display = "none";
+          }
+        }
+        if (cancelBtn) cancelBtn.style.display = "none";
+        if (submitBtn) submitBtn.innerHTML = "✅ Confirm My RSVP";
+      }
       
       document.getElementById("singleEventRsvpModal").classList.add("active");
     }
@@ -2607,10 +2784,13 @@
       const guests = parseInt(document.getElementById("singleRsvpGuests").value) || 1;
       const dietary = document.getElementById("singleRsvpDietary").value.trim() || "None";
       const notes = document.getElementById("singleRsvpNotes").value.trim();
+      const saveCheck = document.getElementById("singleRsvpSaveProfileCheck");
 
-      localStorage.setItem("ohrsom_user_name", name);
-      localStorage.setItem("ohrsom_user_phone", phone);
-      localStorage.setItem("ohrsom_user_dietary", dietary);
+      if (saveCheck && saveCheck.checked) {
+        localStorage.setItem("ohrsom_user_name", name);
+        localStorage.setItem("ohrsom_user_phone", phone);
+        localStorage.setItem("ohrsom_user_dietary", dietary);
+      }
 
       rsvps = rsvps.filter(r => !(r.eventId === eventId && r.phone === phone));
       rsvps.push({
@@ -2625,6 +2805,7 @@
         guests,
         dietary,
         notes,
+        status: "confirmed",
         createdAt: new Date().toISOString()
       });
 
@@ -2639,15 +2820,107 @@
       showInAppNotification("RSVP Confirmed! ✍️", `You're registered for "${e.title}".`);
     }
 
-    // ══ EVENT GUEST LIST & HOST ROSTER MODAL ══
+    // ══ CANCEL USER RSVP (SELF-SERVICE DECLINE) ══
+    function cancelCurrentEventRsvp() {
+      const eventId = document.getElementById("singleRsvpEventId").value;
+      const e = events.find(ev => ev.id === eventId);
+      const existing = getUserEventRsvp(eventId);
+      if (!existing) return;
+
+      if (!confirm(`Are you sure you want to cancel your RSVP for "${e ? e.title : 'this meal'}"?`)) return;
+
+      existing.status = "cancelled";
+      existing.cancelledAt = new Date().toISOString();
+      saveRsvps();
+      closeSingleEventRsvpModal();
+      render();
+      if (e) openDayOverviewModal(e.date, e.id);
+
+      logReminderActivity(existing.name, `Cancelled RSVP for ${e ? e.title : 'Meal'}`, "❌ RSVP Cancelled");
+      renderReminderLogsUI();
+
+      showInAppNotification("RSVP Cancelled", `Your registration for "${e ? e.title : 'this meal'}" was cancelled. Host updated.`);
+
+      const text = `Hi Ohrsom / Host! 🌿\n\nJust letting you know that I (*${existing.name}*) can unfortunately no longer make it to:\n*${e ? e.title : 'the meal'}* (${existing.eventDate}).\n\nThank you so much!`;
+      setTimeout(() => {
+        if (confirm("Would you like to send a quick WhatsApp note to the host / Ohrsom admin letting them know?")) {
+          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+        }
+      }, 250);
+    }
+
+    // ══ PUBLIC ATTENDEES (WHATSAPP POLL STYLE) MODAL ══
+    function openPublicAttendeesModal(eventId) {
+      const e = events.find(ev => ev.id === eventId);
+      if (!e) return;
+      const eventRsvps = getEventRsvps(eventId);
+      const total = getEventRsvpGuestCount(eventId);
+      const d = new Date(e.date + "T00:00:00");
+      const formattedDate = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+
+      document.getElementById("publicAttendeesModalTitle").textContent = `👥 Attendees: ${e.title}`;
+      document.getElementById("publicAttendeesModalSubtitle").textContent = `📅 ${formattedDate}${e.time ? ` at ${e.time}` : ''}${e.host ? ` · 🏡 Host: ${e.host}` : ''} (${total} Total Guests)`;
+
+      const container = document.getElementById("publicAttendeesListContainer");
+      if (!eventRsvps.length) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">Be the first to sign up for this meal! 🌿</div>`;
+      } else {
+        container.innerHTML = `
+          <div style="font-size:0.75rem; color:var(--gold); font-weight:800; text-transform:uppercase; margin-bottom:8px;">
+            ✨ Joined Attendees (${eventRsvps.length} groups · ${total} total heads):
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            ${eventRsvps.map(r => `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); padding:8px 10px; border-radius:6px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, var(--gold), #d97706); display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; color:#070d14;">
+                    ${r.name ? r.name.charAt(0).toUpperCase() : '👤'}
+                  </span>
+                  <div>
+                    <div style="font-size:0.85rem; font-weight:800; color:var(--ink);">${r.name}</div>
+                    <div style="font-size:0.72rem; color:var(--muted);">${r.affiliation || 'Student / Community'}</div>
+                  </div>
+                </div>
+                <span class="rsvp-count-badge" style="font-size:0.72rem;">
+                  ${parseInt(r.guests) > 1 ? `👥 ${r.guests} guests` : '👤 1 person'}
+                </span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      const joinBtn = document.getElementById("publicAttendeesJoinBtn");
+      if (joinBtn) {
+        const userRsvp = getUserEventRsvp(eventId);
+        if (userRsvp) {
+          joinBtn.innerHTML = "✏️ Manage My RSVP / Cancel";
+        } else {
+          joinBtn.innerHTML = "✍️ Sign Up to Join";
+        }
+        joinBtn.onclick = () => {
+          closePublicAttendeesModal();
+          openSingleEventRsvpModal(eventId);
+        };
+      }
+
+      document.getElementById("publicAttendeesModal").classList.add("active");
+    }
+
+    function closePublicAttendeesModal() {
+      document.getElementById("publicAttendeesModal").classList.remove("active");
+    }
+
+    // ══ EVENT GUEST LIST & HOST ROSTER MODAL (ADMIN & HOST) ══
     function openEventGuestListModal(eventId) {
       const e = events.find(ev => ev.id === eventId);
       if (!e) return;
       const eventRsvps = getEventRsvps(eventId);
+      const cancelledRsvps = getEventCancelledRsvps(eventId);
       const totalGuests = getEventRsvpGuestCount(eventId);
 
       document.getElementById("guestListModalTitle").textContent = `📋 Roster: ${e.title}`;
-      document.getElementById("guestListModalSubtitle").textContent = `📅 ${e.date}${e.time ? ` · ⏱️ ${e.time}` : ''}${e.host ? ` · 🏡 Host: ${e.host}` : ''} (${totalGuests} Total Registered Guests)`;
+      document.getElementById("guestListModalSubtitle").textContent = `📅 ${e.date}${e.time ? ` · ⏱️ ${e.time}` : ''}${e.host ? ` · 🏡 Host: ${e.host}` : ''} (${totalGuests} Active Registered Guests)`;
 
       const dietMap = {};
       eventRsvps.forEach(r => {
@@ -2671,7 +2944,7 @@
 
       const tableContainer = document.getElementById("guestListTableContainer");
       if (!eventRsvps.length) {
-        tableContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.82rem;">No guests registered for this meal yet.</div>`;
+        tableContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.82rem;">No active guests registered for this meal yet.</div>`;
       } else {
         tableContainer.innerHTML = `
           <table class="reminders-log-table">
@@ -2699,6 +2972,30 @@
             </tbody>
           </table>
         `;
+      }
+
+      // Cancelled Section
+      const cancelledSec = document.getElementById("guestListCancelledSection");
+      const cancelledTitle = document.getElementById("guestListCancelledTitle");
+      const cancelledContainer = document.getElementById("guestListCancelledTableContainer");
+      if (cancelledSec) {
+        if (cancelledRsvps.length > 0) {
+          cancelledSec.style.display = "block";
+          if (cancelledTitle) cancelledTitle.textContent = `❌ Cancelled / Declined Sign-Ups (${cancelledRsvps.length})`;
+          if (cancelledContainer) {
+            cancelledContainer.innerHTML = cancelledRsvps.map(r => `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.72rem;">
+                <div>
+                  <strong style="color:var(--ink); text-decoration:line-through;">${r.name}</strong> (${r.guests} guests)
+                  <span style="color:var(--muted); margin-left:6px;">${r.cancelledAt ? new Date(r.cancelledAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Cancelled'}</span>
+                </div>
+                <a href="https://wa.me/${r.phone.replace(/[^0-9]/g, '')}" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:700;">💬 Follow up</a>
+              </div>
+            `).join("");
+          }
+        } else {
+          cancelledSec.style.display = "none";
+        }
       }
 
       document.getElementById("eventGuestListModal").setAttribute("data-event-id", eventId);
@@ -2738,6 +3035,7 @@
         affiliation: "Manual Admin Entry",
         guests,
         dietary: dietary || "None",
+        status: "confirmed",
         createdAt: new Date().toISOString()
       });
 
@@ -3434,6 +3732,44 @@
             ? `<div class="internal-note-box" style="margin-top:6px;">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
             : "";
 
+          const rsvpCount = getEventRsvpGuestCount(e.id);
+          const isMealOrEvent = (e.type === "meal" || e.type === "event");
+          const isPublicMode = isGuestListPublic(e);
+          const userRsvp = getUserEventRsvp(e.id);
+
+          const rsvpBadge = (isMealOrEvent || rsvpCount > 0)
+            ? `<span class="rsvp-count-badge" style="cursor:pointer;" onclick="event.stopPropagation(); closeDayOverviewModal(); ${isAdmin ? `openEventGuestListModal('${e.id}')` : (isPublicMode ? `openPublicAttendeesModal('${e.id}')` : `openSingleEventRsvpModal('${e.id}')`)}">👥 ${rsvpCount} Signed Up</span>`
+            : '';
+
+          let rsvpRowHtml = '';
+          if (isMealOrEvent) {
+            if (isAdmin) {
+              rsvpRowHtml = `
+                <button class="btn btn-secondary" style="flex:1; min-height:38px; font-size:0.82rem; font-weight:800; border-color:rgba(56,189,248,0.5); color:#7dd3fc; justify-content:center;" onclick="closeDayOverviewModal(); openEventGuestListModal('${e.id}')">
+                  📋 View Host & Guest Roster (${rsvpCount})
+                </button>
+              `;
+            } else if (userRsvp) {
+              rsvpRowHtml = `
+                <button class="btn btn-primary" style="flex:1; min-height:38px; font-size:0.82rem; font-weight:800; background:linear-gradient(135deg, #10b981, #059669); justify-content:center;" onclick="closeDayOverviewModal(); openSingleEventRsvpModal('${e.id}')">
+                  ✅ You're Registered (${userRsvp.guests}) · Change / Cancel
+                </button>
+              `;
+            } else {
+              const seeAttendeesBtn = (isPublicMode && rsvpCount > 0)
+                ? `<button class="btn btn-secondary" style="flex:1; min-height:38px; font-size:0.8rem; color:#86efac; border-color:rgba(34,197,94,0.4); justify-content:center;" onclick="closeDayOverviewModal(); openPublicAttendeesModal('${e.id}')">
+                    👥 Who's Coming (${rsvpCount})
+                  </button>`
+                : '';
+              rsvpRowHtml = `
+                ${seeAttendeesBtn}
+                <button class="btn btn-rsvp-action" style="flex:1; min-height:38px; font-size:0.85rem; font-weight:800; justify-content:center;" onclick="closeDayOverviewModal(); openSingleEventRsvpModal('${e.id}')">
+                  ✍️ RSVP for Meal
+                </button>
+              `;
+            }
+          }
+
           const nudgeBtnHtml = (assignees.length > 0) ? `
             <button class="btn btn-primary" style="flex: 1.5; min-height: 38px; font-size: 0.8rem; font-weight: 800; background: rgba(45, 212, 191, 0.15); border: 1px solid var(--accent); color: var(--accent); justify-content: center;" onclick="nudgeAssignee('${e.id}')">
               💬 Nudge Assignee: "Has this been done?"
@@ -3449,6 +3785,7 @@
                   <div class="overview-event-item-title">${e.title}</div>
                   <div class="event-tags-row" style="margin-top:4px;">
                     <span class="event-tag" style="background:${cat.color}22; color:${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
+                    ${rsvpBadge}
                     ${completeTag}
                     ${assigneesHtml}
                     ${audiencesHtml}
@@ -3464,6 +3801,8 @@
 
               <!-- Clean, Large, Touch-Friendly Action Buttons -->
               <div class="overview-btn-bar" style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                ${rsvpRowHtml ? `<div style="display: flex; gap: 8px; flex-wrap: wrap;">${rsvpRowHtml}</div>` : ''}
+
                 <!-- Row 1: Primary Actions -->
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   ${(isAdmin && isActionTask) ? `
@@ -3883,7 +4222,12 @@
 
       const rsvpCount = getEventRsvpGuestCount(e.id);
       const isMealOrEvent = (e.type === "meal" || e.type === "event");
-      const rsvpBadge = (isMealOrEvent || rsvpCount > 0) ? `<span class="rsvp-count-badge">👥 ${rsvpCount} Signed Up</span>` : '';
+      const isPublicMode = isGuestListPublic(e);
+      const userRsvp = getUserEventRsvp(e.id);
+
+      const rsvpBadge = (isMealOrEvent || rsvpCount > 0) 
+        ? `<span class="rsvp-count-badge" style="cursor:pointer;" onclick="event.stopPropagation(); ${isAdmin ? `openEventGuestListModal('${e.id}')` : (isPublicMode ? `openPublicAttendeesModal('${e.id}')` : `openSingleEventRsvpModal('${e.id}')`)}">👥 ${rsvpCount} Signed Up${isPublicMode && !isAdmin ? ' (See List)' : ''}</span>` 
+        : '';
 
       const completeBtnHtml = (isAdmin && isActionTask) 
         ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding: 5px 10px; font-size: 0.75rem; font-weight: 800;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️ Pending' : '✅ Done'}</button>` 
@@ -3893,11 +4237,22 @@
         ? `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; color: var(--accent); font-weight: 700;" onclick="event.stopPropagation(); nudgeAssignee('${e.id}')">💬 Nudge</button>` 
         : '';
 
-      const rsvpBtnHtml = isMealOrEvent ? (
-        isAdmin
-          ? `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; border-color: rgba(56,189,248,0.4); color: #7dd3fc; font-weight:700;" onclick="event.stopPropagation(); openEventGuestListModal('${e.id}')">📋 Guest List (${rsvpCount})</button>`
-          : `<button class="btn btn-rsvp-action" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✍️ RSVP (${rsvpCount})</button>`
-      ) : '';
+      let rsvpBtnHtml = '';
+      if (isMealOrEvent) {
+        if (isAdmin) {
+          rsvpBtnHtml = `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; border-color: rgba(56,189,248,0.4); color: #7dd3fc; font-weight:700;" onclick="event.stopPropagation(); openEventGuestListModal('${e.id}')">📋 Guest List (${rsvpCount})</button>`;
+        } else if (userRsvp) {
+          rsvpBtnHtml = `<button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.75rem; font-weight:800; background:linear-gradient(135deg, #10b981, #059669);" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✅ You're Coming (${userRsvp.guests}) · Change</button>`;
+        } else {
+          const seeAttendeesBtn = (isPublicMode && rsvpCount > 0)
+            ? `<button class="btn btn-secondary" style="padding: 5px 8px; font-size: 0.75rem; color:#86efac; border-color:rgba(34,197,94,0.3);" onclick="event.stopPropagation(); openPublicAttendeesModal('${e.id}')">👥 Who's Coming (${rsvpCount})</button>`
+            : '';
+          rsvpBtnHtml = `
+            ${seeAttendeesBtn}
+            <button class="btn btn-rsvp-action" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✍️ RSVP</button>
+          `;
+        }
+      }
 
       const editBtnHtml = isAdmin
         ? `
@@ -3967,17 +4322,33 @@
 
       const rsvpCount = getEventRsvpGuestCount(e.id);
       const isMealOrEvent = (e.type === "meal" || e.type === "event");
-      const rsvpBadge = (isMealOrEvent || rsvpCount > 0) ? `<span class="rsvp-count-badge">👥 ${rsvpCount} Signed Up</span>` : '';
+      const isPublicMode = isGuestListPublic(e);
+      const userRsvp = getUserEventRsvp(e.id);
+
+      const rsvpBadge = (isMealOrEvent || rsvpCount > 0) 
+        ? `<span class="rsvp-count-badge" style="cursor:pointer;" onclick="event.stopPropagation(); ${isAdmin ? `openEventGuestListModal('${e.id}')` : (isPublicMode ? `openPublicAttendeesModal('${e.id}')` : `openSingleEventRsvpModal('${e.id}')`)}">👥 ${rsvpCount} Signed Up${isPublicMode && !isAdmin ? ' (See List)' : ''}</span>` 
+        : '';
 
       const completeBtnHtml = (isAdmin && isActionTask) 
         ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️' : '✅'}</button>` 
         : '';
 
-      const rsvpBtnHtml = isMealOrEvent ? (
-        isAdmin
-          ? `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; border-color: rgba(56,189,248,0.4); color: #7dd3fc; font-weight:700;" onclick="event.stopPropagation(); openEventGuestListModal('${e.id}')">📋 Guest List (${rsvpCount})</button>`
-          : `<button class="btn btn-rsvp-action" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✍️ RSVP (${rsvpCount})</button>`
-      ) : '';
+      let rsvpBtnHtml = '';
+      if (isMealOrEvent) {
+        if (isAdmin) {
+          rsvpBtnHtml = `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; border-color: rgba(56,189,248,0.4); color: #7dd3fc; font-weight:700;" onclick="event.stopPropagation(); openEventGuestListModal('${e.id}')">📋 Guest List (${rsvpCount})</button>`;
+        } else if (userRsvp) {
+          rsvpBtnHtml = `<button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.75rem; font-weight:800; background:linear-gradient(135deg, #10b981, #059669);" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✅ You're Coming (${userRsvp.guests})</button>`;
+        } else {
+          const seeAttendeesBtn = (isPublicMode && rsvpCount > 0)
+            ? `<button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color:#86efac; border-color:rgba(34,197,94,0.3);" onclick="event.stopPropagation(); openPublicAttendeesModal('${e.id}')">👥 Attendees (${rsvpCount})</button>`
+            : '';
+          rsvpBtnHtml = `
+            ${seeAttendeesBtn}
+            <button class="btn btn-rsvp-action" style="padding: 4px 8px; font-size: 0.72rem;" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✍️ RSVP</button>
+          `;
+        }
+      }
 
       const editBtnHtml = isAdmin
         ? `
@@ -4114,6 +4485,9 @@
       const timingInput = document.getElementById("eventReminderTimingInput");
       if (timingInput) timingInput.value = "morning_830";
 
+      const privacyInput = document.getElementById("eventGuestPrivacyInput");
+      if (privacyInput) privacyInput.value = "inherit";
+
       const defaultAssignees = adminSurname ? [adminSurname] : adminFirstName ? [adminFirstName] : [];
       const defaultAudiences = ["Students & Community"];
       renderAssigneeUI(defaultAssignees);
@@ -4150,6 +4524,9 @@
       const timingInput = document.getElementById("eventReminderTimingInput");
       if (timingInput) timingInput.value = e.reminderTiming || "morning_830";
 
+      const privacyInput = document.getElementById("eventGuestPrivacyInput");
+      if (privacyInput) privacyInput.value = e.guestPrivacy || "inherit";
+
       renderAssigneeUI(e.assignees || (e.assignee ? [e.assignee] : []));
       renderAudienceUI(e.audiences || (e.audience ? [e.audience] : []));
 
@@ -4164,7 +4541,7 @@
     }
 
     function setFormDisabled(d) {
-      ["eventTitleInput", "eventDateInput", "eventTimeInput", "eventTypeInput", "eventHostInput", "eventNotesInput", "eventInternalNotesInput", "eventIsInternalInput", "eventReminderTimingInput"].forEach(id => {
+      ["eventTitleInput", "eventDateInput", "eventTimeInput", "eventTypeInput", "eventHostInput", "eventNotesInput", "eventInternalNotesInput", "eventIsInternalInput", "eventReminderTimingInput", "eventGuestPrivacyInput"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.disabled = d;
       });
@@ -4179,6 +4556,7 @@
       const existing = events.find(e => e.id === id);
       const isCompleted = existing ? !!existing.isCompleted : false;
       const reminderTiming = document.getElementById("eventReminderTimingInput") ? document.getElementById("eventReminderTimingInput").value : "morning_830";
+      const guestPrivacy = document.getElementById("eventGuestPrivacyInput") ? document.getElementById("eventGuestPrivacyInput").value : "inherit";
 
       const ev = {
         id,
@@ -4193,7 +4571,8 @@
         internalNotes: document.getElementById("eventInternalNotesInput").value.trim(),
         isInternal: document.getElementById("eventIsInternalInput").checked,
         isCompleted,
-        reminderTiming
+        reminderTiming,
+        guestPrivacy
       };
       const idx = events.findIndex(e => e.id === id);
       if (idx >= 0) events[idx] = ev;
