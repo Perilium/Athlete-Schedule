@@ -1978,18 +1978,25 @@
     </div>
   </div>
 
-  <!-- ══ SINGLE EVENT RSVP MODAL ══ -->
+  <!-- ══ SINGLE EVENT RSVP MODAL (GOOGLE FORM STYLE) ══ -->
   <div class="modal-overlay" id="singleEventRsvpModal">
-    <div class="modal-card" style="max-width: 460px;">
+    <div class="modal-card" style="max-width: 480px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">✍️</div>
           <div>
-            <h2 id="singleRsvpModalTitle" style="font-size: 1.12rem; font-weight: 800;">RSVP for Meal</h2>
-            <p id="singleRsvpModalSubtitle" style="font-size: 0.75rem; color: var(--gold);">Host details & time</p>
+            <h2 id="singleRsvpModalTitle" style="font-size: 1.12rem; font-weight: 800;">Meal & Event Sign-Up</h2>
+            <p id="singleRsvpModalSubtitle" style="font-size: 0.75rem; color: var(--gold);">Fast 1-click attendance registration</p>
           </div>
         </div>
         <button class="modal-close-btn" onclick="closeSingleEventRsvpModal()">✕</button>
+      </div>
+
+      <!-- Event Details Highlight Card (Google Form Style Header) -->
+      <div id="singleRsvpEventSummaryCard" style="background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.25); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px;">
+        <div id="singleRsvpSummaryTitle" style="font-size: 1rem; font-weight: 800; color: #ffffff;"></div>
+        <div id="singleRsvpSummaryMeta" style="font-size: 0.8rem; color: var(--gold); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        <div id="singleRsvpSummaryNotes" style="font-size: 0.78rem; color: var(--muted); margin-top: 6px; line-height: 1.4;"></div>
       </div>
 
       <!-- Saved Profile Badge -->
@@ -1999,7 +2006,7 @@
 
       <!-- Existing RSVP Alert Box -->
       <div id="singleRsvpExistingAlert" style="display:none; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 12px;">
-        <div style="color: #86efac; font-weight: 800; font-size: 0.85rem;">✅ You are currently registered for this meal!</div>
+        <div style="color: #86efac; font-weight: 800; font-size: 0.85rem;">✅ You are registered for this event!</div>
         <div style="font-size: 0.75rem; color: var(--muted); margin-top: 2px;" id="singleRsvpExistingDetails">Party of 1 · Vegetarian</div>
       </div>
 
@@ -2035,18 +2042,28 @@
 
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 0.75rem; color: var(--muted);">
           <input type="checkbox" id="singleRsvpSaveProfileCheck" checked style="accent-color: var(--accent); cursor: pointer;">
-          <label for="singleRsvpSaveProfileCheck" style="cursor: pointer; font-weight: normal; margin-bottom: 0;">Remember my details on this device for fast 1-click sign-up next time</label>
+          <label for="singleRsvpSaveProfileCheck" style="cursor: pointer; font-weight: normal; margin-bottom: 0;">Remember my details on this device for fast 1-click sign-up</label>
         </div>
 
         <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
           <button type="submit" class="btn btn-primary" id="singleRsvpSubmitBtn" style="flex: 2; min-width: 140px; padding: 11px; font-size: 0.9rem; font-weight: 800; justify-content: center;">
-            ✅ Confirm My RSVP
+            ✅ Confirm My Attendance
           </button>
           <button type="button" class="btn btn-secondary" id="singleRsvpCancelBtn" onclick="cancelCurrentEventRsvp()" style="display: none; flex: 1; min-width: 120px; padding: 11px; font-size: 0.82rem; color: var(--rose); font-weight: 700; justify-content: center;">
             ❌ Cancel RSVP
           </button>
           <button type="button" class="btn btn-secondary" onclick="closeSingleEventRsvpModal()" style="padding: 11px 14px;">
             Close
+          </button>
+        </div>
+
+        <!-- Share Sign-Up Link Toolbar -->
+        <div style="display: flex; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <button type="button" class="btn btn-secondary" style="flex: 1; padding: 8px 10px; font-size: 0.78rem; color: #25D366; font-weight: 700; justify-content: center;" onclick="shareWhatsAppDirect(document.getElementById('singleRsvpEventId').value)">
+            💬 WhatsApp Invite Link
+          </button>
+          <button type="button" class="btn btn-secondary" style="flex: 1; padding: 8px 10px; font-size: 0.78rem; justify-content: center;" onclick="copyEventSignupLink(document.getElementById('singleRsvpEventId').value)">
+            🔗 Copy Sign-Up Link
           </button>
         </div>
       </form>
@@ -2516,6 +2533,7 @@
       renderCategorySelectOptions();
       updateTotalRsvpsBadge();
       render();
+      checkUrlDirectActions();
     }
 
     function saveCategories() { localStorage.setItem("ohrsom_categories_data", JSON.stringify(categories)); }
@@ -2705,14 +2723,40 @@
       }, 300);
     }
 
-    // ══ SINGLE EVENT RSVP MODAL & PROFILE AUTOFILL ══
+    // ══ SINGLE EVENT RSVP MODAL & PROFILE AUTOFILL (GOOGLE FORM STYLE) ══
     function openSingleEventRsvpModal(eventId) {
       const e = events.find(ev => ev.id === eventId);
       if (!e) return;
       document.getElementById("singleRsvpEventId").value = e.id;
-      document.getElementById("singleRsvpModalTitle").textContent = `✍️ RSVP: ${e.title}`;
-      document.getElementById("singleRsvpModalSubtitle").textContent = `📅 ${e.date}${e.time ? ` at ${e.time}` : ''} ${e.host ? `· 🏡 ${e.host}` : ''}`;
+      document.getElementById("singleRsvpModalTitle").textContent = `✍️ Sign Up: ${e.title}`;
       
+      const d = new Date(e.date + "T00:00:00");
+      const formattedDate = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+      const hol = JEWISH_HOLIDAYS[e.date];
+      const rsvpCount = getEventRsvpGuestCount(e.id);
+      
+      document.getElementById("singleRsvpModalSubtitle").textContent = `${formattedDate}${e.time ? ` at ${e.time}` : ''}`;
+      
+      const sumTitle = document.getElementById("singleRsvpSummaryTitle");
+      const sumMeta = document.getElementById("singleRsvpSummaryMeta");
+      const sumNotes = document.getElementById("singleRsvpSummaryNotes");
+      
+      if (sumTitle) {
+        sumTitle.innerHTML = `🍽️ <strong>${e.title}</strong>${hol ? ` <span class="jewish-holiday-pill" style="font-size: 0.7rem;">✡️ ${hol}</span>` : ''}`;
+      }
+      if (sumMeta) {
+        sumMeta.innerHTML = `
+          <span>📅 ${formattedDate}</span>
+          ${e.time ? `<span>⏱️ <strong>${e.time}</strong></span>` : ''}
+          ${e.host ? `<span>🏡 Host: <strong>${e.host}</strong></span>` : ''}
+          <span style="color: var(--accent); font-weight: 700;">👥 ${rsvpCount} Signed Up</span>
+        `;
+      }
+      if (sumNotes) {
+        sumNotes.textContent = e.notes ? `📝 Details / Instructions: ${e.notes}` : "";
+        sumNotes.style.display = e.notes ? "block" : "none";
+      }
+
       const savedName = localStorage.getItem("ohrsom_user_name") || "";
       const savedPhone = localStorage.getItem("ohrsom_user_phone") || "";
       const savedDietary = localStorage.getItem("ohrsom_user_dietary") || "";
@@ -2736,7 +2780,7 @@
         }
         if (profileBadge) profileBadge.style.display = "none";
         if (cancelBtn) cancelBtn.style.display = "inline-flex";
-        if (submitBtn) submitBtn.innerHTML = "💾 Update My RSVP";
+        if (submitBtn) submitBtn.innerHTML = "💾 Update My Attendance";
       } else {
         document.getElementById("singleRsvpName").value = savedName;
         document.getElementById("singleRsvpPhone").value = savedPhone;
@@ -2755,7 +2799,7 @@
           }
         }
         if (cancelBtn) cancelBtn.style.display = "none";
-        if (submitBtn) submitBtn.innerHTML = "✅ Confirm My RSVP";
+        if (submitBtn) submitBtn.innerHTML = "✅ Confirm My Attendance";
       }
       
       document.getElementById("singleEventRsvpModal").classList.add("active");
@@ -3883,11 +3927,79 @@
       openMoveEventModal();
     }
 
+    // ══ EVENT SIGN-UP LINK (GOOGLE FORM STYLE SHARING) ══
+    function getEventSignupUrl(id) {
+      const e = events.find(item => item.id === id);
+      if (!e) return window.location.href;
+      let baseUrl = window.location.href.split('?')[0].split('#')[0];
+      // If run locally, fallback to production domain for sharing with external users
+      if (baseUrl.startsWith('file:') || baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+        return `https://perilium-crm-web.vercel.app/ohrsom-schedule.html?rsvp=${encodeURIComponent(e.id)}`;
+      }
+      return `${baseUrl}?rsvp=${encodeURIComponent(e.id)}`;
+    }
+
+    function copyEventSignupLink(id) {
+      const e = events.find(item => item.id === id);
+      if (!e) return;
+      const url = getEventSignupUrl(id);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showInAppNotification("Sign-Up Link Copied! 🔗", `Direct RSVP link for "${e.title}" copied to clipboard.`);
+        }).catch(() => {
+          prompt("Copy this Sign-Up Link to share with guests:", url);
+        });
+      } else {
+        prompt("Copy this Sign-Up Link to share with guests:", url);
+      }
+    }
+
     function shareWhatsAppDirect(id) {
       const e = events.find(item => item.id === id);
       if (!e) return;
-      const text = `🌿 *Ohrsom Event: ${e.title}*\n📅 *Date:* ${e.date}\n⏱️ *Time:* ${e.time || 'TBD'}\n🏡 *Host/Location:* ${e.host || 'Ohrsom'}${e.notes ? `\n📝 *Notes:* ${e.notes}` : ''}\n\nRSVP via Ohrsom Events Hub!`;
+      const d = new Date(e.date + "T00:00:00");
+      const formattedDate = d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+      const hol = JEWISH_HOLIDAYS[e.date];
+      const url = getEventSignupUrl(e.id);
+      
+      const text = `🍽️ *Sign Up / RSVP: ${e.title}*${hol ? ` (✡️ ${hol})` : ''}\n\n📅 *Date:* ${formattedDate}\n⏱️ *Time:* ${e.time || 'TBA'}\n🏡 *Host / Location:* ${e.host || 'Ohrsom'}${e.notes ? `\n📝 *Notes:* ${e.notes}` : ''}\n\n👉 *Click here to sign up & attend:*\n${url}`;
+      
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    }
+
+    function checkUrlDirectActions() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const rsvpId = urlParams.get('rsvp') || urlParams.get('signup') || urlParams.get('event');
+        const wizardParam = urlParams.get('wizard');
+        const dayParam = urlParams.get('day') || urlParams.get('date');
+
+        if (wizardParam === 'meals' || wizardParam === 'all' || rsvpId === 'all') {
+          setTimeout(() => openMultiMealSignupModal(), 350);
+          return;
+        }
+
+        if (rsvpId) {
+          const e = events.find(item => item.id === rsvpId || item.id.toLowerCase() === rsvpId.toLowerCase());
+          if (e) {
+            setTimeout(() => {
+              selectCalendarDay(e.date);
+              openSingleEventRsvpModal(e.id);
+              showInAppNotification(`Meal Sign-Up ✍️`, `Fill in your details below to attend "${e.title}".`);
+            }, 350);
+            return;
+          }
+        }
+
+        if (dayParam) {
+          setTimeout(() => {
+            selectCalendarDay(dayParam);
+            openDayOverviewModal(dayParam);
+          }, 350);
+        }
+      } catch (err) {
+        console.warn("URL direct action routing error:", err);
+      }
     }
 
     // ══ SETTINGS MODAL ══
@@ -4287,7 +4399,8 @@
 
           <div class="agenda-card-actions">
             ${editBtnHtml}
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); shareWhatsAppDirect('${e.id}')">💬 WhatsApp</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem; color:#25D366;" title="Share on WhatsApp" onclick="event.stopPropagation(); shareWhatsAppDirect('${e.id}')">💬 Invite</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" title="Copy sign-up link" onclick="event.stopPropagation(); copyEventSignupLink('${e.id}')">🔗 Link</button>
             <button class="snooze-quick-btn" onclick="event.stopPropagation(); snoozeReminderForEvent('${e.id}', 1)">⏰ +1h</button>
           </div>
         </div>`;
@@ -4344,9 +4457,13 @@
           ${completeBtnHtml}
           ${rsvpBtnHtml}
           <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem; color:#25D366;" title="Share sign-up on WhatsApp" onclick="event.stopPropagation(); shareWhatsAppDirect('${e.id}')">💬 Invite</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" title="Copy sign-up link" onclick="event.stopPropagation(); copyEventSignupLink('${e.id}')">🔗 Link</button>
         `
         : `
           ${rsvpBtnHtml}
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem; color:#25D366;" title="Share sign-up on WhatsApp" onclick="event.stopPropagation(); shareWhatsAppDirect('${e.id}')">💬 Invite</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" title="Copy sign-up link" onclick="event.stopPropagation(); copyEventSignupLink('${e.id}')">🔗 Link</button>
           <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Overview</button>
         `;
 
