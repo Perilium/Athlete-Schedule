@@ -3698,7 +3698,10 @@
 
     // ══ DAY / EVENT OVERVIEW POP-UP MODAL ══
     function openDayOverviewModal(dateKey, highlightEventId = null) {
+      if (!dateKey) dateKey = selectedDateKey || "2026-09-11";
       selectedDateKey = dateKey;
+      document.querySelectorAll(".cal-day-cell").forEach(c => c.classList.toggle("is-selected-day", c.getAttribute("data-date") === dateKey));
+      renderDayAgenda(dateKey);
       const d = new Date(dateKey + "T00:00:00");
       const formattedDate = d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
       const hol = JEWISH_HOLIDAYS[dateKey];
@@ -4153,12 +4156,6 @@
       selectedDateKey = dateKey;
       document.querySelectorAll(".cal-day-cell").forEach(c => c.classList.toggle("is-selected-day", c.getAttribute("data-date") === dateKey));
       renderDayAgenda(dateKey);
-    }
-
-    function openDayOverviewModal(dateKey, eventId = null) {
-      if (dateKey) selectCalendarDay(dateKey);
-      const sec = document.getElementById("mobileDayAgendaSection");
-      if (sec) sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
     function getHostSummaryBannerHtml(person) {
