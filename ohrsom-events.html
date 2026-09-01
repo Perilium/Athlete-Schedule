@@ -1200,6 +1200,73 @@
       .event-card { padding: 10px; gap: 8px; }
       .event-card-actions { width: 100%; justify-content: flex-end; margin-top: 4px; }
     }
+    /* ── RSVP & Meal Roster System Styles ── */
+    .rsvp-count-badge {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #86efac;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-rsvp-action {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+    }
+    .btn-rsvp-action:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    .rsvp-checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .rsvp-checklist-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .rsvp-checklist-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    .host-dashboard-banner {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(15, 25, 35, 0.95));
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand-img-logo {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      border-radius: 4px;
+      background: #ffffff;
+      padding: 2px 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
@@ -1223,13 +1290,19 @@
   <header class="header">
     <div class="header-inner">
       <div class="brand-wrap">
-        <div class="brand-logo">🌿</div>
+        <img src="/icons/ohrsom-student-logo.png" alt="Ohrsom Student" class="brand-img-logo">
         <div>
           <h1 class="brand-title">Ohrsom Events Hub</h1>
           <p class="brand-subtitle">Yom Tov & Hosting Schedule 5787</p>
         </div>
       </div>
       <div class="header-actions">
+        <button class="btn btn-rsvp-action" onclick="openMultiMealSignupModal()" style="padding: 7px 14px; font-size: 0.82rem;">
+          ✍️ Meal Sign-Up
+        </button>
+        <button id="masterRostersBtn" class="btn btn-secondary" onclick="openMasterRostersModal()" style="display: none; border-color: rgba(56, 189, 248, 0.4); color: #7dd3fc;">
+          📋 All RSVPs (<span id="totalRsvpsHeaderBadge">0</span>)
+        </button>
         <button class="btn btn-install" onclick="handleDownloadAppClick()">
           📲 Download App
         </button>
@@ -1796,6 +1869,213 @@
     </div>
   </div>
 
+  <!-- ══ MULTI-MEAL YOM TOV SIGN-UP MODAL ══ -->
+  <div class="modal-overlay" id="multiMealSignupModal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="/icons/ohrsom-student-logo.png" alt="Ohrsom Student" class="brand-img-logo" style="height: 32px;">
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">✍️ Yom Tov Meal Sign-Up</h2>
+            <p style="font-size: 0.75rem; color: var(--gold);">Select all meals you'd like to join in one go!</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeMultiMealSignupModal()">✕</button>
+      </div>
+
+      <form id="multiMealSignupForm" onsubmit="submitMultiMealSignup(event)">
+        <!-- Personal Info Section -->
+        <div style="background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
+          <h4 style="font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">👤 1. Your Contact Details</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="multiRsvpName">Full Name *</label>
+              <input type="text" id="multiRsvpName" class="form-control" placeholder="e.g. Avi Klein" required>
+            </div>
+            <div class="form-group">
+              <label for="multiRsvpPhone">WhatsApp Number *</label>
+              <input type="tel" id="multiRsvpPhone" class="form-control" placeholder="e.g. +27 82 123 4567" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="multiRsvpAffiliation">Campus / Affiliation</label>
+              <select id="multiRsvpAffiliation" class="form-control">
+                <option value="Ohrsom 1">Ohrsom 1 Student</option>
+                <option value="Accelerator">Accelerator</option>
+                <option value="Young Professionals">Young Professionals</option>
+                <option value="Alumni">Alumni</option>
+                <option value="Guest / Community">Guest / Community</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="multiRsvpGuests">Additional Guests</label>
+              <select id="multiRsvpGuests" class="form-control">
+                <option value="1">Just Me (1)</option>
+                <option value="2">Me + 1 Friend (2 Total)</option>
+                <option value="3">Me + 2 Friends (3 Total)</option>
+                <option value="4">Me + 3 Friends (4 Total)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="multiRsvpDietary">Dietary Requirements / Allergies</label>
+            <input type="text" id="multiRsvpDietary" class="form-control" placeholder="e.g. Vegetarian, Gluten-Free, Nut Allergy, None">
+          </div>
+        </div>
+
+        <!-- Meals Checklist Section -->
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="font-size: 0.8rem; color: var(--gold); text-transform: uppercase;">🍽️ 2. Select Meals to Attend:</h4>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.7rem; padding: 2px 7px;" onclick="toggleAllMealsChecklist()">
+              Select All / Invert
+            </button>
+          </div>
+          <div id="multiMealChecklistContainer" style="max-height: 240px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 6px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; font-size: 0.92rem; font-weight: 800; justify-content: center;">
+            🚀 Complete Meal Sign-Ups
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeMultiMealSignupModal()" style="flex: 1; justify-content: center;">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ SINGLE EVENT RSVP MODAL ══ -->
+  <div class="modal-overlay" id="singleEventRsvpModal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">✍️</div>
+          <div>
+            <h2 id="singleRsvpModalTitle" style="font-size: 1.12rem; font-weight: 800;">RSVP for Meal</h2>
+            <p id="singleRsvpModalSubtitle" style="font-size: 0.75rem; color: var(--gold);">Host details & time</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeSingleEventRsvpModal()">✕</button>
+      </div>
+
+      <form onsubmit="submitSingleEventRsvp(event)">
+        <input type="hidden" id="singleRsvpEventId">
+        <div class="form-group">
+          <label for="singleRsvpName">Full Name *</label>
+          <input type="text" id="singleRsvpName" class="form-control" placeholder="e.g. Avi Klein" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="singleRsvpPhone">WhatsApp Number *</label>
+            <input type="tel" id="singleRsvpPhone" class="form-control" placeholder="e.g. +27 82 123 4567" required>
+          </div>
+          <div class="form-group">
+            <label for="singleRsvpGuests">Total Guests</label>
+            <select id="singleRsvpGuests" class="form-control">
+              <option value="1">1 Person</option>
+              <option value="2">2 People</option>
+              <option value="3">3 People</option>
+              <option value="4">4 People</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="singleRsvpDietary">Dietary Requirements</label>
+          <input type="text" id="singleRsvpDietary" class="form-control" placeholder="e.g. Vegetarian, Gluten-Free, None">
+        </div>
+        <div class="form-group">
+          <label for="singleRsvpNotes">Notes for Host (Optional)</label>
+          <input type="text" id="singleRsvpNotes" class="form-control" placeholder="e.g. Bringing dessert / arriving 7:45">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1; padding: 11px; font-size: 0.9rem; font-weight: 800; justify-content: center;">
+            ✅ Confirm My RSVP
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="closeSingleEventRsvpModal()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ EVENT GUEST LIST & HOST ROSTER MODAL ══ -->
+  <div class="modal-overlay" id="eventGuestListModal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="brand-logo" style="width: 36px; height: 36px; font-size: 1.2rem;">📋</div>
+          <div>
+            <h2 id="guestListModalTitle" style="font-size: 1.15rem; font-weight: 800;">Guest List</h2>
+            <p id="guestListModalSubtitle" style="font-size: 0.75rem; color: var(--accent);">0 Registered Guests</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeEventGuestListModal()">✕</button>
+      </div>
+
+      <!-- Dietary & Stats Summary Badges -->
+      <div id="guestListDietarySummary" style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Guest Table Container -->
+      <div id="guestListTableContainer" style="max-height: 260px; overflow-y: auto; background: var(--surface-elevated); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 14px;">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="openAddManualGuestForm()" style="flex: 1; font-size: 0.82rem; justify-content: center;">
+          ➕ Add Guest
+        </button>
+        <button class="btn btn-secondary" onclick="exportCurrentEventRoster()" style="font-size: 0.82rem; justify-content: center;">
+          📥 Export List
+        </button>
+        <button class="btn btn-secondary" onclick="broadcastWhatsAppToGuests()" style="font-size: 0.82rem; justify-content: center;">
+          💬 WhatsApp All
+        </button>
+        <button class="btn btn-secondary" onclick="closeEventGuestListModal()" style="padding: 6px 12px;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MASTER RSVPS & ROSTERS HUB MODAL ══ -->
+  <div class="modal-overlay" id="masterRostersModal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="/icons/ohrsom-student-logo.png" alt="Ohrsom Student" class="brand-img-logo" style="height: 34px;">
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800;">📊 Master Meal Rosters & RSVPs</h2>
+            <p id="masterRostersSubtitle" style="font-size: 0.75rem; color: var(--gold);">Overview of all Yom Tov meal sign-ups across all hosts</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeMasterRostersModal()">✕</button>
+      </div>
+
+      <div id="masterRostersListContainer" style="max-height: 360px; overflow-y: auto; margin-bottom: 14px;">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-primary" onclick="exportAllMasterRosters()" style="flex: 1; justify-content: center;">
+          📥 Export All Rosters (CSV)
+        </button>
+        <button class="btn btn-secondary" onclick="closeMasterRostersModal()" style="flex: 1; justify-content: center;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Capture beforeinstallprompt immediately on page start for 1-click automatic download
     let deferredPrompt = null;
@@ -2046,6 +2326,7 @@
     let categories = [];
     let audiencePresets = [];
     let reminderLogs = [];
+    let rsvps = [];
     let currentYear = 2026;
     let currentMonth = 8; // September
     let currentFilter = "all";
@@ -2061,6 +2342,16 @@
     let currentModalAudiences = [];
     let notifDismissTimer = null;
     const ADMIN_PASSCODE = "ohrsom613";
+
+    const DEFAULT_RSVPS = [
+      { id: "rsvp-1", eventId: "evt-2", eventTitle: "Hosting — Salmons", eventDate: "2026-09-11", host: "Salmons", name: "Avi Klein", phone: "+27 82 456 7890", email: "avi@student.uct.ac.za", affiliation: "Ohrsom 1", guests: 2, dietary: "Vegetarian", notes: "Excited to join!", createdAt: "2026-08-30T10:00:00Z" },
+      { id: "rsvp-2", eventId: "evt-2", eventTitle: "Hosting — Salmons", eventDate: "2026-09-11", host: "Salmons", name: "Talia Sacks", phone: "+27 83 234 5678", email: "talia@gmail.com", affiliation: "Accelerator", guests: 1, dietary: "Nut Allergy", notes: "", createdAt: "2026-08-30T11:20:00Z" },
+      { id: "rsvp-3", eventId: "evt-3", eventTitle: "Hosting — Cannons", eventDate: "2026-09-12", host: "Cannons", name: "Josh Miller", phone: "+27 72 345 6789", email: "josh@wits.ac.za", affiliation: "Ohrsom 1", guests: 2, dietary: "None", notes: "Bringing a friend from campus", createdAt: "2026-08-30T12:00:00Z" },
+      { id: "rsvp-4", eventId: "evt-4", eventTitle: "Hosting — Perelmans", eventDate: "2026-09-12", host: "Perelmans", name: "Dani Levin", phone: "+27 84 567 8901", email: "dani@gmail.com", affiliation: "Young Professionals", guests: 1, dietary: "Gluten-Free", notes: "Can help set up", createdAt: "2026-08-30T14:30:00Z" },
+      { id: "rsvp-5", eventId: "evt-4", eventTitle: "Hosting — Perelmans", eventDate: "2026-09-12", host: "Perelmans", name: "Sarah Shapiro", phone: "+27 82 890 1234", email: "sarah@uct.ac.za", affiliation: "Ohrsom 1", guests: 2, dietary: "Vegetarian", notes: "", createdAt: "2026-08-30T15:00:00Z" },
+      { id: "rsvp-6", eventId: "evt-9", eventTitle: "Pre-Fast Meal", eventDate: "2026-09-20", host: "Cannons", name: "Sam Green", phone: "+27 83 901 2345", email: "sam@student.uct.ac.za", affiliation: "Accelerator", guests: 1, dietary: "None", notes: "", createdAt: "2026-08-31T09:00:00Z" },
+      { id: "rsvp-7", eventId: "evt-12", eventTitle: "Hosting — Perelmans", eventDate: "2026-09-25", host: "Perelmans", name: "Michael Cohen", phone: "+27 82 112 2334", email: "michael@gmail.com", affiliation: "Alumni", guests: 2, dietary: "None", notes: "", createdAt: "2026-08-31T10:30:00Z" }
+    ];
 
     // ══ INIT ══
     function init() {
@@ -2104,6 +2395,14 @@
       }
 
       try {
+        rsvps = JSON.parse(localStorage.getItem("ohrsom_rsvps_data") || "null") || [];
+      } catch { rsvps = []; }
+      if (!rsvps.length) {
+        rsvps = [...DEFAULT_RSVPS];
+        saveRsvps();
+      }
+
+      try {
         events = JSON.parse(localStorage.getItem("ohrsom_events_data") || "null") || [];
       } catch { events = []; }
       if (!events.length) {
@@ -2128,6 +2427,7 @@
       updateAdminUI();
       renderFilterChips();
       renderCategorySelectOptions();
+      updateTotalRsvpsBadge();
       render();
     }
 
@@ -2136,6 +2436,449 @@
     function saveEvents() { localStorage.setItem("ohrsom_events_data", JSON.stringify(events)); }
     function saveAudiencePresets() { localStorage.setItem("ohrsom_audience_presets", JSON.stringify(audiencePresets)); }
     function saveReminderLogs() { localStorage.setItem("ohrsom_reminder_logs", JSON.stringify(reminderLogs)); }
+    function saveRsvps() { localStorage.setItem("ohrsom_rsvps_data", JSON.stringify(rsvps)); updateTotalRsvpsBadge(); }
+
+    // ══ RSVP DATA GETTERS ══
+    function getEventRsvps(eventId) {
+      return rsvps.filter(r => r.eventId === eventId);
+    }
+
+    function getEventRsvpGuestCount(eventId) {
+      return getEventRsvps(eventId).reduce((sum, r) => sum + (parseInt(r.guests) || 1), 0);
+    }
+
+    function isUserRsvpd(eventId) {
+      const phone = localStorage.getItem("ohrsom_user_phone");
+      if (!phone) return false;
+      return rsvps.some(r => r.eventId === eventId && r.phone === phone);
+    }
+
+    function updateTotalRsvpsBadge() {
+      const total = rsvps.reduce((sum, r) => sum + (parseInt(r.guests) || 1), 0);
+      const badge = document.getElementById("totalRsvpsHeaderBadge");
+      if (badge) badge.textContent = total;
+      const masterBtn = document.getElementById("masterRostersBtn");
+      if (masterBtn && isAdmin) masterBtn.style.display = "inline-flex";
+    }
+
+    // ══ MULTI-MEAL YOM TOV SIGN-UP WIZARD ══
+    function openMultiMealSignupModal() {
+      const container = document.getElementById("multiMealChecklistContainer");
+      const mealEvents = events.filter(e => e.type === "meal" || e.type === "event").sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      const savedName = localStorage.getItem("ohrsom_user_name") || (adminFirstName ? `${adminFirstName} ${adminSurname}`.trim() : "");
+      const savedPhone = localStorage.getItem("ohrsom_user_phone") || "";
+      const savedAffiliation = localStorage.getItem("ohrsom_user_affiliation") || "Ohrsom 1";
+      const savedDietary = localStorage.getItem("ohrsom_user_dietary") || "";
+
+      if (savedName) document.getElementById("multiRsvpName").value = savedName;
+      if (savedPhone) document.getElementById("multiRsvpPhone").value = savedPhone;
+      if (savedAffiliation) document.getElementById("multiRsvpAffiliation").value = savedAffiliation;
+      if (savedDietary) document.getElementById("multiRsvpDietary").value = savedDietary;
+
+      if (!mealEvents.length) {
+        container.innerHTML = `<div style="text-align:center; padding:15px; color:var(--muted);">No meal events scheduled.</div>`;
+      } else {
+        container.innerHTML = mealEvents.map(e => {
+          const d = new Date(e.date + "T00:00:00");
+          const formattedDate = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+          const hol = JEWISH_HOLIDAYS[e.date];
+          const count = getEventRsvpGuestCount(e.id);
+          const isChecked = isUserRsvpd(e.id);
+          return `
+            <label class="rsvp-checklist-item">
+              <input type="checkbox" name="multiMealItem" value="${e.id}" ${isChecked ? 'checked' : ''}>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                  <strong style="color:var(--ink); font-size:0.85rem;">${e.title}</strong>
+                  <span class="rsvp-count-badge">👥 ${count} Registered</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--muted); margin-top:2px;">
+                  📅 <strong>${formattedDate}</strong> ${e.time ? `· ⏱️ ${e.time}` : ''} ${e.host ? `· 🏡 Host: ${e.host}` : ''} ${hol ? `· ✡️ ${hol}` : ''}
+                </div>
+              </div>
+            </label>
+          `;
+        }).join("");
+      }
+
+      document.getElementById("multiMealSignupModal").classList.add("active");
+    }
+
+    function closeMultiMealSignupModal() {
+      document.getElementById("multiMealSignupModal").classList.remove("active");
+    }
+
+    function toggleAllMealsChecklist() {
+      const boxes = document.querySelectorAll('input[name="multiMealItem"]');
+      const anyUnchecked = Array.from(boxes).some(b => !b.checked);
+      boxes.forEach(b => b.checked = anyUnchecked);
+    }
+
+    function submitMultiMealSignup(evt) {
+      evt.preventDefault();
+      const name = document.getElementById("multiRsvpName").value.trim();
+      const phone = document.getElementById("multiRsvpPhone").value.trim();
+      const affiliation = document.getElementById("multiRsvpAffiliation").value;
+      const guests = parseInt(document.getElementById("multiRsvpGuests").value) || 1;
+      const dietary = document.getElementById("multiRsvpDietary").value.trim();
+
+      const checkedBoxes = document.querySelectorAll('input[name="multiMealItem"]:checked');
+      if (checkedBoxes.length === 0) {
+        alert("Please select at least one meal to sign up for!");
+        return;
+      }
+
+      localStorage.setItem("ohrsom_user_name", name);
+      localStorage.setItem("ohrsom_user_phone", phone);
+      localStorage.setItem("ohrsom_user_affiliation", affiliation);
+      localStorage.setItem("ohrsom_user_dietary", dietary);
+
+      const selectedEvents = [];
+      checkedBoxes.forEach(cb => {
+        const eventId = cb.value;
+        const e = events.find(ev => ev.id === eventId);
+        if (!e) return;
+        selectedEvents.push(e);
+
+        rsvps = rsvps.filter(r => !(r.eventId === eventId && r.phone === phone));
+        rsvps.push({
+          id: "rsvp-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+          eventId,
+          eventTitle: e.title,
+          eventDate: e.date,
+          host: e.host || (e.assignees && e.assignees.length ? e.assignees.join(", ") : "Ohrsom"),
+          name,
+          phone,
+          affiliation,
+          guests,
+          dietary: dietary || "None",
+          createdAt: new Date().toISOString()
+        });
+      });
+
+      saveRsvps();
+      closeMultiMealSignupModal();
+      render();
+      if (selectedEvents.length > 0) openDayOverviewModal(selectedEvents[0].date);
+
+      logReminderActivity(name, `Signed up for ${selectedEvents.length} Yom Tov Meals`, "✍️ RSVP Confirmed");
+      renderReminderLogsUI();
+
+      showInAppNotification("Meal Sign-Ups Confirmed! ✍️", `You're registered for ${selectedEvents.length} Yom Tov meals.`);
+
+      const mealSummary = selectedEvents.map(e => `• ${e.title} (${e.date}${e.time ? ' ' + e.time : ''})`).join("\n");
+      const text = `Hi Ohrsom Team! 🌿\n\nI just signed up for the following Yom Tov meals:\n${mealSummary}\n\n👤 *Name:* ${name}\n👥 *Total Guests:* ${guests}\n🥗 *Dietary:* ${dietary || 'None'}\n📱 *WhatsApp:* ${phone}\n\nLooking forward!`;
+      
+      setTimeout(() => {
+        if (confirm("Sign-up successful! 🎉\n\nWould you like to send a confirmation copy to the Ohrsom Host / Admin on WhatsApp?")) {
+          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+        }
+      }, 300);
+    }
+
+    // ══ SINGLE EVENT RSVP MODAL ══
+    function openSingleEventRsvpModal(eventId) {
+      const e = events.find(ev => ev.id === eventId);
+      if (!e) return;
+      document.getElementById("singleRsvpEventId").value = e.id;
+      document.getElementById("singleRsvpModalTitle").textContent = `✍️ RSVP: ${e.title}`;
+      document.getElementById("singleRsvpModalSubtitle").textContent = `📅 ${e.date}${e.time ? ` at ${e.time}` : ''} ${e.host ? `· 🏡 ${e.host}` : ''}`;
+      
+      document.getElementById("singleRsvpName").value = localStorage.getItem("ohrsom_user_name") || "";
+      document.getElementById("singleRsvpPhone").value = localStorage.getItem("ohrsom_user_phone") || "";
+      document.getElementById("singleRsvpDietary").value = localStorage.getItem("ohrsom_user_dietary") || "";
+      
+      document.getElementById("singleEventRsvpModal").classList.add("active");
+    }
+
+    function closeSingleEventRsvpModal() {
+      document.getElementById("singleEventRsvpModal").classList.remove("active");
+    }
+
+    function submitSingleEventRsvp(evt) {
+      evt.preventDefault();
+      const eventId = document.getElementById("singleRsvpEventId").value;
+      const e = events.find(ev => ev.id === eventId);
+      if (!e) return;
+
+      const name = document.getElementById("singleRsvpName").value.trim();
+      const phone = document.getElementById("singleRsvpPhone").value.trim();
+      const guests = parseInt(document.getElementById("singleRsvpGuests").value) || 1;
+      const dietary = document.getElementById("singleRsvpDietary").value.trim() || "None";
+      const notes = document.getElementById("singleRsvpNotes").value.trim();
+
+      localStorage.setItem("ohrsom_user_name", name);
+      localStorage.setItem("ohrsom_user_phone", phone);
+      localStorage.setItem("ohrsom_user_dietary", dietary);
+
+      rsvps = rsvps.filter(r => !(r.eventId === eventId && r.phone === phone));
+      rsvps.push({
+        id: "rsvp-" + Date.now(),
+        eventId: e.id,
+        eventTitle: e.title,
+        eventDate: e.date,
+        host: e.host || "Ohrsom",
+        name,
+        phone,
+        affiliation: "Student / Community",
+        guests,
+        dietary,
+        notes,
+        createdAt: new Date().toISOString()
+      });
+
+      saveRsvps();
+      closeSingleEventRsvpModal();
+      render();
+      openDayOverviewModal(e.date, e.id);
+
+      logReminderActivity(name, `RSVP: ${e.title} (${guests} guests)`, "✍️ RSVP Confirmed");
+      renderReminderLogsUI();
+
+      showInAppNotification("RSVP Confirmed! ✍️", `You're registered for "${e.title}".`);
+    }
+
+    // ══ EVENT GUEST LIST & HOST ROSTER MODAL ══
+    function openEventGuestListModal(eventId) {
+      const e = events.find(ev => ev.id === eventId);
+      if (!e) return;
+      const eventRsvps = getEventRsvps(eventId);
+      const totalGuests = getEventRsvpGuestCount(eventId);
+
+      document.getElementById("guestListModalTitle").textContent = `📋 Roster: ${e.title}`;
+      document.getElementById("guestListModalSubtitle").textContent = `📅 ${e.date}${e.time ? ` · ⏱️ ${e.time}` : ''}${e.host ? ` · 🏡 Host: ${e.host}` : ''} (${totalGuests} Total Registered Guests)`;
+
+      const dietMap = {};
+      eventRsvps.forEach(r => {
+        if (r.dietary && r.dietary.toLowerCase() !== "none" && r.dietary.trim() !== "") {
+          dietMap[r.dietary] = (dietMap[r.dietary] || 0) + (parseInt(r.guests) || 1);
+        }
+      });
+
+      const dietBadges = Object.keys(dietMap).map(d => `
+        <span style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); color:#fde047; padding:2px 8px; border-radius:999px; font-size:0.72rem; font-weight:700;">
+          🥗 ${dietMap[d]}x ${d}
+        </span>
+      `).join("");
+
+      document.getElementById("guestListDietarySummary").innerHTML = `
+        <span style="background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.4); color:#86efac; padding:2px 8px; border-radius:999px; font-size:0.72rem; font-weight:800;">
+          👥 ${totalGuests} Total Heads
+        </span>
+        ${dietBadges}
+      `;
+
+      const tableContainer = document.getElementById("guestListTableContainer");
+      if (!eventRsvps.length) {
+        tableContainer.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.82rem;">No guests registered for this meal yet.</div>`;
+      } else {
+        tableContainer.innerHTML = `
+          <table class="reminders-log-table">
+            <thead>
+              <tr>
+                <th>Guest Name</th>
+                <th>Guests</th>
+                <th>Phone / WhatsApp</th>
+                <th>Affiliation</th>
+                <th>Dietary / Notes</th>
+                ${isAdmin ? '<th>Action</th>' : ''}
+              </tr>
+            </thead>
+            <tbody>
+              ${eventRsvps.map((r, i) => `
+                <tr>
+                  <td style="font-weight:800; color:var(--ink);">${r.name}</td>
+                  <td><span class="rsvp-count-badge">${r.guests}</span></td>
+                  <td><a href="https://wa.me/${r.phone.replace(/[^0-9]/g, '')}" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:700;">💬 ${r.phone}</a></td>
+                  <td style="color:var(--muted); font-size:0.72rem;">${r.affiliation || 'Student'}</td>
+                  <td style="color:${(r.dietary && r.dietary !== 'None') ? '#fde047' : 'var(--muted)'}; font-size:0.72rem;">${r.dietary || 'None'}${r.notes ? ` · <em>${r.notes}</em>` : ''}</td>
+                  ${isAdmin ? `<td><button class="btn btn-secondary" style="padding:2px 6px; font-size:0.65rem; color:var(--rose);" onclick="removeRsvp('${r.id}', '${e.id}')">✕</button></td>` : ''}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      document.getElementById("eventGuestListModal").setAttribute("data-event-id", eventId);
+      document.getElementById("eventGuestListModal").classList.add("active");
+    }
+
+    function closeEventGuestListModal() {
+      document.getElementById("eventGuestListModal").classList.remove("active");
+    }
+
+    function removeRsvp(rsvpId, eventId) {
+      if (!confirm("Remove this guest from the roster?")) return;
+      rsvps = rsvps.filter(r => r.id !== rsvpId);
+      saveRsvps();
+      openEventGuestListModal(eventId);
+      render();
+    }
+
+    function openAddManualGuestForm() {
+      const eventId = document.getElementById("eventGuestListModal").getAttribute("data-event-id");
+      if (!eventId) return;
+      const name = prompt("Guest Name:");
+      if (!name || !name.trim()) return;
+      const phone = prompt("Guest Phone / WhatsApp:", "+27 ");
+      const guests = parseInt(prompt("Total Guests in party:", "1")) || 1;
+      const dietary = prompt("Dietary Requirements (e.g. Vegetarian, Gluten-Free, None):", "None");
+
+      const e = events.find(ev => ev.id === eventId);
+      rsvps.push({
+        id: "rsvp-" + Date.now(),
+        eventId,
+        eventTitle: e ? e.title : "Meal",
+        eventDate: e ? e.date : "",
+        host: e ? e.host : "",
+        name: name.trim(),
+        phone: phone ? phone.trim() : "",
+        affiliation: "Manual Admin Entry",
+        guests,
+        dietary: dietary || "None",
+        createdAt: new Date().toISOString()
+      });
+
+      saveRsvps();
+      openEventGuestListModal(eventId);
+      render();
+      showInAppNotification("Guest Added", `${name} added to roster.`);
+    }
+
+    function exportCurrentEventRoster() {
+      const eventId = document.getElementById("eventGuestListModal").getAttribute("data-event-id");
+      const e = events.find(ev => ev.id === eventId);
+      if (!e) return;
+      const eventRsvps = getEventRsvps(eventId);
+      const total = getEventRsvpGuestCount(eventId);
+
+      let text = `📋 GUEST LIST: ${e.title}\n📅 Date: ${e.date} (${e.time || 'Scheduled Time'})\n🏡 Host: ${e.host || 'Ohrsom'}\n👥 Total Guests: ${total}\n\n`;
+      eventRsvps.forEach((r, i) => {
+        text += `${i + 1}. ${r.name} (${r.guests} guests) - ${r.phone} [Dietary: ${r.dietary || 'None'}] [${r.affiliation || 'Student'}]\n`;
+      });
+
+      navigator.clipboard.writeText(text).then(() => {
+        showInAppNotification("Guest List Copied! 📋", "Roster copied to clipboard. Ready to paste into WhatsApp or Excel.");
+      }).catch(() => {
+        alert(text);
+      });
+    }
+
+    function broadcastWhatsAppToGuests() {
+      const eventId = document.getElementById("eventGuestListModal").getAttribute("data-event-id");
+      const e = events.find(ev => ev.id === eventId);
+      if (!e) return;
+      const text = `Hi everyone! 🌿 Update regarding our upcoming Yom Tov meal:\n*${e.title}*\n📅 ${e.date} at ${e.time || 'scheduled time'}\n🏡 Location: ${e.host || 'Ohrsom'}\n\nLooking forward to having you! Let us know if any questions.`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    }
+
+    // ══ MASTER ROSTERS MODAL (ALL MEALS) ══
+    function openMasterRostersModal() {
+      const container = document.getElementById("masterRostersListContainer");
+      const mealEvents = events.filter(e => e.type === "meal" || e.type === "event").sort((a, b) => new Date(a.date) - new Date(b.date));
+      const totalAllRsvps = rsvps.reduce((sum, r) => sum + (parseInt(r.guests) || 1), 0);
+
+      document.getElementById("masterRostersSubtitle").textContent = `Total Community Sign-Ups: ${totalAllRsvps} Guests across ${mealEvents.length} Yom Tov Meals`;
+
+      if (!mealEvents.length) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted);">No meal events scheduled.</div>`;
+      } else {
+        container.innerHTML = mealEvents.map(e => {
+          const count = getEventRsvpGuestCount(e.id);
+          const eventRsvps = getEventRsvps(e.id);
+          const d = new Date(e.date + "T00:00:00");
+          const formattedDate = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+          const hol = JEWISH_HOLIDAYS[e.date];
+
+          return `
+            <div style="background:var(--surface-elevated); border:1px solid var(--surface-border); border-radius:var(--radius-sm); padding:12px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                <div>
+                  <strong style="color:var(--ink); font-size:0.95rem;">${e.title}</strong>
+                  <div style="font-size:0.78rem; color:var(--muted); margin-top:2px;">
+                    📅 <strong>${formattedDate}</strong> ${e.time ? `· ⏱️ ${e.time}` : ''} ${e.host ? `· 🏡 Host: ${e.host}` : ''} ${hol ? `· ✡️ ${hol}` : ''}
+                  </div>
+                </div>
+                <span class="rsvp-count-badge" style="font-size:0.8rem; padding:4px 10px;">👥 ${count} Guests</span>
+              </div>
+              
+              <!-- Guest Chips Preview -->
+              <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">
+                ${eventRsvps.length ? eventRsvps.map(r => `
+                  <span style="background:rgba(255,255,255,0.06); padding:2px 7px; border-radius:4px; font-size:0.72rem; color:var(--ink);">
+                    ${r.name} (${r.guests})${r.dietary && r.dietary !== 'None' ? ` <em style="color:#fde047;">[${r.dietary}]</em>` : ''}
+                  </span>
+                `).join("") : '<span style="color:var(--muted); font-size:0.72rem;">No sign-ups yet</span>'}
+              </div>
+
+              <div style="display:flex; gap:6px; margin-top:10px; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
+                <button class="btn btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="closeMasterRostersModal(); openEventGuestListModal('${e.id}')">
+                  📋 View & Manage Roster (${count})
+                </button>
+                <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="openSingleEventRsvpModal('${e.id}')">
+                  ✍️ Add RSVP
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      document.getElementById("masterRostersModal").classList.add("active");
+    }
+
+    function closeMasterRostersModal() {
+      document.getElementById("masterRostersModal").classList.remove("active");
+    }
+
+    function exportAllMasterRosters() {
+      let csv = "Meal Event,Date,Host,Guest Name,Total Guests,WhatsApp,Affiliation,Dietary,Notes\n";
+      rsvps.forEach(r => {
+        csv += `"${r.eventTitle}","${r.eventDate}","${r.host || ''}","${r.name}","${r.guests}","${r.phone}","${r.affiliation || ''}","${r.dietary || ''}","${r.notes || ''}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Ohrsom_Yom_Tov_Meal_Rosters_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      showInAppNotification("Master Rosters Exported 📥", "CSV file downloaded with all meal sign-ups.");
+    }
+
+    function exportHostRoster(hostName) {
+      const hostEvents = events.filter(e => {
+        const h = (e.host || '').toLowerCase();
+        const f = hostName.toLowerCase();
+        const assignees = (e.assignees || []).map(a => a.toLowerCase());
+        return h.includes(f) || assignees.some(a => a.includes(f));
+      });
+
+      let text = `🏡 GUEST ROSTER FOR ${hostName.toUpperCase()}\n`;
+      let total = 0;
+      hostEvents.forEach(e => {
+        const evRsvps = getEventRsvps(e.id);
+        const count = getEventRsvpGuestCount(e.id);
+        total += count;
+        text += `\n🍽️ ${e.title} (${e.date}${e.time ? ' ' + e.time : ''}) - ${count} Guests:\n`;
+        if (!evRsvps.length) {
+          text += `  (No sign-ups yet)\n`;
+        } else {
+          evRsvps.forEach((r, i) => {
+            text += `  ${i + 1}. ${r.name} (${r.guests} guests) - ${r.phone} [Dietary: ${r.dietary || 'None'}]\n`;
+          });
+        }
+      });
+      text += `\nTOTAL GUESTS: ${total}\n`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        showInAppNotification(`${hostName} Roster Copied! 📋`, `All meal guest lists for ${hostName} copied to clipboard.`);
+      }).catch(() => {
+        alert(text);
+      });
+    }
 
     function logReminderActivity(recipient, eventTitle, status) {
       const now = new Date();
@@ -2378,6 +3121,7 @@
       const sb = document.getElementById("settingsBtn");
       const mb = document.getElementById("mobileAddDayEventBtn");
       const ob = document.getElementById("dayOverviewAddBtn");
+      const rb = document.getElementById("masterRostersBtn");
 
       if (isAdmin) {
         tb.className = "btn btn-admin-unlocked";
@@ -2386,6 +3130,7 @@
         if (sb) sb.style.display = "inline-flex";
         if (mb) mb.style.display = "inline-flex";
         if (ob) ob.style.display = "inline-flex";
+        if (rb) rb.style.display = "inline-flex";
       } else {
         tb.className = "btn btn-admin-locked";
         tb.innerHTML = "🔒 Admin Login";
@@ -2393,7 +3138,9 @@
         if (sb) sb.style.display = "none";
         if (mb) mb.style.display = "none";
         if (ob) ob.style.display = "none";
+        if (rb) rb.style.display = "none";
       }
+      updateTotalRsvpsBadge();
     }
 
     function detectUserDevice() {
@@ -3068,6 +3815,41 @@
       renderDayAgenda(dateKey);
     }
 
+    function openDayOverviewModal(dateKey, eventId = null) {
+      if (dateKey) selectCalendarDay(dateKey);
+      const sec = document.getElementById("mobileDayAgendaSection");
+      if (sec) sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function getHostSummaryBannerHtml(person) {
+      if (!person || person === "all") return "";
+      const hostMeals = events.filter(e => {
+        const h = (e.host || '').toLowerCase();
+        const f = person.toLowerCase();
+        const assignees = (e.assignees || []).map(a => a.toLowerCase());
+        return (e.type === "meal" || e.type === "event") && (h.includes(f) || assignees.some(a => a.includes(f)));
+      });
+      if (!hostMeals.length) return "";
+      const totalGuests = hostMeals.reduce((sum, e) => sum + getEventRsvpGuestCount(e.id), 0);
+      return `
+        <div class="host-dashboard-banner">
+          <div>
+            <div style="font-size:0.92rem; font-weight:800; color:#86efac; display:flex; align-items:center; gap:6px;">
+              🏡 ${person} Hosting Roster
+            </div>
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:2px;">
+              ${hostMeals.length} Yom Tov Meals · <strong>${totalGuests} Registered Guests</strong>
+            </div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-primary" style="padding:6px 12px; font-size:0.75rem; font-weight:700;" onclick="exportHostRoster('${person}')">
+              📥 Export ${person} Roster
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     // ══ DAY AGENDA (below calendar) ══
     function renderDayAgenda(dateKey) {
       const container = document.getElementById("mobileDayEventsList");
@@ -3078,12 +3860,13 @@
       const hol = JEWISH_HOLIDAYS[dateKey];
       titleEl.innerHTML = `📅 ${formattedDate}${hol ? ` <span class="jewish-holiday-pill" style="font-size:0.75rem; margin-left:6px;">✡️ ${hol}</span>` : ''}`;
 
+      const hostBanner = getHostSummaryBannerHtml(currentPersonFilter);
       const dayEvts = getFilteredEvents().filter(e => e.date === dateKey);
       if (!dayEvts.length) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No events on this day.${isAdmin ? `<br><button class="btn btn-primary" style="margin-top:10px; font-size:0.78rem;" onclick="openAddEventModal('${dateKey}')">➕ Add Event</button>` : ''}</div>`;
+        container.innerHTML = `${hostBanner}<div style="text-align:center; padding:20px; color:var(--muted); font-size:0.85rem;">No events on this day.${isAdmin ? `<br><button class="btn btn-primary" style="margin-top:10px; font-size:0.78rem;" onclick="openAddEventModal('${dateKey}')">➕ Add Event</button>` : ''}</div>`;
         return;
       }
-      container.innerHTML = dayEvts.map(e => renderAgendaCardHtml(e)).join("");
+      container.innerHTML = hostBanner + dayEvts.map(e => renderAgendaCardHtml(e)).join("");
     }
 
     // ══ CLEAN SELECTED-DAY AGENDA CARD HTML ══
@@ -3098,6 +3881,10 @@
       const isActionTask = (e.type === "action" || e.isInternal);
       const completeTag = (isActionTask && e.isCompleted) ? `<span class="event-tag completed-badge">✅ Done</span>` : '';
 
+      const rsvpCount = getEventRsvpGuestCount(e.id);
+      const isMealOrEvent = (e.type === "meal" || e.type === "event");
+      const rsvpBadge = (isMealOrEvent || rsvpCount > 0) ? `<span class="rsvp-count-badge">👥 ${rsvpCount} Signed Up</span>` : '';
+
       const completeBtnHtml = (isAdmin && isActionTask) 
         ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding: 5px 10px; font-size: 0.75rem; font-weight: 800;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️ Pending' : '✅ Done'}</button>` 
         : '';
@@ -3106,14 +3893,22 @@
         ? `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; color: var(--accent); font-weight: 700;" onclick="event.stopPropagation(); nudgeAssignee('${e.id}')">💬 Nudge</button>` 
         : '';
 
+      const rsvpBtnHtml = isMealOrEvent ? (
+        isAdmin
+          ? `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; border-color: rgba(56,189,248,0.4); color: #7dd3fc; font-weight:700;" onclick="event.stopPropagation(); openEventGuestListModal('${e.id}')">📋 Guest List (${rsvpCount})</button>`
+          : `<button class="btn btn-rsvp-action" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✍️ RSVP (${rsvpCount})</button>`
+      ) : '';
+
       const editBtnHtml = isAdmin
         ? `
           ${completeBtnHtml}
+          ${rsvpBtnHtml}
           ${nudgeBtnHtml}
           <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
           <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); copyEventDirectly('${e.id}')">📋 Copy</button>
         `
         : `
+          ${rsvpBtnHtml}
           ${nudgeBtnHtml}
           <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Details</button>
         `;
@@ -3128,6 +3923,7 @@
             <div class="agenda-tag-group">
               <span class="event-tag" style="background:${cat.color}22; color:${cat.color}; font-weight:800;">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
               ${hol ? `<span class="jewish-holiday-pill" style="font-size:0.68rem;">✡️ ${hol}</span>` : ''}
+              ${rsvpBadge}
               ${completeTag}
               ${e.isInternal ? `<span class="event-tag internal-badge">🔒 Admin</span>` : ''}
             </div>
@@ -3169,16 +3965,30 @@
       const isActionTask = (e.type === "action" || e.isInternal);
       const completeTag = (isActionTask && e.isCompleted) ? `<span class="event-tag completed-badge">✅ Done</span>` : '';
 
+      const rsvpCount = getEventRsvpGuestCount(e.id);
+      const isMealOrEvent = (e.type === "meal" || e.type === "event");
+      const rsvpBadge = (isMealOrEvent || rsvpCount > 0) ? `<span class="rsvp-count-badge">👥 ${rsvpCount} Signed Up</span>` : '';
+
       const completeBtnHtml = (isAdmin && isActionTask) 
         ? `<button class="btn ${e.isCompleted ? 'btn-secondary' : 'btn-primary'}" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); toggleEventComplete('${e.id}')">${e.isCompleted ? '↩️' : '✅'}</button>` 
         : '';
 
+      const rsvpBtnHtml = isMealOrEvent ? (
+        isAdmin
+          ? `<button class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; border-color: rgba(56,189,248,0.4); color: #7dd3fc; font-weight:700;" onclick="event.stopPropagation(); openEventGuestListModal('${e.id}')">📋 Guest List (${rsvpCount})</button>`
+          : `<button class="btn btn-rsvp-action" style="padding: 5px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); openSingleEventRsvpModal('${e.id}')">✍️ RSVP (${rsvpCount})</button>`
+      ) : '';
+
       const editBtnHtml = isAdmin
         ? `
           ${completeBtnHtml}
+          ${rsvpBtnHtml}
           <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openEditEventModal('${e.id}')">✏️ Edit</button>
         `
-        : `<button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Overview</button>`;
+        : `
+          ${rsvpBtnHtml}
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.72rem;" onclick="event.stopPropagation(); openDayOverviewModal('${e.date}', '${e.id}')">ℹ️ Overview</button>
+        `;
 
       const internalHtml = (isAdmin && e.internalNotes) 
         ? `<div class="internal-note-box">🔒 <strong>Admin Note:</strong> ${e.internalNotes}</div>` 
@@ -3193,7 +4003,7 @@
               <div class="date-weekday">${wd}</div>
             </div>
             <div class="event-main-details">
-              <h3>${e.title}${hol ? ` <span class="jewish-holiday-pill">✡️ ${hol}</span>` : ''}${completeTag}${e.isInternal ? ` <span class="event-tag internal-badge">🔒 Admin Only</span>` : ''}</h3>
+              <h3>${e.title}${hol ? ` <span class="jewish-holiday-pill">✡️ ${hol}</span>` : ''}${rsvpBadge}${completeTag}${e.isInternal ? ` <span class="event-tag internal-badge">🔒 Admin Only</span>` : ''}</h3>
               <div class="event-tags-row">
                 <span class="event-tag" style="background:${cat.color}22; color:${cat.color};">${cat.icon ? `${cat.icon} ` : ''}${cat.name}</span>
                 ${assigneesHtml}
@@ -3215,9 +4025,10 @@
     function renderTimeline() {
       const container = document.getElementById("timelineList");
       const filtered = getFilteredEvents().sort((a, b) => new Date(a.date) - new Date(b.date));
-      container.innerHTML = filtered.length
+      const hostBanner = getHostSummaryBannerHtml(currentPersonFilter);
+      container.innerHTML = hostBanner + (filtered.length
         ? filtered.map(e => renderEventCardHtml(e)).join("")
-        : `<div style="text-align:center; padding:40px; color:var(--muted);">No events match this filter.</div>`;
+        : `<div style="text-align:center; padding:40px; color:var(--muted);">No events match this filter.</div>`);
     }
 
     // ══ MULTI-SELECT ASSIGNEES ══
