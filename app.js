@@ -194,9 +194,32 @@ const store = {
   }
 };
 
+function getStepDisplayName(step) {
+  if (!step) return "Next Exercise";
+  if (step.name && typeof step.name === "string") return step.name;
+  if (step.type === "equipment") return "Convert Gear";
+  if (step.type === "transition") return "Transition";
+  if (step.type === "timed") return "Timed Hold";
+  if (step.type === "intervals") return "VO2 Intervals";
+  if (step.type === "superset") return "Superset";
+  if (step.type === "exercise") return "Exercise";
+  return "Next Movement";
+}
+
 function getWorkout(day) {
   const w = store.workouts;
-  return w[day] || WORKOUTS[day] || WORKOUTS.monday;
+  const workout = w[day] || WORKOUTS[day] || WORKOUTS.monday;
+  if (workout && workout.steps) {
+    workout.steps.forEach(step => {
+      if (!step.name) step.name = getStepDisplayName(step);
+      if (step.parts) {
+        step.parts.forEach(p => {
+          if (!p.name) p.name = getStepDisplayName(p);
+        });
+      }
+    });
+  }
+  return workout;
 }
 
 function currentWorkout() {
@@ -209,15 +232,15 @@ function exercise(id, name, equipment, target, sets, workSeconds, restSeconds, c
 }
 
 function superset(name, rounds, restSeconds, parts) {
-  return { type: "superset", name, rounds, restSeconds, parts };
+  return { type: "superset", name: name || "Superset", rounds, restSeconds, parts };
 }
 
 function transition(seconds) {
-  return { type: "transition", seconds };
+  return { type: "transition", name: "Transition", seconds };
 }
 
 function equipment(from, to, seconds) {
-  return { type: "equipment", from, to, seconds };
+  return { type: "equipment", name: "Convert Gear", from, to, seconds };
 }
 
 function timed(id, name, equipment, seconds, cues = []) {
@@ -1811,7 +1834,7 @@ function renderExercise(ex, supersetLabel) {
   let timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets}`;
   if (state.restingBetweenSteps) {
     const nextStepObj = currentWorkout().steps[state.stepIndex + 1];
-    const nextName = nextStepObj ? nextStepObj.name : "Next Exercise";
+    const nextName = getStepDisplayName(nextStepObj);
     timerLabel = `REST BETWEEN EXERCISES · NEXT: ${nextName.toUpperCase()}`;
   } else if (isResting) {
     if (isSuperset) {
@@ -1930,7 +1953,7 @@ function renderExercise(ex, supersetLabel) {
 function renderSuperset(step) {
   if (state.restingBetweenSteps) {
     const nextStepObj = currentWorkout().steps[state.stepIndex + 1];
-    const nextName = nextStepObj ? nextStepObj.name : "Next Exercise";
+    const nextName = getStepDisplayName(nextStepObj);
     const restTime = step.restSeconds || store.settings.supersetRest || 60;
     const actionButtonsHtml = `
       <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
@@ -1945,10 +1968,10 @@ function renderSuperset(step) {
     const gridClass = isFocus ? "layout-focus" : (currentLayout === "split" ? "layout-split" : "layout-stacked");
 
     els.sessionPanel.innerHTML = `
-      ${statusMarkup(`<span class="badge badge-easy">${step.name} Complete 🏆</span>`)}
+      ${statusMarkup(`<span class="badge badge-easy">${step.name || 'Superset'} Complete 🏆</span>`)}
       <div class="session-layout-grid ${gridClass}">
         <div class="session-left-col">
-          <h2 class="exercise-name">${step.name} Complete!</h2>
+          <h2 class="exercise-name">${step.name || 'Superset'} Complete!</h2>
           <p class="equipment">Take a breath before <strong>${nextName}</strong></p>
           ${activeTimerMarkup(`REST BEFORE ${nextName.toUpperCase()}`, state.remaining || restTime, "phase-rest")}
           <div class="desktop-actions">${actionButtonsHtml}</div>
@@ -1977,14 +2000,14 @@ function renderSuperset(step) {
 
   const exParts = (step.parts || []).filter((p) => p.type === "exercise");
   const currentExNum = exParts.findIndex((p) => p.id === part.id) + 1;
-  const badgeLabel = `${step.name} · Round ${state.roundIndex}/${step.rounds} (Movement ${currentExNum}/${exParts.length})`;
+  const badgeLabel = `${step.name || 'Superset'} · Round ${state.roundIndex}/${step.rounds} (Movement ${currentExNum}/${exParts.length})`;
   renderExercise(part, badgeLabel);
 }
 
 function renderTransition(step, part) {
   const sec = part.seconds || 10;
   const nextPart = step.parts[state.supersetPartIndex + 1];
-  const nextName = nextPart ? nextPart.name : "Next Movement";
+  const nextName = getStepDisplayName(nextPart);
 
   const currentLayout = state.layoutMode || (window.innerWidth >= 860 ? "split" : "stacked");
   const isFocus = currentLayout === "focus" || state.setsMinimized;
