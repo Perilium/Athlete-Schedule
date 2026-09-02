@@ -3311,18 +3311,18 @@
             navigator.serviceWorker.ready.then(reg => {
               reg.showNotification(title, {
                 body: body,
-                icon: 'icons/ohrsom-icon.svg',
-                badge: 'icons/ohrsom-icon.svg',
+                icon: '/api/ohrsom-icon/192',
+                badge: '/api/ohrsom-icon/192',
                 vibrate: [200, 100, 200],
                 tag: 'ohrsom-reminder-' + (eventId || Date.now()),
                 renotify: true,
                 data: { url: '/ohrsom-schedule.html' }
               });
             }).catch(() => {
-              try { new Notification(title, { body, icon: 'icons/ohrsom-icon.svg' }); } catch (e) {}
+              try { new Notification(title, { body, icon: '/api/ohrsom-icon/192' }); } catch (e) {}
             });
           } else {
-            try { new Notification(title, { body, icon: 'icons/ohrsom-icon.svg' }); } catch (e) {}
+            try { new Notification(title, { body, icon: '/api/ohrsom-icon/192' }); } catch (e) {}
           }
         } else if (Notification.permission !== 'denied') {
           Notification.requestPermission().then(p => {
