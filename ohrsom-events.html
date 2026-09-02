@@ -9,15 +9,15 @@
   <meta name="apple-mobile-web-app-title" content="Ohrsom Hub">
   <title>Ohrsom · Yom Tov & Events Calendar</title>
   
-  <link rel="icon" type="image/png" sizes="192x192" href="/icons/ohrsom-icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icons/ohrsom-icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/api/ohrsom-icon/192">
+  <link rel="icon" type="image/png" sizes="512x512" href="/api/ohrsom-icon/512">
   <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180x180.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="/icons/ohrsom-icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="/icons/ohrsom-icon-512.png">
-  <link rel="apple-touch-icon-precomposed" href="/icons/apple-touch-icon-precomposed.png">
-  <link rel="manifest" href="/ohrsom-manifest.json">
+  <link rel="apple-touch-icon" href="/api/ohrsom-icon/192">
+  <link rel="apple-touch-icon" sizes="180x180" href="/api/ohrsom-icon/192">
+  <link rel="apple-touch-icon" sizes="192x192" href="/api/ohrsom-icon/192">
+  <link rel="apple-touch-icon" sizes="512x512" href="/api/ohrsom-icon/512">
+  <link rel="apple-touch-icon-precomposed" href="/api/ohrsom-icon/192">
+  <link rel="manifest" href="/api/ohrsom-manifest">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1198,8 +1198,43 @@
       .cal-event-pill-icon { font-size: 0.6rem; }
 
       .day-agenda-section { margin-top: 10px; padding: 10px; }
-      .event-card { padding: 10px; gap: 8px; }
-      .event-card-actions { width: 100%; justify-content: flex-end; margin-top: 4px; }
+
+      /* Mobile Event Card & Actions: Stack vertically so text never gets crushed */
+      .event-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 12px 10px !important;
+        gap: 10px !important;
+      }
+      .event-card-left {
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+      .event-card-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        margin-top: 6px !important;
+        padding-top: 8px !important;
+        border-top: 1px solid var(--surface-border) !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+      }
+      .event-card-actions .btn {
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+        padding: 7px 8px !important;
+        font-size: 0.72rem !important;
+      }
+      .agenda-card-actions {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+      }
+      .agenda-card-actions .btn {
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+        padding: 7px 8px !important;
+        font-size: 0.72rem !important;
+      }
     }
     /* ── RSVP & Meal Roster System Styles ── */
     .rsvp-count-badge {
@@ -1678,7 +1713,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="icons/ohrsom-icon.svg" style="width: 38px; height: 38px; border-radius: 9px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" alt="Ohrsom Icon">
+          <div class="brand-logo" style="width: 40px; height: 40px; font-size: 1.35rem; border-radius: 10px;">📅</div>
           <div>
             <h2 style="font-size: 1.15rem; font-weight: 800;">Download & Install App</h2>
             <p style="font-size: 0.75rem; color: var(--muted);">Direct home screen install for fast access</p>
@@ -3507,10 +3542,21 @@
       const desktopTip = document.getElementById("desktopInstallTip");
       const iosTip = document.getElementById("iosInstallTip");
       const androidTip = document.getElementById("androidInstallTip");
+      const actionBtn = document.getElementById("modalInstallActionBtn");
 
       if (desktopTip) desktopTip.style.display = (dev === 'desktop') ? "block" : "none";
       if (iosTip) iosTip.style.display = (dev === 'ios') ? "block" : "none";
       if (androidTip) androidTip.style.display = (dev === 'android') ? "block" : "none";
+
+      if (actionBtn) {
+        if (dev === 'ios') {
+          actionBtn.innerHTML = "📲 Tap Share (⎋) below ➔ 'Add to Home Screen'";
+        } else if (deferredPrompt) {
+          actionBtn.innerHTML = "📲 Install App on this Device (1-Tap)";
+        } else {
+          actionBtn.innerHTML = "📲 Add Ohrsom Hub to Home Screen";
+        }
+      }
 
       document.getElementById("downloadModal").classList.add("active"); 
     }
@@ -3529,9 +3575,15 @@
       } else {
         const dev = detectUserDevice();
         if (dev === 'ios') {
-          showInAppNotification("🍎 iPhone Install Steps", "1. Tap Share (⎋) at bottom of Safari\n2. Tap 'Add to Home Screen' (➕)");
+          const iosTip = document.getElementById("iosInstallTip");
+          if (iosTip) {
+            iosTip.scrollIntoView({ behavior: 'smooth' });
+            iosTip.style.boxShadow = "0 0 0 2px var(--accent)";
+            setTimeout(() => { iosTip.style.boxShadow = ""; }, 2500);
+          }
+          showInAppNotification("🍎 iPhone / iPad Safari", "Tap Share (⎋) at the bottom, then scroll down and tap 'Add to Home Screen' (➕)");
         } else if (dev === 'android') {
-          showInAppNotification("🤖 Android Install Steps", "Tap the 3 dots (⋮) menu in top right ➔ Tap 'Install App'");
+          showInAppNotification("🤖 Android Chrome", "Tap the 3 dots (⋮) menu in top right ➔ Tap 'Install App' or 'Add to Home screen'");
         } else {
           showInAppNotification("🖥️ Computer Install", "Click the Install icon (⨁) in your browser address bar at the top!");
         }
@@ -3749,9 +3801,13 @@
 
       if (dayEvts.length === 0) {
         listContainer.innerHTML = `
-          <div style="text-align: center; padding: 25px 10px; color: var(--muted); font-size: 0.88rem;">
-            🌿 No events scheduled on ${formattedDate}.
-            ${isAdmin ? `<br><button class="btn btn-primary" style="margin-top: 12px;" onclick="openAddEventFromOverview()">➕ Add Event</button>` : ''}
+          <div style="text-align: center; padding: 28px 14px; background: var(--surface-elevated); border: 1px dashed var(--surface-border); border-radius: var(--radius-sm);">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">${hol ? '✡️' : '📅'}</div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink);">${hol ? hol : 'No Events Scheduled'}</div>
+            <p style="font-size: 0.82rem; color: var(--muted); margin-top: 5px;">
+              ${hol ? 'Special Yom Tov day. No meals or sessions currently scheduled for this date.' : `No events scheduled on ${formattedDate}.`}
+            </p>
+            ${isAdmin ? `<button class="btn btn-primary" style="margin-top: 14px;" onclick="openAddEventFromOverview()">➕ Add Event / Meal</button>` : ''}
           </div>
         `;
       } else {
