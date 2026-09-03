@@ -823,8 +823,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(3, 7, 12, 0.85);
-      backdrop-filter: blur(10px);
+      background: rgba(3, 7, 12, 0.92);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -833,6 +832,8 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .modal-overlay.active {
@@ -848,14 +849,13 @@
       max-width: 560px;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      transform: scale(0.95);
-      transition: transform 0.2s ease;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
       padding: 18px;
+      margin: auto;
     }
 
     .modal-overlay.active .modal-card {
-      transform: scale(1);
+      opacity: 1;
     }
 
     .modal-header {
@@ -4295,7 +4295,10 @@
         cell.innerHTML = cellHtml;
         cell.addEventListener("click", () => {
           selectCalendarDay(dateKey);
-          openDayOverviewModal(dateKey);
+          const agendaSec = document.getElementById("mobileDayAgendaSection");
+          if (agendaSec) {
+            agendaSec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
         });
         grid.appendChild(cell);
       }
