@@ -435,6 +435,14 @@ function playFinishChime() {
   playTone(1174.66, "triangle", 320, 0.18, 140);
 }
 
+function playSwitchSideChime() {
+  playTone(880.00, "square", 120, 0.14, 0);
+  playTone(1318.51, "sine", 220, 0.16, 110);
+  if (store.settings.vibration && navigator.vibrate) {
+    try { navigator.vibrate([120, 80, 180]); } catch (_) {}
+  }
+}
+
 function playIntervalCue(isHard) {
   if (isHard) {
     playTone(1046.50, "square", 150, 0.12, 0);
@@ -1223,10 +1231,15 @@ function getNextStepPreview() {
 
 function formatStepSummary(step) {
   if (step.type === "exercise") {
-    return { title: step.name, detail: `${step.sets} sets · ${step.target}`, equipment: step.equipment };
+    const uniTag = step.unilateral ? " · ⚖️ Both Sides (Left + Right)" : "";
+    return { 
+      title: step.name + (step.unilateral ? " (Left + Right)" : ""), 
+      detail: `${step.sets} sets · ${step.target}${uniTag}`, 
+      equipment: step.equipment 
+    };
   }
   if (step.type === "superset") {
-    const names = step.parts.filter((p) => p.type === "exercise").map((p) => p.name).join(" + ");
+    const names = step.parts.filter((p) => p.type === "exercise").map((p) => p.name + (p.unilateral ? " (L+R)" : "")).join(" + ");
     return { title: step.name, detail: `${step.rounds} rounds (${names})`, equipment: "Dumbbells / Mat" };
   }
   if (step.type === "equipment") {
@@ -1645,30 +1658,37 @@ function activeSetHeroMarkup(ex, last) {
 
   let repsInputsHtml = "";
   if (isUnilateral) {
+    const sideNoun = (ex.unilateral === "leg" ? "LEG" : (ex.unilateral === "arm" ? "ARM" : "SIDE"));
     repsInputsHtml = `
-      <div class="unilateral-inputs-wrap" style="gap: 8px;">
-        <div style="flex: 1;">
-          <span style="font-size: 0.68rem; color: var(--accent); font-weight: 800;">LEFT (1ST)</span>
+      <div class="unilateral-inputs-wrap" style="display: flex; gap: 8px; width: 100%;">
+        <div class="unilateral-side-card side-left" style="flex: 1; padding: 8px 10px; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.74rem; color: var(--accent); font-weight: 900; letter-spacing: 0.03em;">👈 1ST: LEFT ${sideNoun}</span>
+            <span style="font-size: 0.65rem; background: rgba(45, 212, 191, 0.2); color: var(--accent); padding: 1px 6px; border-radius: 4px; font-weight: 800;">1ST</span>
+          </div>
           <div class="input-with-stepper">
             <button type="button" class="mini-stepper-btn" onclick="stepInputValue('left', -1)">-1</button>
             <input id="left" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
-              value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L">
+              value="${todayRecord?.left ?? targetRepsDefault}" placeholder="L Reps">
             <button type="button" class="mini-stepper-btn" onclick="stepInputValue('left', 1)">+1</button>
           </div>
         </div>
-        <div style="flex: 1;">
-          <span style="font-size: 0.68rem; color: var(--muted); font-weight: 800;">RIGHT (2ND)</span>
+        <div class="unilateral-side-card side-right" style="flex: 1; padding: 8px 10px; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.74rem; color: var(--gold); font-weight: 900; letter-spacing: 0.03em;">👉 2ND: RIGHT ${sideNoun}</span>
+            <span style="font-size: 0.65rem; background: rgba(251, 191, 36, 0.2); color: var(--gold); padding: 1px 6px; border-radius: 4px; font-weight: 800;">2ND</span>
+          </div>
           <div class="input-with-stepper">
             <button type="button" class="mini-stepper-btn" onclick="stepInputValue('right', -1)">-1</button>
             <input id="right" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
-              value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R">
+              value="${todayRecord?.right ?? targetRepsDefault}" placeholder="R Reps">
             <button type="button" class="mini-stepper-btn" onclick="stepInputValue('right', 1)">+1</button>
           </div>
         </div>
       </div>
-      <p style="margin: 6px 0 0; font-size: 0.74rem; color: var(--accent); font-weight: 700; text-align: center;">
-        🔄 Start Left side first (~${Math.round((ex.workSeconds || 60) / 2)}s), then switch to Right side (~${Math.round((ex.workSeconds || 60) / 2)}s)
-      </p>
+      <div style="margin-top: 8px; padding: 7px 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px; font-size: 0.76rem; color: var(--muted); text-align: center; line-height: 1.35;">
+        ⚖️ <strong>Unilateral Flow:</strong> Perform all reps on your <strong>LEFT</strong> ${sideNoun.toLowerCase()} first, then repeat on your <strong>RIGHT</strong> ${sideNoun.toLowerCase()}.
+      </div>
     `;
   } else {
     repsInputsHtml = `
@@ -1682,13 +1702,16 @@ function activeSetHeroMarkup(ex, last) {
   }
 
   const setBadgeLabel = isSuperset ? `ROUND ${state.roundIndex || 1} OF ${step.rounds || 3}` : `SET ${s} OF ${ex.sets}`;
+  const targetLabelHtml = isUnilateral 
+    ? `Target: <strong>${progressiveTarget} reps EACH ${ex.unilateral ? ex.unilateral.toUpperCase() : 'SIDE'}</strong> (Left + Right)`
+    : `Target: <strong>${progressiveTarget} reps</strong>`;
 
   return `
     <div class="active-set-hero-card">
       ${supersetBannerHtml}
       <div class="active-set-header">
         <span class="active-set-badge">${setBadgeLabel}</span>
-        <span class="active-set-target">Target: <strong>${progressiveTarget} reps</strong></span>
+        <span class="active-set-target">${targetLabelHtml}</span>
       </div>
       
       <div class="active-set-controls">
@@ -1703,7 +1726,7 @@ function activeSetHeroMarkup(ex, last) {
         </div>
         
         <div class="active-input-group">
-          <label for="reps">${isTimeTracking ? "HOLD SECONDS" : (isUnilateral ? "UNILATERAL REPS" : "REPS PERFORMED")}</label>
+          <label for="reps">${isTimeTracking ? "HOLD SECONDS" : (isUnilateral ? "UNILATERAL REPS (LEFT & RIGHT)" : "REPS PERFORMED")}</label>
           ${repsInputsHtml}
         </div>
       </div>
@@ -1890,7 +1913,7 @@ function renderExercise(ex, supersetLabel) {
           </div>
         `;
       } else if (nextStepObj.type === "superset") {
-        const names = nextStepObj.parts.filter(p => p.type === "exercise").map(p => p.name).join(" + ");
+        const names = nextStepObj.parts.filter(p => p.type === "exercise").map(p => p.name + (p.unilateral ? " (Left + Right)" : "")).join(" + ");
         nextStepPrepBox = `
           <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-sm);">
             <div style="font-size: 0.75rem; color: var(--purple); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
@@ -1905,17 +1928,19 @@ function renderExercise(ex, supersetLabel) {
           </div>
         `;
       } else if (nextStepObj.type === "exercise") {
+        const uniTag = nextStepObj.unilateral ? `<div style="font-size: 0.8rem; color: var(--accent); font-weight: 800; margin-top: 5px;">⚖️ Unilateral: Perform LEFT side first, then switch to RIGHT side.</div>` : '';
         nextStepPrepBox = `
           <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: var(--radius-sm);">
             <div style="font-size: 0.75rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
               <span>🏋️</span> NEXT EXERCISE DETAILS
             </div>
             <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-top: 5px;">
-              ${nextStepObj.name}
+              ${nextStepObj.name} ${nextStepObj.unilateral ? '<span style="font-size:0.82rem; color:var(--accent); font-weight:800;">(Left + Right)</span>' : ''}
             </div>
             <div style="font-size: 0.84rem; color: var(--muted); margin-top: 4px;">
               Equipment: <strong style="color: var(--ink);">${nextStepObj.equipment}</strong> · Target: <strong style="color: var(--ink);">${nextStepObj.target}</strong>
             </div>
+            ${uniTag}
             ${nextStepObj.cues && nextStepObj.cues.length ? `
               <div style="font-size: 0.8rem; color: var(--gold); margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
                 💡 Key Setup Cue: "<em>${nextStepObj.cues[0]}</em>"
@@ -2033,18 +2058,24 @@ function renderExercise(ex, supersetLabel) {
   const phaseClass = isResting ? "phase-rest" : "phase-work";
   const displaySeconds = isResting ? (state.remaining || restTime) : (state.remaining || ex.workSeconds || 45);
 
-  let completeBtnText = `✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)`;
+  let completeBtnText = ex.unilateral
+    ? `✓ Log Both Sides (Left & Right) & Rest (${restTime}s)`
+    : `✓ Complete Set ${state.setIndex} of ${ex.sets} & Rest (${restTime}s)`;
   if (isSuperset) {
     const nextPart = step.parts[state.supersetPartIndex + 1];
     if (nextPart) {
       const nextTargetName = nextPart.type === "transition" ? (step.parts[state.supersetPartIndex + 2]?.name || "Next Movement") : nextPart.name;
-      completeBtnText = `✓ Log ${ex.name} (Round ${state.roundIndex}) ➔ ${nextTargetName}`;
+      completeBtnText = ex.unilateral
+        ? `✓ Log ${ex.name} (Both Left & Right) ➔ ${nextTargetName}`
+        : `✓ Log ${ex.name} (Round ${state.roundIndex}) ➔ ${nextTargetName}`;
     } else {
       const isFinalRound = state.roundIndex >= step.rounds;
       if (isFinalRound) {
         completeBtnText = `✓ Complete ${ex.name} (Final Round ${state.roundIndex}) ➔ Finish ${step.name} 🏆`;
       } else {
-        completeBtnText = `✓ Complete ${ex.name} (Round ${state.roundIndex}) & Rest (${restTime}s)`;
+        completeBtnText = ex.unilateral
+          ? `✓ Complete ${ex.name} (Both Left & Right) & Rest (${restTime}s)`
+          : `✓ Complete ${ex.name} (Round ${state.roundIndex}) & Rest (${restTime}s)`;
       }
     }
   }
@@ -2092,11 +2123,22 @@ function renderExercise(ex, supersetLabel) {
     ${flashHtml}
     <div class="session-layout-grid ${gridClass}">
       <div class="session-left-col">
+        ${ex.unilateral ? `
+          <div class="unilateral-header-badge">
+            <span>⚖️</span>
+            <span>UNILATERAL: PERFORM BOTH SIDES (LEFT THEN RIGHT)</span>
+          </div>
+        ` : ''}
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px; width: 100%;">
-          <h2 class="exercise-name" style="margin-bottom:0;">${ex.name}</h2>
+          <h2 class="exercise-name" style="margin-bottom:0;">
+            ${ex.name}
+            ${ex.unilateral ? `<span style="font-size:0.92rem; color:var(--accent); font-weight:700; margin-left:6px; display:inline-block;">(Left + Right)</span>` : ''}
+          </h2>
           <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(ex.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>
         </div>
-        <p class="equipment" style="width: 100%;">🔧 ${ex.equipment} · ⏱ ${restTime}s rest</p>
+        <p class="equipment" style="width: 100%;">
+          🔧 ${ex.equipment} · ⏱ ${restTime}s rest${ex.unilateral ? ` · 🎯 Target: <strong>${progressiveTarget} reps per side</strong>` : ''}
+        </p>
         
         ${focusSummaryHtml}
         ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
@@ -2172,17 +2214,19 @@ function renderSuperset(step) {
           </div>
         `;
       } else if (nextStepObj.type === "exercise") {
+        const uniTag = nextStepObj.unilateral ? `<div style="font-size: 0.8rem; color: var(--accent); font-weight: 800; margin-top: 5px;">⚖️ Unilateral: Perform LEFT side first, then switch to RIGHT side.</div>` : '';
         nextStepPrepBox = `
           <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: var(--radius-sm);">
             <div style="font-size: 0.75rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
               <span>🏋️</span> NEXT EXERCISE DETAILS
             </div>
             <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-top: 5px;">
-              ${nextStepObj.name}
+              ${nextStepObj.name} ${nextStepObj.unilateral ? '<span style="font-size:0.82rem; color:var(--accent); font-weight:800;">(Left + Right)</span>' : ''}
             </div>
             <div style="font-size: 0.84rem; color: var(--muted); margin-top: 4px;">
               Equipment: <strong style="color: var(--ink);">${nextStepObj.equipment}</strong> · Target: <strong style="color: var(--ink);">${nextStepObj.target}</strong>
             </div>
+            ${uniTag}
           </div>
         `;
       }
@@ -2388,10 +2432,27 @@ function activeTimerMarkup(label, seconds, phaseClass = "phase-rest") {
   else if ((label || "").toLowerCase().includes("transition")) shortPhase = "TRANSITION";
   else if ((label || "").toLowerCase().includes("gear")) shortPhase = "CONVERT";
 
+  const ex = currentPlayable();
+  const isUnilateralWork = (state.phase === "work" && ex && ex.unilateral);
+  const sideNoun = ex?.unilateral ? (ex.unilateral === "leg" ? "LEG" : (ex.unilateral === "arm" ? "ARM" : "SIDE")) : "SIDE";
+  const halfSec = Math.floor(totalSec / 2);
+  const isRightSide = isUnilateralWork && shown <= halfSec;
+
+  let unilateralGuidanceHtml = "";
+  if (isUnilateralWork) {
+    unilateralGuidanceHtml = `
+      <div class="timer-side-guidance-pill ${isRightSide ? 'side-right-active' : 'side-left-active'}" id="timerSideGuidancePill">
+        ${isRightSide 
+          ? `👉 2ND: PERFORM RIGHT ${sideNoun} NOW!` 
+          : `👈 1ST: PERFORM LEFT ${sideNoun} (~${Math.max(0, shown - halfSec)}s remaining)`}
+      </div>
+    `;
+  }
+
   return `
     <div class="timer-container">
       ${label ? `<div class="timer-stage-title">${label}</div>` : ""}
-      
+      ${unilateralGuidanceHtml}
       <div class="timer-ring-wrapper" id="timerCenterClick" title="Tap to adjust timer">
         <svg class="timer-svg" viewBox="0 0 200 200">
           <circle class="timer-svg-track" cx="100" cy="100" r="${radius}"></circle>
@@ -2867,6 +2928,29 @@ function updateTimerDisplay() {
     const pct = Math.max(0, Math.min(1, state.remaining / state.totalTimerSeconds));
     const offset = circumference * (1 - pct);
     ringFill.style.strokeDashoffset = offset;
+  }
+
+  // Live Unilateral Side Switcher during Work Phase
+  const ex = currentPlayable();
+  if (ex && ex.unilateral && state.phase === "work") {
+    const totalSec = state.totalTimerSeconds > 0 ? state.totalTimerSeconds : (ex.workSeconds || 60);
+    const halfSec = Math.floor(totalSec / 2);
+    const pill = document.getElementById("timerSideGuidancePill");
+    const sideNoun = (ex.unilateral === "leg" ? "LEG" : (ex.unilateral === "arm" ? "ARM" : "SIDE"));
+    if (pill) {
+      if (state.remaining > halfSec) {
+        pill.className = "timer-side-guidance-pill side-left-active";
+        pill.innerHTML = `👈 1ST: PERFORM LEFT ${sideNoun} (~${state.remaining - halfSec}s remaining)`;
+      } else {
+        pill.className = "timer-side-guidance-pill side-right-active";
+        pill.innerHTML = `👉 2ND: SWITCH TO RIGHT ${sideNoun} NOW!`;
+      }
+    }
+    // Halfway alert (chime & notification)
+    if (state.remaining === halfSec && state.running) {
+      playSwitchSideChime();
+      setFlashNotice(`👉 SWITCH SIDES NOW! Move to your RIGHT ${sideNoun.toLowerCase()}!`);
+    }
   }
 }
 
