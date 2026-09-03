@@ -2232,3 +2232,39 @@ h3 {
     font-size: 0.85rem;
   }
 }
+
+/* ── Transition & Rest Between Exercises ── */
+.transition-hero-card {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.09), rgba(15, 25, 35, 0.98)), var(--surface) !important;
+  border: 1px solid rgba(45, 212, 191, 0.38) !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.completed-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.completed-recap-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-top: 12px;
+}
+
+.upnext-prep-detail-card {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+}
+

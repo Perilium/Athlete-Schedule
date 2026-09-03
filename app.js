@@ -1831,12 +1831,193 @@ function renderExercise(ex, supersetLabel) {
   const restTime = isSuperset ? (step.restSeconds || store.settings.supersetRest || 60) : (ex.restSeconds || store.settings.defaultRest || 45);
   const isResting = state.phase === "rest";
 
-  let timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets}`;
   if (state.restingBetweenSteps) {
     const nextStepObj = currentWorkout().steps[state.stepIndex + 1];
-    const nextName = getStepDisplayName(nextStepObj);
-    timerLabel = `REST BETWEEN EXERCISES · NEXT: ${nextName.toUpperCase()}`;
-  } else if (isResting) {
+    const nextSummary = nextStepObj ? formatStepSummary(nextStepObj) : { title: "Session Complete", detail: "Finished all steps!", equipment: "" };
+    const nextName = nextSummary.title;
+    const stepAfterNext = currentWorkout().steps[state.stepIndex + 2];
+    const afterSummary = stepAfterNext ? formatStepSummary(stepAfterNext) : null;
+
+    // Get final logged set summary for completed exercise
+    const allRecordsForEx = state.sessionRecords.filter(r => r.exerciseId === ex.id);
+    const lastLogged = allRecordsForEx[allRecordsForEx.length - 1];
+    let finalSetText = "";
+    if (lastLogged) {
+      if (lastLogged.left !== undefined) {
+        finalSetText = `${lastLogged.weight ? lastLogged.weight + 'kg · ' : ''}${lastLogged.left}L / ${lastLogged.right}R`;
+      } else if (lastLogged.reps !== undefined) {
+        finalSetText = `${lastLogged.weight ? lastLogged.weight + 'kg · ' : ''}${lastLogged.reps} reps`;
+      }
+    }
+
+    const phaseClass = "phase-rest";
+    const displaySeconds = state.remaining || restTime;
+    const skipBtnText = `Ready: Start ${nextName} ➔`;
+
+    const actionButtonsHtml = `
+      <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
+        <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">${skipBtnText}</button>
+        <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
+        <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
+      </div>
+    `;
+
+    let flashHtml = "";
+    if (state.lastTransitionNotice) {
+      flashHtml = `<div class="session-flash-banner"><span>${state.lastTransitionNotice}</span></div>`;
+    }
+
+    const currentLayout = state.layoutMode || (window.innerWidth >= 860 ? "split" : "stacked");
+    const isFocus = currentLayout === "focus" || state.setsMinimized;
+    const gridClass = isFocus ? "layout-focus" : (currentLayout === "split" ? "layout-split" : "layout-stacked");
+
+    let nextStepPrepBox = "";
+    if (nextStepObj) {
+      if (nextStepObj.type === "equipment") {
+        nextStepPrepBox = `
+          <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm);">
+            <div style="font-size: 0.75rem; color: var(--blue); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
+              <span>🔧</span> GEAR CONVERSION SETUP
+            </div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-top: 5px; line-height: 1.3;">
+              Switch from <span style="color: var(--gold); text-decoration: line-through;">${nextStepObj.from}</span> ➔ <span style="color: var(--accent); font-weight: 900;">${nextStepObj.to}</span>
+            </div>
+            ${afterSummary ? `
+              <div style="font-size: 0.82rem; color: var(--muted); margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                ⚡ Getting ready for: <strong style="color: var(--ink);">${afterSummary.title}</strong> (${afterSummary.detail})
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else if (nextStepObj.type === "superset") {
+        const names = nextStepObj.parts.filter(p => p.type === "exercise").map(p => p.name).join(" + ");
+        nextStepPrepBox = `
+          <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: var(--radius-sm);">
+            <div style="font-size: 0.75rem; color: var(--purple); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
+              <span>⚡</span> UPCOMING SUPERSET (${nextStepObj.rounds} ROUNDS)
+            </div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-top: 5px;">
+              ${nextStepObj.name}
+            </div>
+            <div style="font-size: 0.84rem; color: var(--accent); font-weight: 700; margin-top: 4px;">
+              Movements: ${names}
+            </div>
+          </div>
+        `;
+      } else if (nextStepObj.type === "exercise") {
+        nextStepPrepBox = `
+          <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: var(--radius-sm);">
+            <div style="font-size: 0.75rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
+              <span>🏋️</span> NEXT EXERCISE DETAILS
+            </div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-top: 5px;">
+              ${nextStepObj.name}
+            </div>
+            <div style="font-size: 0.84rem; color: var(--muted); margin-top: 4px;">
+              Equipment: <strong style="color: var(--ink);">${nextStepObj.equipment}</strong> · Target: <strong style="color: var(--ink);">${nextStepObj.target}</strong>
+            </div>
+            ${nextStepObj.cues && nextStepObj.cues.length ? `
+              <div style="font-size: 0.8rem; color: var(--gold); margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                💡 Key Setup Cue: "<em>${nextStepObj.cues[0]}</em>"
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+    }
+
+    const transitionHeroHtml = `
+      <div class="active-set-hero-card transition-hero-card">
+        <div class="active-set-header">
+          <span class="active-set-badge" style="background: rgba(45, 212, 191, 0.22); color: var(--accent); font-weight: 900; letter-spacing: 0.04em;">
+            ⏭️ UP NEXT
+          </span>
+          <span class="active-set-target" style="color: var(--gold); font-weight: 800;">
+            RESTING BEFORE NEXT STEP
+          </span>
+        </div>
+
+        <div style="margin-top: 6px;">
+          <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">COMING UP:</span>
+          <h3 style="font-size: 1.35rem; font-weight: 900; color: var(--ink); margin-top: 2px;">
+            ${nextName}
+          </h3>
+        </div>
+
+        ${nextStepPrepBox}
+
+        <!-- Recap of Completed Exercise -->
+        <div class="completed-recap-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+            <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
+              FINISHED JUST NOW
+            </span>
+            <span style="font-size: 0.75rem; color: var(--green); font-weight: 800; background: rgba(34, 197, 94, 0.15); padding: 2px 6px; border-radius: 4px;">
+              ✓ ALL ${ex.sets} SETS COMPLETE
+            </span>
+          </div>
+          <div style="font-size: 0.98rem; font-weight: 800; color: var(--ink); margin-top: 4px;">
+            🏆 ${ex.name}
+          </div>
+          ${finalSetText ? `<div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Final Set Logged: <strong style="color: var(--ink);">${finalSetText}</strong></div>` : ''}
+        </div>
+      </div>
+    `;
+
+    els.sessionPanel.innerHTML = `
+      ${statusMarkup(`<span class="badge badge-easy">✅ ${ex.name} Complete · Next: ${nextName}</span>`)}
+      ${flashHtml}
+      <div class="session-layout-grid ${gridClass}">
+        <div class="session-left-col">
+          <div class="completed-step-pill">
+            <span>✓</span>
+            <span>${ex.name} Finished (${ex.sets}/${ex.sets} Sets Logged)</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px; width: 100%;">
+            <div>
+              <div style="font-size: 0.74rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em;">REST & PREPARE FOR:</div>
+              <h2 class="exercise-name" style="margin-bottom:0; font-size: 1.85rem; color: var(--ink);">${nextName}</h2>
+            </div>
+            ${nextStepObj && nextStepObj.type === 'exercise' ? `<a class="youtube-link-btn" href="${getExerciseYouTubeUrl(nextStepObj.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>` : ''}
+          </div>
+          <p class="equipment" style="width: 100%;">
+            ${nextSummary.equipment ? `🔧 ${nextSummary.equipment} · ` : ''}⏱ ${restTime}s rest between exercises
+          </p>
+
+          ${activeTimerMarkup(`REST BEFORE: ${nextName.toUpperCase()}`, displaySeconds, phaseClass)}
+
+          <div class="desktop-actions">
+            ${actionButtonsHtml}
+          </div>
+        </div>
+
+        <div class="session-right-col">
+          <div class="minimize-bar-wrap">
+            <button type="button" class="minimize-bar-btn" onclick="toggleSetsVisibility()" title="Hide sets and expand timer">
+              ⏱️ Hide Sets (Focus Timer)
+            </button>
+          </div>
+
+          ${transitionHeroHtml}
+
+          <div class="mobile-actions">
+            ${actionButtonsHtml}
+          </div>
+
+          ${expandableSetsMarkup(ex, last)}
+          ${expandableProgressiveLoadingMarkup(ex)}
+          ${expandableCuesMarkup(ex.cues)}
+          ${upNextMarkup()}
+        </div>
+      </div>
+    `;
+    bindSessionButtons(ex);
+    return;
+  }
+
+  let timerLabel = `WORK · SET ${state.setIndex} OF ${ex.sets}`;
+  if (isResting) {
     if (isSuperset) {
       timerLabel = `REST · AFTER ROUND ${Math.max(1, state.roundIndex - 1)} OF ${step.rounds}`;
     } else {
@@ -1868,11 +2049,9 @@ function renderExercise(ex, supersetLabel) {
     }
   }
 
-  let skipBtnText = state.restingBetweenSteps
-    ? "Ready for Next Exercise ➔"
-    : (isSuperset
-      ? `Skip Rest & Start Round ${state.roundIndex} (${ex.name}) ➔`
-      : `Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔`);
+  let skipBtnText = isSuperset
+    ? `Skip Rest & Start Round ${state.roundIndex} (${ex.name}) ➔`
+    : `Skip Rest & Start Set ${state.setIndex} of ${ex.sets} ➔`;
 
   const actionButtonsHtml = `
     <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
@@ -1953,11 +2132,15 @@ function renderExercise(ex, supersetLabel) {
 function renderSuperset(step) {
   if (state.restingBetweenSteps) {
     const nextStepObj = currentWorkout().steps[state.stepIndex + 1];
-    const nextName = getStepDisplayName(nextStepObj);
+    const nextSummary = nextStepObj ? formatStepSummary(nextStepObj) : { title: "Session Complete", detail: "Finished all steps!", equipment: "" };
+    const nextName = nextSummary.title;
+    const stepAfterNext = currentWorkout().steps[state.stepIndex + 2];
+    const afterSummary = stepAfterNext ? formatStepSummary(stepAfterNext) : null;
     const restTime = step.restSeconds || store.settings.supersetRest || 60;
+    const skipBtnText = `Ready: Start ${nextName} ➔`;
     const actionButtonsHtml = `
       <div class="session-actions" style="width: 100%; display: flex; flex-wrap: wrap; gap: 8px;">
-        <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">Ready for Next Exercise (${nextName}) ➔</button>
+        <button class="primary-btn" style="flex: 1 1 100%;" data-action="skip" type="button">${skipBtnText}</button>
         <button class="secondary-btn" data-action="prev-step" type="button" style="flex: 1;">⏮ Prev</button>
         <button class="ghost-btn" data-action="end-session" type="button" style="flex: 1;">✕ Exit</button>
       </div>
@@ -1967,16 +2150,104 @@ function renderSuperset(step) {
     const isFocus = currentLayout === "focus" || state.setsMinimized;
     const gridClass = isFocus ? "layout-focus" : (currentLayout === "split" ? "layout-split" : "layout-stacked");
 
+    const exParts = (step.parts || []).filter(p => p.type === "exercise");
+    const exNames = exParts.map(p => p.name).join(" + ");
+
+    let nextStepPrepBox = "";
+    if (nextStepObj) {
+      if (nextStepObj.type === "equipment") {
+        nextStepPrepBox = `
+          <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm);">
+            <div style="font-size: 0.75rem; color: var(--blue); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
+              <span>🔧</span> GEAR CONVERSION SETUP
+            </div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-top: 5px; line-height: 1.3;">
+              Switch from <span style="color: var(--gold); text-decoration: line-through;">${nextStepObj.from}</span> ➔ <span style="color: var(--accent); font-weight: 900;">${nextStepObj.to}</span>
+            </div>
+            ${afterSummary ? `
+              <div style="font-size: 0.82rem; color: var(--muted); margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                ⚡ Getting ready for: <strong style="color: var(--ink);">${afterSummary.title}</strong> (${afterSummary.detail})
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else if (nextStepObj.type === "exercise") {
+        nextStepPrepBox = `
+          <div class="upnext-prep-detail-card" style="margin: 10px 0; padding: 12px 14px; background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: var(--radius-sm);">
+            <div style="font-size: 0.75rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
+              <span>🏋️</span> NEXT EXERCISE DETAILS
+            </div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-top: 5px;">
+              ${nextStepObj.name}
+            </div>
+            <div style="font-size: 0.84rem; color: var(--muted); margin-top: 4px;">
+              Equipment: <strong style="color: var(--ink);">${nextStepObj.equipment}</strong> · Target: <strong style="color: var(--ink);">${nextStepObj.target}</strong>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    const transitionHeroHtml = `
+      <div class="active-set-hero-card transition-hero-card">
+        <div class="active-set-header">
+          <span class="active-set-badge" style="background: rgba(45, 212, 191, 0.22); color: var(--accent); font-weight: 900; letter-spacing: 0.04em;">
+            ⏭️ UP NEXT
+          </span>
+          <span class="active-set-target" style="color: var(--gold); font-weight: 800;">
+            RESTING BEFORE NEXT STEP
+          </span>
+        </div>
+
+        <div style="margin-top: 6px;">
+          <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">COMING UP:</span>
+          <h3 style="font-size: 1.35rem; font-weight: 900; color: var(--ink); margin-top: 2px;">
+            ${nextName}
+          </h3>
+        </div>
+
+        ${nextStepPrepBox}
+
+        <div class="completed-recap-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+            <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
+              FINISHED JUST NOW
+            </span>
+            <span style="font-size: 0.75rem; color: var(--green); font-weight: 800; background: rgba(34, 197, 94, 0.15); padding: 2px 6px; border-radius: 4px;">
+              ✓ ALL ${step.rounds} ROUNDS COMPLETE
+            </span>
+          </div>
+          <div style="font-size: 0.98rem; font-weight: 800; color: var(--ink); margin-top: 4px;">
+            🏆 ${step.name || 'Superset'}
+          </div>
+          <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Completed movements: <strong>${exNames}</strong></div>
+        </div>
+      </div>
+    `;
+
     els.sessionPanel.innerHTML = `
-      ${statusMarkup(`<span class="badge badge-easy">${step.name || 'Superset'} Complete 🏆</span>`)}
+      ${statusMarkup(`<span class="badge badge-easy">✅ ${step.name || 'Superset'} Complete · Next: ${nextName}</span>`)}
       <div class="session-layout-grid ${gridClass}">
         <div class="session-left-col">
-          <h2 class="exercise-name">${step.name || 'Superset'} Complete!</h2>
-          <p class="equipment">Take a breath before <strong>${nextName}</strong></p>
-          ${activeTimerMarkup(`REST BEFORE ${nextName.toUpperCase()}`, state.remaining || restTime, "phase-rest")}
+          <div class="completed-step-pill">
+            <span>✓</span>
+            <span>${step.name || 'Superset'} Finished (${step.rounds}/${step.rounds} Rounds Complete)</span>
+          </div>
+
+          <div style="margin-bottom:4px;">
+            <div style="font-size: 0.74rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em;">REST & PREPARE FOR:</div>
+            <h2 class="exercise-name" style="margin-bottom:0; font-size: 1.85rem; color: var(--ink);">${nextName}</h2>
+          </div>
+          <p class="equipment" style="width: 100%;">
+            ${nextSummary.equipment ? `🔧 ${nextSummary.equipment} · ` : ''}⏱ ${restTime}s rest between steps
+          </p>
+
+          ${activeTimerMarkup(`REST BEFORE: ${nextName.toUpperCase()}`, state.remaining || restTime, "phase-rest")}
+
           <div class="desktop-actions">${actionButtonsHtml}</div>
         </div>
         <div class="session-right-col">
+          ${transitionHeroHtml}
           <div class="mobile-actions">${actionButtonsHtml}</div>
           ${upNextMarkup()}
         </div>
