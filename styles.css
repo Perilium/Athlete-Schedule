@@ -2335,4 +2335,18 @@ h3 {
   100% { transform: scale(1); }
 }
 
+/* ── Resting Hero Card & Upcoming Step Carousel Pill ── */
+.resting-hero-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(15, 25, 35, 0.98)), var(--surface) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.pill-upcoming-next {
+  border: 1px dashed var(--gold) !important;
+  color: var(--gold) !important;
+  background: rgba(251, 191, 36, 0.1) !important;
+}
+
+
 

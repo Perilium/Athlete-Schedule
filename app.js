@@ -1175,13 +1175,31 @@ function getNextStepPreview() {
   const step = currentStep();
   if (!step) return null;
 
+  if (state.restingBetweenSteps) {
+    const nextStepObj = workout.steps[state.stepIndex + 1];
+    if (!nextStepObj) return { title: "🎉 Workout Complete", detail: "Save & Finish", equipment: "None" };
+    return formatStepSummary(nextStepObj);
+  }
+
   if (step.type === "exercise") {
-    if (state.setIndex < step.sets) {
-      return {
-        title: step.name,
-        detail: `Set ${state.setIndex + 1} of ${step.sets} (Target: ${step.target})`,
-        equipment: step.equipment
-      };
+    if (state.phase === "rest") {
+      // During rest between sets, state.setIndex is already the upcoming set to be performed!
+      if (state.setIndex <= step.sets) {
+        return {
+          title: step.name + (step.unilateral ? " (Left + Right)" : ""),
+          detail: `Next: Set ${state.setIndex} of ${step.sets} (Target: ${step.target})`,
+          equipment: step.equipment
+        };
+      }
+    } else {
+      // During active work set:
+      if (state.setIndex < step.sets) {
+        return {
+          title: step.name + (step.unilateral ? " (Left + Right)" : ""),
+          detail: `Next: Set ${state.setIndex + 1} of ${step.sets} (Target: ${step.target})`,
+          equipment: step.equipment
+        };
+      }
     }
     const nextStepObj = workout.steps[state.stepIndex + 1];
     if (!nextStepObj) return { title: "🎉 Workout Complete", detail: "Save & Finish", equipment: "None" };
@@ -1189,6 +1207,14 @@ function getNextStepPreview() {
   }
 
   if (step.type === "superset") {
+    if (state.phase === "rest") {
+      const firstEx = step.parts.find(p => p.type === "exercise") || step.parts[0];
+      return {
+        title: firstEx.name + (firstEx.unilateral ? " (Left + Right)" : ""),
+        detail: `Next: Round ${state.roundIndex} of ${step.rounds} (${step.name})`,
+        equipment: firstEx.equipment || ""
+      };
+    }
     const nextPartIdx = state.supersetPartIndex + 1;
     if (nextPartIdx < step.parts.length) {
       const nextPart = step.parts[nextPartIdx];
@@ -1197,16 +1223,16 @@ function getNextStepPreview() {
         return afterTransition ? formatStepSummary(afterTransition) : { title: "Next Movement", detail: "Superset", equipment: "" };
       }
       return {
-        title: nextPart.name,
+        title: nextPart.name + (nextPart.unilateral ? " (Left + Right)" : ""),
         detail: `Round ${state.roundIndex}/${step.rounds} · ${nextPart.target || ""}`,
         equipment: nextPart.equipment || ""
       };
     }
     if (state.roundIndex < step.rounds) {
-      const firstEx = step.parts[0];
+      const firstEx = step.parts.find(p => p.type === "exercise") || step.parts[0];
       return {
-        title: firstEx.name,
-        detail: `Round ${state.roundIndex + 1} of ${step.rounds}`,
+        title: firstEx.name + (firstEx.unilateral ? " (Left + Right)" : ""),
+        detail: `Next: Round ${state.roundIndex + 1} of ${step.rounds}`,
         equipment: firstEx.equipment || ""
       };
     }
@@ -1272,9 +1298,24 @@ function upNextMarkup() {
 function stepCarouselMarkup() {
   const workout = currentWorkout();
   const pills = workout.steps.map((step, idx) => {
-    const isDone = idx < state.stepIndex;
-    const isActive = idx === state.stepIndex;
-    const cls = isActive ? "step-pill pill-active" : isDone ? "step-pill pill-done" : "step-pill";
+    let isDone = idx < state.stepIndex;
+    let isActive = idx === state.stepIndex;
+    let isUpcoming = false;
+
+    if (state.restingBetweenSteps) {
+      if (idx === state.stepIndex) {
+        isDone = true;
+        isActive = false;
+      } else if (idx === state.stepIndex + 1) {
+        isUpcoming = true;
+      }
+    }
+
+    let cls = "step-pill";
+    if (isActive) cls += " pill-active";
+    else if (isDone) cls += " pill-done";
+    else if (isUpcoming) cls += " pill-upcoming-next";
+
     const icon = isDone ? "✓" : `${idx + 1}.`;
     let label = step.name;
     if (step.type === "equipment") label = "Gear Change";
@@ -1847,6 +1888,58 @@ function renderSession() {
   renderExercise(step, null);
 }
 
+function restingSetHeroMarkup(ex, progressiveTarget, defaultWt, last) {
+  const s = state.setIndex;
+  const allRecords = state.sessionRecords.filter((r) => r.exerciseId === ex.id);
+  const lastLogged = allRecords[allRecords.length - 1];
+  let lastSummary = "";
+  if (lastLogged) {
+    const wtPrefix = lastLogged.weight ? `${lastLogged.weight}kg · ` : "";
+    if (lastLogged.left !== undefined) {
+      lastSummary = `${wtPrefix}${lastLogged.left}L / ${lastLogged.right}R`;
+    } else if (lastLogged.reps !== undefined) {
+      lastSummary = `${wtPrefix}${lastLogged.reps} reps`;
+    }
+  }
+
+  return `
+    <div class="active-set-hero-card resting-hero-card">
+      <div class="active-set-header">
+        <span class="active-set-badge" style="background: rgba(56, 189, 248, 0.22); color: var(--blue); font-weight: 900;">
+          💤 RESTING BEFORE SET ${s}
+        </span>
+        <span class="active-set-target" style="color: var(--gold); font-weight: 800;">
+          Target: <strong>${progressiveTarget} reps</strong>
+        </span>
+      </div>
+
+      <div style="margin-top: 8px;">
+        <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">UPCOMING WORK SET:</span>
+        <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--ink); margin-top: 2px;">
+          Set ${s} of ${ex.sets} · ${ex.name}
+        </h3>
+      </div>
+
+      <div style="margin: 10px 0; padding: 10px 12px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--ink);">
+        <div>⚖️ Target Weight: <strong style="color: var(--accent);">${lastLogged?.weight ?? defaultWt ?? 0} kg</strong> · Target Reps: <strong style="color: var(--accent);">${progressiveTarget}</strong></div>
+        ${ex.unilateral ? `<div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">⚖️ Unilateral: Perform LEFT side first, then switch to RIGHT side.</div>` : ''}
+      </div>
+
+      <div class="completed-recap-box" style="margin-top: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+          <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
+            JUST COMPLETED
+          </span>
+          <span style="font-size: 0.74rem; color: var(--green); font-weight: 800; background: rgba(34, 197, 94, 0.15); padding: 1px 6px; border-radius: 4px;">
+            ✓ SET ${Math.max(1, s - 1)} LOGGED
+          </span>
+        </div>
+        ${lastSummary ? `<div style="font-size: 0.82rem; color: var(--ink); margin-top: 3px; font-weight: 700;">Result: ${lastSummary}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
 function renderExercise(ex, supersetLabel) {
   const last = getLastExercise(ex.id);
   const step = currentStep();
@@ -1990,7 +2083,7 @@ function renderExercise(ex, supersetLabel) {
     `;
 
     els.sessionPanel.innerHTML = `
-      ${statusMarkup(`<span class="badge badge-easy">✅ ${ex.name} Complete · Next: ${nextName}</span>`)}
+      ${statusMarkup(`<span class="badge" style="background: rgba(251, 191, 36, 0.2); color: var(--gold); border: 1px solid rgba(251, 191, 36, 0.4); font-weight: 800;">🛑 REST & TRANSITION · RECOVERING</span>`)}
       ${flashHtml}
       <div class="session-layout-grid ${gridClass}">
         <div class="session-left-col">
@@ -2118,31 +2211,57 @@ function renderExercise(ex, supersetLabel) {
     </div>
   ` : "";
 
+  const statusBadgeHtml = isResting
+    ? `<span class="badge" style="background: rgba(56, 189, 248, 0.2); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.4); font-weight: 800;">🛑 REST PERIOD · Set ${Math.max(1, state.setIndex - 1)} Logged</span>`
+    : (supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "");
+
+  const leftHeaderHtml = isResting ? `
+    <div style="margin-bottom: 6px;">
+      <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.35); color: var(--blue); padding: 4px 10px; border-radius: 999px; font-size: 0.76rem; font-weight: 900; margin-bottom: 6px;">
+        <span>✓</span>
+        <span>Set ${Math.max(1, state.setIndex - 1)} of ${ex.sets} Logged · Resting</span>
+      </div>
+      <div style="font-size: 0.74rem; font-weight: 800; color: var(--blue); text-transform: uppercase; letter-spacing: 0.06em;">
+        REST PERIOD · PREPARE FOR:
+      </div>
+      <h2 class="exercise-name" style="margin-bottom: 0; font-size: 1.85rem; color: var(--ink);">
+        Set ${state.setIndex} of ${ex.sets} (${ex.name})
+      </h2>
+    </div>
+    <p class="equipment" style="width: 100%;">
+      Target: <strong>${progressiveTarget} reps</strong>${ex.unilateral ? ' per side' : ''} · ⏱ ${displaySeconds}s rest before starting
+    </p>
+  ` : `
+    ${ex.unilateral ? `
+      <div class="unilateral-header-badge">
+        <span>⚖️</span>
+        <span>UNILATERAL: PERFORM BOTH SIDES (LEFT THEN RIGHT)</span>
+      </div>
+    ` : ''}
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px; width: 100%;">
+      <h2 class="exercise-name" style="margin-bottom:0;">
+        ${ex.name}
+        ${ex.unilateral ? `<span style="font-size:0.92rem; color:var(--accent); font-weight:700; margin-left:6px; display:inline-block;">(Left + Right)</span>` : ''}
+      </h2>
+      <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(ex.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>
+    </div>
+    <p class="equipment" style="width: 100%;">
+      🔧 ${ex.equipment} · ⏱ ${restTime}s rest${ex.unilateral ? ` · 🎯 Target: <strong>${progressiveTarget} reps per side</strong>` : ''}
+    </p>
+  `;
+
+  const heroCardHtml = isResting
+    ? restingSetHeroMarkup(ex, progressiveTarget, defaultWt, last)
+    : activeSetHeroMarkup(ex, last);
+
   els.sessionPanel.innerHTML = `
-    ${statusMarkup(supersetLabel ? `<span class="badge">${supersetLabel}</span>` : "")}
+    ${statusMarkup(statusBadgeHtml)}
     ${flashHtml}
     <div class="session-layout-grid ${gridClass}">
       <div class="session-left-col">
-        ${ex.unilateral ? `
-          <div class="unilateral-header-badge">
-            <span>⚖️</span>
-            <span>UNILATERAL: PERFORM BOTH SIDES (LEFT THEN RIGHT)</span>
-          </div>
-        ` : ''}
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:4px; width: 100%;">
-          <h2 class="exercise-name" style="margin-bottom:0;">
-            ${ex.name}
-            ${ex.unilateral ? `<span style="font-size:0.92rem; color:var(--accent); font-weight:700; margin-left:6px; display:inline-block;">(Left + Right)</span>` : ''}
-          </h2>
-          <a class="youtube-link-btn" href="${getExerciseYouTubeUrl(ex.name)}" target="_blank" rel="noopener noreferrer" title="Watch exercise tutorial on YouTube">▶ Form Video</a>
-        </div>
-        <p class="equipment" style="width: 100%;">
-          🔧 ${ex.equipment} · ⏱ ${restTime}s rest${ex.unilateral ? ` · 🎯 Target: <strong>${progressiveTarget} reps per side</strong>` : ''}
-        </p>
-        
+        ${leftHeaderHtml}
         ${focusSummaryHtml}
         ${activeTimerMarkup(timerLabel, displaySeconds, phaseClass)}
-        
         <div class="desktop-actions">
           ${actionButtonsHtml}
         </div>
@@ -2155,7 +2274,7 @@ function renderExercise(ex, supersetLabel) {
           </button>
         </div>
 
-        ${activeSetHeroMarkup(ex, last)}
+        ${heroCardHtml}
         
         <div class="mobile-actions">
           ${actionButtonsHtml}
@@ -2270,7 +2389,7 @@ function renderSuperset(step) {
     `;
 
     els.sessionPanel.innerHTML = `
-      ${statusMarkup(`<span class="badge badge-easy">✅ ${step.name || 'Superset'} Complete · Next: ${nextName}</span>`)}
+      ${statusMarkup(`<span class="badge" style="background: rgba(251, 191, 36, 0.2); color: var(--gold); border: 1px solid rgba(251, 191, 36, 0.4); font-weight: 800;">🛑 REST & TRANSITION · RECOVERING</span>`)}
       <div class="session-layout-grid ${gridClass}">
         <div class="session-left-col">
           <div class="completed-step-pill">
