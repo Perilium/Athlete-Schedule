@@ -62,7 +62,7 @@
    - Easy walk/jog, World's Greatest Stretch, knee-to-wall ankle mobility, leg swings, 2–3 short accelerations.
 2. **VO2 Intervals** (8 rounds):
    - **HARD**: 60s (8–9/10 exertion)
-   - **EASY**: 75s default (clamp range: 60–90s)
+   - **EASY**: 60s default (1:1 minute-by-minute alternate; clamp range: 20–180s)
 3. **Cooldown**: ~5 min (300s) easy walking and relaxed breathing.
 
 ---

@@ -100,7 +100,7 @@ const DEFAULT_SETTINGS = {
   defaultRest: 45,
   supersetRest: 60,
   vo2Hard: 60,
-  easyRecoverySeconds: 75,
+  easyRecoverySeconds: 60,
   equipChangeSeconds: 90
 };
 
@@ -152,7 +152,9 @@ const store = {
   },
   get settings() {
     try {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("hybrid_settings") || "{}") };
+      const parsed = JSON.parse(localStorage.getItem("hybrid_settings") || "{}");
+      if (parsed.easyRecoverySeconds === 75) parsed.easyRecoverySeconds = 60;
+      return { ...DEFAULT_SETTINGS, ...parsed };
     } catch {
       return { ...DEFAULT_SETTINGS };
     }
@@ -2518,7 +2520,7 @@ function renderIntervals(step) {
   const label = isHard ? "HARD SPRINT" : "EASY RECOVERY";
   const phaseClass = isHard ? "phase-hard" : "phase-easy";
   const badgeClass = isHard ? "badge-hard" : "badge-easy";
-  const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 75);
+  const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 60);
 
   els.sessionPanel.innerHTML = `
     ${statusMarkup(`<span class="badge ${badgeClass}">Round ${state.roundIndex} of ${step.rounds} · ${label}</span>`)}
@@ -2847,7 +2849,7 @@ function startRestBetweenSteps(seconds) {
 
 function startInterval(step) {
   const isHard = state.intervalPhase === "hard";
-  const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 75);
+  const seconds = isHard ? (store.settings.vo2Hard || step.hardSeconds || 60) : (store.settings.easyRecoverySeconds || 60);
   playIntervalCue(isHard);
 
   startCountdown(seconds, () => {
@@ -2963,7 +2965,7 @@ function getCurrentStepDefaultDuration() {
     return part.workSeconds || 45;
   }
   if (step.type === "intervals") {
-    return state.intervalPhase === "hard" ? (store.settings.vo2Hard || 60) : (store.settings.easyRecoverySeconds || 75);
+    return state.intervalPhase === "hard" ? (store.settings.vo2Hard || 60) : (store.settings.easyRecoverySeconds || 60);
   }
   if (step.type === "timed") return step.seconds || 300;
   if (step.type === "equipment") return store.settings.equipChangeSeconds || step.seconds || 90;
@@ -3228,7 +3230,7 @@ function prevStepUnit() {
         notifyDone();
         state.intervalPhase = "easy";
         renderSession();
-        const easySec = store.settings.easyRecoverySeconds || 75;
+        const easySec = store.settings.easyRecoverySeconds || 60;
         startCountdown(easySec, () => {
           notifyDone();
           advanceIntervalRound(step);
@@ -3244,7 +3246,7 @@ function prevStepUnit() {
         notifyDone();
         state.intervalPhase = "easy";
         renderSession();
-        const easySec = store.settings.easyRecoverySeconds || 75;
+        const easySec = store.settings.easyRecoverySeconds || 60;
         startCountdown(easySec, () => {
           notifyDone();
           advanceIntervalRound(step);
@@ -3524,7 +3526,7 @@ function renderSettings() {
   if (els.defaultRestInput) els.defaultRestInput.value = settings.defaultRest || 45;
   if (els.supersetRestInput) els.supersetRestInput.value = settings.supersetRest || 60;
   if (els.vo2HardInput) els.vo2HardInput.value = settings.vo2Hard || 60;
-  if (els.easyRecoveryInput) els.easyRecoveryInput.value = settings.easyRecoverySeconds || 75;
+  if (els.easyRecoveryInput) els.easyRecoveryInput.value = settings.easyRecoverySeconds || 60;
   if (els.equipChangeInput) els.equipChangeInput.value = settings.equipChangeSeconds || 90;
   updateSoundQuickBtn();
   renderProfile();
@@ -3590,7 +3592,7 @@ function saveSettings() {
     defaultRest: clamp(Number(els.defaultRestInput?.value) || 45, 15, 300),
     supersetRest: clamp(Number(els.supersetRestInput?.value) || 60, 15, 300),
     vo2Hard: clamp(Number(els.vo2HardInput?.value) || 60, 20, 180),
-    easyRecoverySeconds: clamp(Number(els.easyRecoveryInput?.value) || 75, 60, 90),
+    easyRecoverySeconds: clamp(Number(els.easyRecoveryInput?.value) || 60, 20, 180),
     equipChangeSeconds: clamp(Number(els.equipChangeInput?.value) || 90, 30, 300)
   };
   renderSettings();
