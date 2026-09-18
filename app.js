@@ -1890,19 +1890,232 @@ function renderSession() {
   renderExercise(step, null);
 }
 
+window.stepSetRecord = function (exerciseId, setNum, field, delta) {
+  let record = state.sessionRecords.find((r) => r.exerciseId === exerciseId && r.set === setNum);
+  if (!record) {
+    const step = currentStep();
+    record = {
+      date: new Date().toISOString(),
+      day: currentWorkout()?.label || "Workout",
+      exerciseId,
+      exerciseName: step?.name || exerciseId,
+      equipment: step?.equipment || "",
+      weight: 0,
+      set: setNum,
+      durationSeconds: elapsedSeconds()
+    };
+    state.sessionRecords.push(record);
+  }
+  const current = parseFloat(record[field]) || 0;
+  const next = Math.max(0, current + delta);
+  const rounded = Math.round(next * 10) / 10;
+  record[field] = rounded;
+  saveActiveSession();
+
+  // Update inputs in DOM
+  const inputs = document.querySelectorAll(`[data-set-field="${exerciseId}-${setNum}-${field}"]`);
+  inputs.forEach((input) => {
+    input.value = rounded;
+  });
+
+  const summaryLeft = document.getElementById(`set-summary-${exerciseId}-${setNum}-left`);
+  if (summaryLeft && field === "left") summaryLeft.textContent = `${rounded} reps`;
+  const summaryRight = document.getElementById(`set-summary-${exerciseId}-${setNum}-right`);
+  if (summaryRight && field === "right") summaryRight.textContent = `${rounded} reps`;
+};
+
+function renderSetQuickEditCard(ex, setNum, titleBadge, subtitle) {
+  const isUnilateral = !!ex.unilateral;
+  const isTimeTracking = ex.id === "suitcase-carry";
+  const defaultWt = getExerciseDefaultWeight(ex.equipment);
+  const record = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === setNum) || {};
+  const currentWt = (record.weight !== undefined && record.weight !== null) ? record.weight : (defaultWt || 0);
+  const progressiveTarget = getProgressiveTarget(ex.target, setNum, ex.sets);
+  const defaultReps = getSuggestedReps(ex.target, setNum, ex.sets, null, ex.id);
+
+  const sideNoun = (ex.unilateral === "leg" ? "LEG" : (ex.unilateral === "arm" ? "ARM" : "SIDE"));
+
+  let repsControlHtml = "";
+  if (isUnilateral) {
+    const leftVal = record.left ?? defaultReps;
+    const rightVal = record.right ?? defaultReps;
+    repsControlHtml = `
+      <div class="unilateral-inputs-wrap" style="display: flex; gap: 8px; width: 100%; margin-top: 8px;">
+        <div class="unilateral-side-card side-left" style="flex: 1; padding: 6px 10px; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <span style="font-size: 0.72rem; color: var(--accent); font-weight: 800;">👈 LEFT ${sideNoun}</span>
+            <span id="set-summary-${ex.id}-${setNum}-left" style="font-size: 0.7rem; color: var(--accent); font-weight: 800;">${leftVal} reps</span>
+          </div>
+          <div class="input-with-stepper">
+            <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'left', -1)">-1</button>
+            <input data-set-field="${ex.id}-${setNum}-left" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
+              value="${leftVal}" onchange="updateActiveSetRecord('${ex.id}', ${setNum}, 'left', this.value)">
+            <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'left', 1)">+1</button>
+          </div>
+        </div>
+        <div class="unilateral-side-card side-right" style="flex: 1; padding: 6px 10px; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <span style="font-size: 0.72rem; color: var(--gold); font-weight: 800;">👉 RIGHT ${sideNoun}</span>
+            <span id="set-summary-${ex.id}-${setNum}-right" style="font-size: 0.7rem; color: var(--gold); font-weight: 800;">${rightVal} reps</span>
+          </div>
+          <div class="input-with-stepper">
+            <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'right', -1)">-1</button>
+            <input data-set-field="${ex.id}-${setNum}-right" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
+              value="${rightVal}" onchange="updateActiveSetRecord('${ex.id}', ${setNum}, 'right', this.value)">
+            <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'right', 1)">+1</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const repsVal = record.reps ?? defaultReps;
+    repsControlHtml = `
+      <div class="active-input-group" style="flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <label style="margin: 0; font-size: 0.72rem; font-weight: 800;">${isTimeTracking ? "HOLD SECONDS" : "REPS PERFORMED"}</label>
+          <span style="font-size: 0.72rem; color: var(--muted);">Target: <strong style="color: var(--ink);">${progressiveTarget}</strong></span>
+        </div>
+        <div class="input-with-stepper">
+          <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'reps', -1)">-1</button>
+          <input data-set-field="${ex.id}-${setNum}-reps" class="active-hero-input" inputmode="numeric" type="number" min="0" max="180" 
+            value="${repsVal}" onchange="updateActiveSetRecord('${ex.id}', ${setNum}, 'reps', this.value)">
+          <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'reps', 1)">+1</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="completed-recap-box interactive-recap-box" style="margin-top: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+        <span style="font-size: 0.76rem; color: var(--green); font-weight: 900; letter-spacing: 0.04em; display: flex; align-items: center; gap: 5px;">
+          <span>✓</span> ${titleBadge}
+        </span>
+        <span style="font-size: 0.7rem; color: var(--accent); font-weight: 800; background: rgba(45, 212, 191, 0.15); padding: 1px 6px; border-radius: 4px;">
+          ✏️ Edit Reps / Weight
+        </span>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px;">${subtitle}</div>
+
+      <div class="active-set-controls" style="gap: 10px;">
+        <div class="active-input-group" style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="margin: 0; font-size: 0.72rem; font-weight: 800;">WEIGHT (KG)</label>
+            <span style="font-size: 0.72rem; color: var(--muted);">${defaultWt ? defaultWt + 'kg default' : 'Bodyweight'}</span>
+          </div>
+          <div class="input-with-stepper">
+            <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'weight', -2.5)">-2.5</button>
+            <input data-set-field="${ex.id}-${setNum}-weight" class="active-hero-input" inputmode="decimal" type="number" step="0.5" min="0" max="300" 
+              value="${currentWt}" placeholder="${defaultWt ? defaultWt + 'kg' : '0'}"
+              onchange="updateActiveSetRecord('${ex.id}', ${setNum}, 'weight', this.value)">
+            <button type="button" class="mini-stepper-btn" onclick="stepSetRecord('${ex.id}', ${setNum}, 'weight', 2.5)">+2.5</button>
+          </div>
+        </div>
+        ${!isUnilateral ? repsControlHtml : ''}
+      </div>
+      ${isUnilateral ? repsControlHtml : ''}
+    </div>
+  `;
+}
+
+function renderSectionAllSetsReview(ex) {
+  const isTimeTracking = ex.id === "suitcase-carry";
+  const defaultWt = getExerciseDefaultWeight(ex.equipment);
+  const isUnilateral = !!ex.unilateral;
+
+  let rowsHtml = "";
+  for (let s = 1; s <= ex.sets; s++) {
+    const record = state.sessionRecords.find((r) => r.exerciseId === ex.id && r.set === s) || {};
+    const progressiveTarget = getProgressiveTarget(ex.target, s, ex.sets);
+    const defaultReps = getSuggestedReps(ex.target, s, ex.sets, null, ex.id);
+    const wtVal = (record.weight !== undefined && record.weight !== null) ? record.weight : (defaultWt || 0);
+
+    let repsInputs = "";
+    if (isUnilateral) {
+      const leftVal = record.left ?? defaultReps;
+      const rightVal = record.right ?? defaultReps;
+      repsInputs = `
+        <div style="display: flex; gap: 4px; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 2px;">
+            <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.7rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'left', -1)">-</button>
+            <input data-set-field="${ex.id}-${s}-left" style="width: 44px; padding: 4px 2px; text-align: center; font-weight: 800; font-size: 0.8rem; background: rgba(45, 212, 191, 0.1); border: 1px solid var(--accent); border-radius: 4px; color: var(--accent);" 
+              type="number" value="${leftVal}" onchange="updateActiveSetRecord('${ex.id}', ${s}, 'left', this.value)" title="Left reps">
+            <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.7rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'left', 1)">+</button>
+          </div>
+          <span style="font-size: 0.7rem; color: var(--muted);">L</span>
+          <span style="font-size: 0.7rem; color: var(--muted); margin: 0 1px;">/</span>
+          <div style="display: flex; align-items: center; gap: 2px;">
+            <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.7rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'right', -1)">-</button>
+            <input data-set-field="${ex.id}-${s}-right" style="width: 44px; padding: 4px 2px; text-align: center; font-weight: 800; font-size: 0.8rem; background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); border-radius: 4px; color: var(--gold);" 
+              type="number" value="${rightVal}" onchange="updateActiveSetRecord('${ex.id}', ${s}, 'right', this.value)" title="Right reps">
+            <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.7rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'right', 1)">+</button>
+          </div>
+          <span style="font-size: 0.7rem; color: var(--muted);">R</span>
+        </div>
+      `;
+    } else {
+      const repsVal = record.reps ?? defaultReps;
+      repsInputs = `
+        <div style="display: flex; align-items: center; gap: 3px;">
+          <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.75rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'reps', -1)">-1</button>
+          <input data-set-field="${ex.id}-${s}-reps" style="width: 52px; padding: 4px; text-align: center; font-weight: 800; font-size: 0.85rem; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--ink);" 
+            type="number" value="${repsVal}" onchange="updateActiveSetRecord('${ex.id}', ${s}, 'reps', this.value)">
+          <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.75rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'reps', 1)">+1</button>
+          <span style="font-size: 0.72rem; color: var(--muted); margin-left: 2px;">${isTimeTracking ? 'sec' : 'reps'}</span>
+        </div>
+      `;
+    }
+
+    rowsHtml += `
+      <div class="section-all-sets-row">
+        <div style="display: flex; align-items: center; gap: 8px; min-width: 85px;">
+          <span class="set-num-badge" style="width: 24px; height: 24px; font-size: 0.72rem;">${s}</span>
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 800; color: var(--ink);">Set ${s}</div>
+            <div style="font-size: 0.7rem; color: var(--muted);">Target: ${progressiveTarget}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 3px;">
+          <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.7rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'weight', -2.5)">-</button>
+          <input data-set-field="${ex.id}-${s}-weight" style="width: 48px; padding: 4px 2px; text-align: center; font-weight: 700; font-size: 0.8rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 4px; color: var(--ink);" 
+            type="number" step="0.5" value="${wtVal}" onchange="updateActiveSetRecord('${ex.id}', ${s}, 'weight', this.value)">
+          <button type="button" class="mini-stepper-btn" style="padding: 3px 6px; font-size: 0.7rem;" onclick="stepSetRecord('${ex.id}', ${s}, 'weight', 2.5)">+</button>
+          <span style="font-size: 0.72rem; color: var(--muted);">kg</span>
+        </div>
+
+        <div>
+          ${repsInputs}
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="section-all-sets-review">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div>
+          <span style="font-size: 0.76rem; color: var(--accent); font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em;">
+            📋 SECTION RECAP: ${ex.name.toUpperCase()}
+          </span>
+          <div style="font-size: 0.74rem; color: var(--muted); margin-top: 2px;">Review or edit any set before moving on:</div>
+        </div>
+        <span style="font-size: 0.72rem; color: var(--green); font-weight: 800; background: rgba(34, 197, 94, 0.15); padding: 2px 8px; border-radius: 999px;">
+          ✓ All ${ex.sets} Sets
+        </span>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        ${rowsHtml}
+      </div>
+    </div>
+  `;
+}
+
 function restingSetHeroMarkup(ex, progressiveTarget, defaultWt, last) {
   const s = state.setIndex;
+  const completedSetNum = Math.max(1, s - 1);
   const allRecords = state.sessionRecords.filter((r) => r.exerciseId === ex.id);
   const lastLogged = allRecords[allRecords.length - 1];
-  let lastSummary = "";
-  if (lastLogged) {
-    const wtPrefix = lastLogged.weight ? `${lastLogged.weight}kg · ` : "";
-    if (lastLogged.left !== undefined) {
-      lastSummary = `${wtPrefix}${lastLogged.left}L / ${lastLogged.right}R`;
-    } else if (lastLogged.reps !== undefined) {
-      lastSummary = `${wtPrefix}${lastLogged.reps} reps`;
-    }
-  }
 
   return `
     <div class="active-set-hero-card resting-hero-card">
@@ -1927,17 +2140,12 @@ function restingSetHeroMarkup(ex, progressiveTarget, defaultWt, last) {
         ${ex.unilateral ? `<div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">⚖️ Unilateral: Perform LEFT side first, then switch to RIGHT side.</div>` : ''}
       </div>
 
-      <div class="completed-recap-box" style="margin-top: 8px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-          <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
-            JUST COMPLETED
-          </span>
-          <span style="font-size: 0.74rem; color: var(--green); font-weight: 800; background: rgba(34, 197, 94, 0.15); padding: 1px 6px; border-radius: 4px;">
-            ✓ SET ${Math.max(1, s - 1)} LOGGED
-          </span>
-        </div>
-        ${lastSummary ? `<div style="font-size: 0.82rem; color: var(--ink); margin-top: 3px; font-weight: 700;">Result: ${lastSummary}</div>` : ''}
-      </div>
+      ${renderSetQuickEditCard(
+        ex, 
+        completedSetNum, 
+        `SET ${completedSetNum} JUST COMPLETED`, 
+        `Adjust reps or weight if you didn't have time while lifting:`
+      )}
     </div>
   `;
 }
@@ -2066,21 +2274,14 @@ function renderExercise(ex, supersetLabel) {
 
         ${nextStepPrepBox}
 
-        <!-- Recap of Completed Exercise -->
-        <div class="completed-recap-box">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-            <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em;">
-              FINISHED JUST NOW
-            </span>
-            <span style="font-size: 0.75rem; color: var(--green); font-weight: 800; background: rgba(34, 197, 94, 0.15); padding: 2px 6px; border-radius: 4px;">
-              ✓ ALL ${ex.sets} SETS COMPLETE
-            </span>
-          </div>
-          <div style="font-size: 0.98rem; font-weight: 800; color: var(--ink); margin-top: 4px;">
-            🏆 ${ex.name}
-          </div>
-          ${finalSetText ? `<div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Final Set Logged: <strong style="color: var(--ink);">${finalSetText}</strong></div>` : ''}
-        </div>
+        <!-- Recap of Completed Exercise with Interactive Edit of Final Set & All Sets -->
+        ${renderSetQuickEditCard(
+          ex, 
+          ex.sets, 
+          `FINAL SET ${ex.sets} OF ${ex.sets} JUST FINISHED`, 
+          `Did you do more or fewer reps on your final set? Adjust below:`
+        )}
+        ${renderSectionAllSetsReview(ex)}
       </div>
     `;
 
@@ -2387,6 +2588,7 @@ function renderSuperset(step) {
           </div>
           <div style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Completed movements: <strong>${exNames}</strong></div>
         </div>
+        ${exParts.map((p) => renderSectionAllSetsReview(p)).join("")}
       </div>
     `;
 
@@ -2780,8 +2982,20 @@ window.updateActiveSetRecord = function (exerciseId, setNum, field, value) {
     state.sessionRecords.push(record);
   }
   const parsed = parseFloat(value);
-  record[field] = isNaN(parsed) ? 0 : parsed;
+  const val = isNaN(parsed) ? 0 : parsed;
+  record[field] = val;
   saveActiveSession();
+
+  // Keep other inputs across cards and tables in sync
+  const inputs = document.querySelectorAll(`[data-set-field="${exerciseId}-${setNum}-${field}"]`);
+  inputs.forEach((input) => {
+    if (parseFloat(input.value) !== val) input.value = val;
+  });
+
+  const summaryLeft = document.getElementById(`set-summary-${exerciseId}-${setNum}-left`);
+  if (summaryLeft && field === "left") summaryLeft.textContent = `${val} reps`;
+  const summaryRight = document.getElementById(`set-summary-${exerciseId}-${setNum}-right`);
+  if (summaryRight && field === "right") summaryRight.textContent = `${val} reps`;
 };
 
 function advanceSuperset() {
